@@ -1,0 +1,20 @@
+{
+    "entry": "QYServer.js",
+    "name": "QYServer",
+    "type": "lse-quickjs",
+    "version": "1.0.0",
+    "author": "fangfubin0782",
+    "description": "QY服务器专用插件",
+    "extraInfo": {},
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-quickjs"
+        },
+        {
+            "name": "GMLIB-LegacyRemoteCallApi"
+        },
+        {
+            "name": "iListenAttentively-LseExport"
+        }
+    ]
+}
