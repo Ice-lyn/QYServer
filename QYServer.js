@@ -6,15 +6,16 @@ const { Event } = require("./GMLIB-LegacyRemoteCallApi/lib/EventAPI-JS");
 const { PAPI } = require('./GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS')
 
 const il = require("./iListenAttentively-LseExport/lib/iListenAttentively.js")
+const func = require("./lib/func.js");
 const config = require("./QYServer/config/config.js")
-import "./plugins/QYServer/lib/index.js"
+import "./plugins/QYServer/lib/mode/index.js"
 
 logger.setTitle("Server")
 
 // 初始化变量
 let is_reload = (mc.getOnlinePlayers().length != 0)
 
-PAPI.registerPlayerPlaceholder(getChatTag,"QYServer","player_chatTag")// 注册PAPI
+PAPI.registerPlayerPlaceholder(func.getChatTag,"QYServer","player_chatTag")// 注册PAPI
 mc.listen("onEndermanTakeBlock", () => false) // 防搬方块
 mc.listen("onWitherBossDestroy", () => false) // 凋零防爆
 mc.listen("onRespawnAnchorExplode",(pos,pl) => {// 重生毛爆炸
@@ -111,10 +112,10 @@ mc.listen("onJoin",(player) => {
     if (config.banName.has(player.realName) 
         || config.banXuid.has(player.xuid) 
         || config.banClient.has(player.getDevice().clientId)
-    ) return crash(player)
+    ) return func.crash(player)
     //if (player.getDevice().serverAddress === "qymc.fucku.top:41657" && player.hasTag("player")) return joinSkip(player)
     if (!player.hasTag("player")) newPlayerUi(player)
-    if (!is_reload) mc.runcmdEx(`execute as "${player.realName}" at @s run function function/Server/player_initializ`)
+    if (!is_reload) func.enRuncmd(player, "function function/Server/player_initializ")
 })
 
 // 后台执行命令
@@ -127,7 +128,7 @@ mc.listen("onConsoleCmd",(cmd) => {
         setTimeout(() => mc.runcmd("scriptevent qys:command noChat true"),2000)
         return
       case "testfor":
-        mc.getOnlinePlayers().forEach(pl=>log(`${pl.realName} -> ${mc.runcmdEx("execute as \""+pl.realName+"\" at @s run testfor @e[r=160]").output?.split(", ")?.length}`))
+            mc.getOnlinePlayers().forEach(pl => log(`${pl.realName} -> ${func.enRuncmd(pl, "testfor @e[r=160]").output?.split(", ")?.length}`))
         return false
       case "tps":
         logger.info(mc.runcmdEx("cleaner tps").output)
@@ -141,7 +142,7 @@ mc.listen("onConsoleCmd",(cmd) => {
       case "list -i":
         mc.getOnlinePlayers().forEach(pl => {
           const dev = pl.getDevice()
-          logger.info(mcCode2Ansi(`${pl.realName} §a-ping §l${dev.avgPing}ms§r §b-os §l${dev.os}§r §e-ip §l${dev.ip}§r §d-clientId §l${dev.clientId}§r`))
+          logger.info(func.mcCode2Ansi(`${pl.realName} §a-ping §l${dev.avgPing}ms§r §b-os §l${dev.os}§r §e-ip §l${dev.ip}§r §d-clientId §l${dev.clientId}§r`))
         })
         return false
     }
@@ -159,16 +160,16 @@ mc.listen("onConsoleCmd",(cmd) => {
 // 玩家发送聊天信息
 mc.listen("onChat", (player, msg) => {
     const dim = {0: "§b主世界§r", 1: "§c下界§r", 2: "§d末地§r"}[player.pos.dimid] || "§9未知§r"
-    const tag = getChatTag(player)
+    const tag = func.getChatTag(player)
     const ms = player.getDevice()?.avgPing > 100 ? `[§c${player.getDevice().avgPing}§rms§r]` : ""
     if (!(player.isOP() || player.hasTag("op"))) msg = msg.replace(/\n/g, '\\n')
     logger.setTitle("Chat")
     logger.info(`<${player.realName}> ${msg}`)
     logger.setTitle("Server")
-    msg = textToEmoji(msg)
+    msg = func.textToEmoji(msg)
     if (msg[0] === "+") return
     mc.broadcast(`[${tag}][${dim}]${ms}${player.realName} >> ${msg}`,1)
-    if (["ai","服务","妈","操"].some(i => msg.includes(i))) aiChatServer(textToEmoji(msg,1),player.realName)
+    if (["ai","服务","妈","操"].some(i => msg.includes(i))) aiChatServer(func.textToEmoji(msg,1),player.realName)
     switch (true) {
         case msg.toLowerCase().includes("ciallo"):
             mc.runcmdEx("execute as @a at @s run playsound custom.ciallo_sound @s");
@@ -180,7 +181,7 @@ mc.listen("onChat", (player, msg) => {
             mc.runcmdEx("execute as @a at @s run playsound mob.cat.meow @s");
             break;
         case msg.includes("死"):
-            aiChatServer(textToEmoji(msg,1))
+            aiChatServer(func.textToEmoji(msg,1))
             player.tell("§l你不孤单，我们都在！！")
             player.tell(">> 如果需要帮助，请拨打全国24小时免费心理咨询热线")
             player.tell(">> 010-82951332")
@@ -209,7 +210,7 @@ mc.listen("onPlayerCmd", (player, cmd) => {
             player.tell("==============")
             player.tell(`所有实体数: ${mc.runcmdEx("testfor @e").output.split(", ").length}`)
             player.tell("玩家240格附近实体数：")
-            mc.getOnlinePlayers().forEach(pl=>player.tell(`${pl.realName} -> ${mc.runcmdEx("execute as \""+pl.realName+"\" at @s run testfor @e[r=240]").output?.split(", ")?.length}`))
+            mc.getOnlinePlayers().forEach(pl=>player.tell(`${pl.realName} -> ${func.enRuncmd(pl, "testfor @e[r=240]").output?.split(", ")?.length}`))
             player.tell("==============")
             return false
     }
@@ -222,7 +223,7 @@ mc.listen("onPlayerCmd", (player, cmd) => {
             setTimeout(() => mc.runcmdEx(`ride "${player.realName}" start_riding @e[type=qys:ride,name="qys:rideing_${player.realName}"]`),250)
             return player.tell("[§aTip§r] 再次输入\"/fc\"开关自由视角")
         case "rotate":
-            if (!isNull(player.getBlockFromViewVector(false)?.pos) && !LandJudgment(player,player.getBlockFromViewVector(false)?.pos)) {
+            if (!func.isNull(player.getBlockFromViewVector(false)?.pos) && !func.LandJudgment(player,player.getBlockFromViewVector(false)?.pos)) {
                 player.tell("这里是领地，你无权操作",3)
                 return false
             }
@@ -297,10 +298,10 @@ mc.listen("onUseItem",(pl,item) => {
     if (item.type === "qys:wing") {
         if (pl.maxHealth === 60) return pl.tell("[§aTip§r] 您的光翼已达上限(" + pl.maxHealth + "/60)")
         pl.setMaxHealth(pl.maxHealth + 1)
-        pl.tell(""+mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound random.orb @s`).output)
+        pl.tell(""+func.enRuncmd(pl, "playsound random.orb @s").output)
         return pl.clearItem("qys:wing",1)
     }
-    if (item.type === "qys:magic") return mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound custom.magic_use_sound @a[r=10] ~~~`)
+    if (item.type === "qys:magic") return func.enRuncmd(pl, "playsound custom.magic_use_sound @a[r=10] ~~~")
     if (pl.isSneaking && !pl.getHand()?.isNull()) return xpFix(pl)
 })
 
@@ -308,8 +309,8 @@ mc.listen("onUseItem",(pl,item) => {
 mc.listen("onMobDie", (mob,source) => {
     if (!mob || !source) return
     if (source.type !== "minecraft:player") return
-    if (probability(15)) mc.spawnItem(mc.newItem("qys:candle_white",1),mob.pos)
-    mc.runcmdEx(`execute as "${source.toPlayer().realName}" at @s run function function/killEntity`)
+    if (func.probability(15)) mc.spawnItem(mc.newItem("qys:candle_white",1),mob.pos)
+    func.enRuncmd(source.toPlayer() ,"function function/killEntity")
 })
 
 // 玩家重生事件
@@ -335,14 +336,14 @@ mc.listen("onPistonTryPush", (pos,block) => {
 
 // 玩家交互实体
 mc.listen("onPlayerInteractEntity", (player, entity) => {
-    if (player.hasTag("qys:touch")) entityRuncmd(entity,"function function/pat")
+    if (player.hasTag("qys:touch")) func.enRuncmd(entity,"function function/pat")
   
     if (entity.type.includes("qys:firework_") && !entity.hasTag("qys:firework_open")) {
         if (player.getHand().type !== "minecraft:flint_and_steel") return player.tell("需要用打火机点燃这个烟花!",5)
         entity.addTag("qys:firework_open")
         entity.addEffect(24,114514,20,false)
-        entityRuncmd(entity,"scoreboard players random @s fireworks_time 20 30")
-        entityRuncmd(entity,"playsound custom.firework_front @a[r=13] ~~~")
+        func.enRuncmd(entity,"scoreboard players random @s fireworks_time 20 30")
+        func.enRuncmd(entity,"playsound custom.firework_front @a[r=13] ~~~")
     }  
 })
 
@@ -370,7 +371,7 @@ mc.listen("onUseItemOn",(player,item,block) => {
     mc.runcmdEx(`execute at "${player.realName}" run summon qys:ride "qys:rideing_${player.realName}" ${block.pos.x} ${block.pos.y} ${block.pos.z}`)
     mc.runcmdEx(`execute as @e[type=qys:ride,name="qys:rideing_${player.realName}"] at @s run tp ~~~ ${rotate}`)
     mc.runcmdEx(`tag @e[type=qys:ride,name="qys:rideing_${player.realName}"] add qys:ride_player`)
-    setTimeout(() => mc.runcmdEx(`execute as "${player.realName}" at @s run ride @s start_riding @e[type=qys:ride,rm=0.0001,name="qys:rideing_${player.realName}"]`),2)
+    setTimeout(() => func.enRuncmd(player, `ride @s start_riding @e[type=qys:ride,rm=0.0001,name="qys:rideing_${player.realName}"]`),2)
 })
 
 // ** 循环计时器区 ** //
@@ -413,7 +414,7 @@ mc.listen('onServerStarted', ()=> {
             if (!(pl.hasTag("qys:can_speed") && pl.isGliding)) return
             const speed = Math.floor(pl.speed) - 5
             if (speed <= 10) return
-            mc.runcmdEx(`execute as "${pl.realName}" at @s run damage @e[r=3.5,rm=0.01,family=monster] ${speed} entity_attack entity @s`)
+            func.enRuncmd(player, `damage @e[r=3.5,rm=0.01,family=monster] ${speed} entity_attack entity @s`)
             pl.tell("speed: "+speed,3)
       })
     },100)
@@ -449,9 +450,9 @@ mc.listen('onServerStarted', ()=> {
           "============= 数据文件相关 =============",
           `数据库玩家数：${data.getAllPlayerInfo().length} 人`,
           `已加载插件数：${ll.listPlugins().length} 个`,
-          `领地数据文件大小：${getFileSize(File.getFileSize("./plugins/iland/data.json"))}`,
-          `成就数据文件大小：${getFileSize(File.getFileSize("./plugins/Achievement/Data.json"))}`,
-          `当日日志文件大小：${getFileSize(File.getFileSize(`./logs/BehaviorLog/BehaviorLog-${system.getTimeStr().split(" ")[0]}.csv`))}`,
+          `领地数据文件大小：${func.getFileSize(File.getFileSize("./plugins/iland/data.json"))}`,
+          `成就数据文件大小：${func.getFileSize(File.getFileSize("./plugins/Achievement/Data.json"))}`,
+          `当日日志文件大小：${func.getFileSize(File.getFileSize(`./logs/BehaviorLog/BehaviorLog-${system.getTimeStr().split(" ")[0]}.csv`))}`,
           `日志记录文件总数：${File.getFilesList("./logs/BehaviorLog/").length}`,
           "======================================"
         ]
@@ -484,11 +485,11 @@ mc.listen('onServerStarted', ()=> {
         
         const fm = mc.newCustomForm()
           .setTitle("称号设置")
-          .addDropdown("选择一个要佩戴的称号\n已佩戴称号: " + getChatTag(ori.player), tagList);
+          .addDropdown("选择一个要佩戴的称号\n已佩戴称号: " + func.getChatTag(ori.player), tagList);
         player.sendForm(fm, (pl, data) => {
-            if (isNull(data)) return
+            if (func.isNull(data)) return
             mc.runcmdEx(`tag "${pl.realName}" add "usf.${tagList[data]}"`)
-            mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound random.levelup @s ~~~ 10 2`)
+            func.enRuncmd(pl, "playsound random.levelup @s ~~~ 10 2")
             setTimeout(() => pl.tell("[§e称号系统§r] >> §a佩戴成功, 已佩戴称号§r: " + tagList[data].replace(/^tag:/, "")),20)
         });
     })
@@ -501,7 +502,7 @@ mc.listen('onServerStarted', ()=> {
     const cmd = mc.newCommand('offhand', '§a主副手切换' ,PermType.Any)
     cmd.setCallback((_cmd, ori, out, _res) => {
         const player = ori.player
-        if (isNull(player)) return
+        if (func.isNull(player)) return
         if (player.getHand()?.getNbt()?.getTag("tag")?.getData("PickUp")) return out.error("请放下搬运物再使用吧")
         let itemBak = player.getHand().clone()
         player.getHand().set(player.getOffHand())
@@ -520,7 +521,7 @@ mc.listen('onServerStarted', ()=> {
     const cmd = mc.newCommand('helmet', '§a头部盔甲切换' ,PermType.Any)
     cmd.setCallback((_cmd, ori, out, _res) => {
         const player = ori.player
-        if (isNull(player)) return
+        if (func.isNull(player)) return
         if (player.getHand()?.getNbt()?.getTag("tag")?.getData("PickUp")) return out.error("请放下搬运物再使用吧")
         const itemBak = player.getHand().clone()
         player.getHand().set(player.getArmor().getItem(0))
@@ -543,7 +544,7 @@ mc.listen("onServerStarted", ()=> {
         return out.error("The \"/scale\" command is not supported anymore.")
         const player = ori.player
         if (!player) return
-        if (isNull(res.Int)) {
+        if (func.isNull(res.Int)) {
             player.setScale(1)
             return out.success("大小已恢复为默认值")
         }
@@ -564,7 +565,7 @@ mc.listen("onServerStarted", ()=> {
     cmd.setCallback((_cmd, ori, out, res) => {
         if (res.text) {
             const data = `${ori.player ? ori.player.realName : ori.name} >> ${res.text}`
-            logger.warn(delStringCode(`[反馈] ${data}`))
+            logger.warn(func.delStringCode(`[反馈] ${data}`))
             File.writeLine("./plugins/QYServer/Data/issues.txt",`[${system.getTimeStr()}] ${data}`)
             return out.success("反馈已提交！")
         }
@@ -574,7 +575,7 @@ mc.listen("onServerStarted", ()=> {
           .addInput("反馈内容")
         ori.player.sendForm(fm, (pl, data) => {
             if (!data) return
-            logger.warn(delStringCode(`[反馈] ${pl.realName} >> ${data}`))
+            logger.warn(func.delStringCode(`[反馈] ${pl.realName} >> ${data}`))
             File.writeLine("./plugins/QYServer/Data/issues.txt",`[${system.getTimeStr()}] ${pl.realName} >> ${data}`)
             pl.tell("§a反馈已提交！")
         })
@@ -623,14 +624,14 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_cmd, pla, out, _res) => {
         if (!pla.player) return out.success("过不去，怎么样都过不去>_<")
         pla.player.sendSimpleForm("前往其他服", "生存玩腻了? 快来其他服玩玩吧∽",config.serverList.map(s=>s.name),config.serverList.map(s=>s.ui),(pl, id) => {
-            if (isNull(id)) return
+            if (func.isNull(id)) return
             //if (![766, 776, 786, 800, 818, 819, 827, 844].includes(Number(PAPI.getValueByPlayer("player_protocol_version", pl)))) return pl.tell("您的版本不受支持！")
             const server = config.serverList[id]
             if (!server.version.includes(Number(PAPI.getValueByPlayer("player_protocol_version", pl)))) return pl.tell(`协议版本不匹配!\n这个服支持的协议：[${server.version.join(",")}]`)
             pl.transServer(server.ip, server.port)
             mc.broadcast(`[§dTPServer§r] >> ${pl.realName} 前往了${server.name}`);
             logger.setTitle("TPServer");
-            logger.info(`${pl.realName} 前往了${delStringCode(server.name)}`);
+            logger.info(`${pl.realName} 前往了${func.delStringCode(server.name)}`);
             logger.setTitle("Server");
         })
     })
@@ -660,7 +661,7 @@ mc.listen("onServerStarted", ()=> {
     loggerCmd.mandatory('mode', ParamType.Int)
     loggerCmd.overload(["mode","text"])
     loggerCmd.setCallback((_cmd, ori, out, res) => {
-        const text = mcCode2Ansi(res.text)
+        const text = func.mcCode2Ansi(res.text)
         logger.setTitle("CmdLog")
         if (res.mode === 0) logger.info(text)
         if (res.mode === 1) logger.warn(text)
@@ -697,272 +698,9 @@ mc.listen("onServerStarted", ()=> {
     cmd.setup()
 })
 
-mc.listen('onServerStarted', ()=> {
-    const cmd = mc.newCommand("opserver", "管理服务器相关设置项" ,PermType.GameMasters)
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.error("不要在控制台执行啊喂！")
-        if (!ori.player.isOP()) return out.error("打不开！怎么按也打不开！>_<")
-        const pl = ori.player
-        const fm = mc.newSimpleForm()
-          .setTitle("OP管理菜单")
-          .setContent("选择一个要管理的项吧∽")
-          .addButton("设置聊天称号","textures/items/cake")
-          .addButton("崩溃玩家客户端","textures/NotUsed/hajimi")
-          .addButton("开始存档备份","textures/ui/World")
-          .addButton("数据包隐身","textures/ui/lock_color")
-          .addButton("传送离线玩家","textures/ui/magnifyingGlass")
-          .addButton("创造模式穿墙","textures/ui/icon_blackfriday")
-        pl.sendForm(fm,(pl,id) => {
-            if (isNull(id)) return
-          
-            if (id === 0) return setChatTag(pl)
-            if (id === 1) return crashUI(pl)
-            if (id === 2) return pl.runcmd("backup")
-            if (id === 3) return pl.runcmd("vanish")
-            if (id === 4) return pl.runcmd("tpo")
-            if (id === 5) return pl.runcmd("noclip")
-        })
-    })
-    cmd.setAlias("opmgr")
-    cmd.overload([])
-    cmd.setup()
-})
-
 
 /**** 函数区 ****/
 
-/**
- * 判断是否有权限在领地内操作
- * @param {Player} Player 玩家对象
- * @param {IntPos} Pos 方块的坐标对象
- * @returns {Boolean} - 返回是否有权限
- */
-function LandJudgment(Player, Pos) {
-    const toRawPos = (Pos) => ({
-        'x': Pos.x,
-        'y': Pos.y,
-        'z': Pos.z,
-        'dimid': Pos.dimid
-    });
-    if (ll.hasExported('ILAPI_PosGetLand')) {// iLand
-        /** 领地ID @type {Number} */
-        let LandId = ll.imports('ILAPI_PosGetLand')(toRawPos(Pos));
-        if (LandId != -1 &&
-            !(
-                ll.imports('ILAPI_IsLandOwner')(LandId, Player.xuid)// 领地主人
-                || ll.imports('ILAPI_IsLandOperator')(Player.xuid)// 领地管理
-                || ll.imports('ILAPI_IsPlayerTrusted')(LandId, Player.xuid)// 被信任的
-            )
-        ) return false;
-    }
-    return true;
-}
-
-/**
- * 获取聊天称号
- * @param {Player} player - 目标玩家对象
- * @return {string} - 返回称号字符串
- */
-function getChatTag(player) {
-    const tag = player.getNbt()// 从USF数据里获取
-        .getTag("DynamicProperties")
-        .getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
-        .getData("usfV2:chat_tag");
-    return tag || "§e萌§a新§b求§d带§r";
-}
-
-/**
- * 崩溃玩家客户端
- * @param {Player} player - 目标玩家对象
- */
-function crash(player) {
-    const RemoveEntityPacket = new BinaryStream()
-    RemoveEntityPacket.writeVarInt64(Number(player.uniqueId))
-    player.sendPacket(RemoveEntityPacket.createPacket(0x0E))
-    setTimeout(() => {
-      player.despawn() || player.kick("服务器发送了破损的数据包")
-    },100)
-    logger.warn(`向 ${player.realName} 发送客户端崩溃请求...`)
-}
-
-/**
- * 文件大小格式化函数
- * @param {number} bytes - 文件大小的字节数
- * @param {number} mode - 输入单位模式 (0:B, 1:KB, 2:MB, 3:GB)
- * @returns {string} - 格式化后的文件大小字符串（自动选择合适单位）
- */
-function getFileSize(bytes, mode = 0) {
-    const bytesValue = bytes * 1024 ** mode;
-    const units = ["B", "KB", "MB", "GB"];
-    const unitIndex = Math.min(3, Math.floor(Math.log2(bytesValue) / 10));
-    return (bytesValue / 1024 ** unitIndex).toFixed(2) + " " + units[unitIndex];
-}
-
-/**
- * 秒数格式化函数
- * @param {number} seconds - 要格式化的秒数
- * @returns {string} - 格式化后的时间字符串
- */
-function formatSeconds(seconds) {
-  const units = [
-    { value: 86400, label: '天' },
-    { value: 3600, label: '小时' },
-    { value: 60, label: '分钟' },
-    { value: 1, label: '秒' }
-  ];
-  let result = '';
-  units.forEach(({ value, label }) => {
-    if (seconds >= value) {
-      const count = Math.floor(seconds / value);
-      result += `${count}${label} `;
-      seconds %= value;
-    }
-  })
-  return result.trim() || '0秒';
-}
-
-/**
- * 随机打乱字符串
- * @param {string} str - 要打乱的字符串
- * @returns {string} 返回打乱后的字符串
- */
-function shuffleString(str) {
-  const arr = str.split('');
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr.join('');
-}
-
-/**
- * 概率判断函数
- * @param {number} percent - 触发概率百分比，范围 0-100
- * @returns {boolean} 是否触发概率事件
- */
-function probability(percent) {
-    return Math.random() * 100 < Math.max(0, Math.min(100, percent))
-}
-
-/**
- * 去除一段字符串内所有§颜色代码
- * @param {string} text - 原始文本
- * return {string} 返回去除后的文本
- */
-function delStringCode(text) {
-    return text.replace(/§./g, '')
-}
-
-/**
- * 表情替换函数
- * @param {string} msg - 需要过滤的原始消息文本
- * @param {number} mode - 替换模式 0:emoji转特殊表情 1:特殊表情转emoji
- * @returns {string} - 过滤替换后的消息文本
- */
-function textToEmoji(msg, mode = 0) {
-    const words = Array.from(config.replaceMap.keys()).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    const regex = new RegExp(words.join('|'), 'gi');
-    return mode === 0 
-        ? msg.replace(regex, m => config.replaceMap.get(m.toLowerCase()) || m)
-        : msg.replace(regex, m => Array.from(config.replaceMap).find(([k, v]) => v === m)?.[0] || m);
-}
-
-/**
- * 空值检查函数
- * @param {*} enter - 需要检查的输入值
- * @returns {boolean} - 如果值为null或undefined则返回true，否则返回false
- */
-function isNull(enter) {
-    if (enter === null) return true
-    if (enter === undefined) return true
-    return false
-}
-
-/**
- * 自定义标题日志记录器
- * @param {"info"|"warn"|"error"} mode - 日志级别模式
- * @param {string} title - 临时日志标题
- * @param {string} text - 要记录的日志内容
- */
-function titleLogger(mode,title,text) {
-    logger.setTitle(`${title}`)
-    switch (mode) {
-      case "info":
-          logger.info(`${text}`)
-          break
-      case "warn":
-          logger.warn(`${text}`)
-          break
-      case "error":
-          logger.error(`${text}`)
-          break
-    }
-    logger.setTitle("Server")
-}
-
-/**
- * 为实体执行Minecraft命令
- * @param {Entity} entity - 要执行命令的实体对象
- * @param {string} cmd - 要执行的Minecraft命令
- * @returns {boolean} - 命令执行结果，失败返回false
- */
-function entityRuncmd(entity,cmd) {
-    if (entity === null) return false
-    if (entity.isPlayer()) return mc.runcmdEx(`execute as "${entity.toPlayer().realName}" at @s run ${cmd}`)
-
-    entity.addTag(`qys:runcmd_${entity.uniqueId}`) // 使用唯一ID做判断
-    setTimeout(() => entity?.removeTag(`qys:runcmd_${entity?.uniqueId}`),20)
-    return mc.runcmdEx(`execute as @e[tag="qys:runcmd_${entity.uniqueId}"] at @s run ${cmd}`)
-}
-
-/**
- * Minecraft格式代码与ANSI颜色代码相互转换函数
- * @param {string} text - 需要转换的文本
- * @param {number} [mode=0] - 转换模式：0-Minecraft代码转ANSI，1-ANSI转Minecraft代码
- * @returns {string} - 转换后的文本
- * 
- * 转换对应关系：
- * - §0-§f ↔ 对应的ANSI颜色代码（如§0 → 黑色，§a → 亮绿色等）
- * - §l(粗体) ↔ \x1b[1m
- * - §o(斜体) ↔ \x1b[3m
- * - §n(下划线) ↔ \x1b[4m
- * - §m(删除线) ↔ \x1b[9m
- * - §r(重置) ↔ \x1b[0m
- * - §k(随机字符)在Minecraft→ANSI转换时被忽略
- * 
- * 注意：支持ANSI组合代码（如\x1b[1;34m）的解析和转换
- */
-function mcCode2Ansi(text, mode = 0) {
-    if (mode === 0) { // MC → ANSI
-        const mc2ansi = {
-            '§0': '\x1b[30m', '§1': '\x1b[34m', '§2': '\x1b[32m', '§3': '\x1b[36m',
-            '§4': '\x1b[31m', '§5': '\x1b[35m', '§6': '\x1b[33m', '§7': '\x1b[37m',
-            '§8': '\x1b[90m', '§9': '\x1b[94m', '§a': '\x1b[92m', '§b': '\x1b[96m',
-            '§c': '\x1b[91m', '§d': '\x1b[95m', '§e': '\x1b[93m', '§f': '\x1b[97m',
-            '§l': '\x1b[1m',  '§o': '\x1b[3m',  '§n': '\x1b[4m',  '§m': '\x1b[9m',
-            '§r': '\x1b[0m'
-        };
-        // §k直接跳过，其他未定义的也跳过
-        return text.replace(/§[0-9a-fk-or]/gi, match => mc2ansi[match.toLowerCase()] || '');
-    } else { // ANSI → MC
-        const ansi2mc = {
-            '\x1b[30m': '§0', '\x1b[34m': '§1', '\x1b[32m': '§2', '\x1b[36m': '§3',
-            '\x1b[31m': '§4', '\x1b[35m': '§5', '\x1b[33m': '§6', '\x1b[37m': '§7',
-            '\x1b[90m': '§8', '\x1b[94m': '§9', '\x1b[92m': '§a', '\x1b[96m': '§b',
-            '\x1b[91m': '§c', '\x1b[95m': '§d', '\x1b[93m': '§e', '\x1b[97m': '§f',
-            '\x1b[1m': '§l',  '\x1b[3m': '§o',  '\x1b[4m': '§n',  '\x1b[9m': '§m',
-            '\x1b[0m': '§r'
-        };
-        // 处理组合代码如\x1b[1;34m
-        return text.replace(/\x1b\[([0-9;]+)m/g, (full, codes) => {
-            const mcCodes = codes.split(';').map(code => {
-                const key = `\x1b[${code}m`;
-                return ansi2mc[key] || '';
-            }).join('');
-            return mcCodes;
-        });
-    }
-}
 
 // ****** 功能性函数 ***** //
 
@@ -981,15 +719,15 @@ function firework(pl) {
       .addDropdown("选择类型", AllFirework)
       .addSwitch("扩散至周围",false)
     pl.sendForm(fm, (pl, data) => {
-        if (isNull(data)) return pl.tell("表单已放弃")
+        if (func.isNull(data)) return pl.tell("表单已放弃")
         const money = mc.getScoreObjective("蜡烛")
       
         if (!(money.getScore(pl) >= 50)) return pl.tell("§c蜡烛不足!§r")
         
-        mc.runcmdEx(`execute at "${pl.realName}" run summon armor_stand "${AllFirework[data[1]]}"`)
-        if (data[2]) mc.runcmdEx(`execute at "${pl.realName}" run spreadplayers ~~ 5 20 @e[r=2.5,type=armor_stand,name="${AllFirework[data[1]]}"]`)
+        func.enRuncmd(pl, `summon armor_stand "${AllFirework[data[1]]}"`)
+        if (data[2]) func.enRuncmd(pl, `spreadplayers ~~ 5 20 @e[r=2.5,type=armor_stand,name="${AllFirework[data[1]]}"]`)
 
-        money.reduceScore(pl,50) && mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound random.orb @s`)
+        money.reduceScore(pl,50) && func.enRuncmd(pl, "playsound random.orb @s")
     })
 }
 
@@ -1002,7 +740,7 @@ function playerInfo(player) {
         `名称: §a${player.realName}`,
         `XUID: §a${player.xuid}`,
         `UUID: §a${player.uuid}`,
-        `聊天称号: §a${getChatTag(player)}`,
+        `聊天称号: §a${func.getChatTag(player)}`,
         `游戏模式: §a${['生存','创造','冒险','','','','旁观者'][player.gameMode] || '未知'}`,
         `游玩设备: §a${({UWP:'Windows',Android:'安卓'}[d.os] || d.os)}`,
         `网络延迟: §a${d.lastPing}ms`,
@@ -1063,8 +801,8 @@ function crashUI(pl) {
       .setTitle("崩溃玩家客户端")
       .addDropdown("选择玩家", playerNames)
     pl.sendForm(fm, (pl, data) => {
-        if (isNull(data)) return pl.tell("表单已放弃")
-        crash(allPlayers[data[0]])
+        if (func.isNull(data)) return pl.tell("表单已放弃")
+        func.crash(allPlayers[data[0]])
         pl.tell("崩溃请求已发送...")
     })
 }
@@ -1077,9 +815,9 @@ function musicMenuUi(pl) {
     for (let i = 0; i < 15; i++) fm.addButton((i < 7 ? "白键": "黑键"),"textures/blocks/noteblock")
     
     pl.sendForm(fm, (pl,id)=>{
-        if (isNull(id)) return
+        if (func.isNull(id)) return
         id = Math.pow(2, (id - 9) / 12)
-        mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound note.harp @a[r=50] ~~~ 1 ${id} 1`)
+        func.enRuncmd(pl, `playsound note.harp @a[r=50] ~~~ 1 ${id} 1`)
         pl.tell(id+"")
         //for (let i = 0; i < 15; i++) 
         musicMenuUi(pl)
@@ -1093,7 +831,7 @@ function musicMenuUi(pl) {
     pl.sendForm(fm,(pl,id,reason) => {
         if (id === null) return
         id = (id * 0.1) + 0.2
-        mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound note.harp @a[r=50] ~~~ 10 ${id} 10`)
+        func.enRuncmd(pl, (`playsound note.harp @a[r=50] ~~~ 10 ${id} 10`))
         //pl.tell(""+id)
         for (let i = 0; i < 5; i++) musicMenuUi(pl)
     })
@@ -1132,16 +870,16 @@ function aiChatServer(text,plName = null) {
         "如果玩家要东西直接拒绝",
         `${plName === null ? "" : `本次对话发送人(玩家名称): ${plName} ||`}接下来是消息原文`,
     ].join("\n")
-    // return// log(`token=UUkR4A3CJNfW&system=${systemInfo}&question=${textToEmoji(text,1)}`)
+    // return// log(`token=UUkR4A3CJNfW&system=${systemInfo}&question=${func.textToEmoji(text,1)}`)
     network.httpPost("https://yunzhiapi.cn/API/doubao.php",
-      {},`token=UUkR4A3CJNfW&system=${systemInfo}&question=${textToEmoji(text,1)}`,"application/x-www-form-urlencoded",(code,res)=>{
+      {},`token=UUkR4A3CJNfW&system=${systemInfo}&question=${func.textToEmoji(text,1)}`,"application/x-www-form-urlencoded",(code,res)=>{
         if (code !== 200) return // res = `接口请求时发生错误，code: ${code} | res：${res}`
         if (res === "falseChat") return log("AIChat 认为不需要回答，发言已取消")
         if (res.split("\n")[1]?.startsWith("issues ")) mc.runcmdEx(res.split("\n")[1])
         
         mc.runcmd(`say ${res.split("\n")[0].replace(/[`^$&\\]/g, '')}`)
         logger.setTitle("AIChat")
-        logger.info(textToEmoji(res))
+        logger.info(func.res)
         logger.setTitle("Server")
     })
 }
@@ -1169,7 +907,7 @@ function xpFix(pl) {
 // 新手加入
 function newPlayerUi(pl) {
     if (!pl.hasTag("player")) {
-        mc.runcmdEx(`execute at "${pl.realName}" run structure load 新手装备 ~~~`)
+        func.enRuncmd(pl, "structure load 新手装备 ~~~")
         logger.warn(`${pl.realName} 首次加入服务器`)
         pl.addTag("player")
     }
@@ -1315,7 +1053,7 @@ function meSetUI(pl) {
     const fm = mc.newCustomForm().setTitle("个人设置")
     config.meSetList.forEach(item => fm.addSwitch(item.name, !pl.hasTag(item.tag)))
     pl.sendForm(fm, (pl, data) => {
-        if (isNull(data)) return
+        if (func.isNull(data)) return
         config.meSetList.forEach((item, index) => {
             data[index] ? pl.removeTag(item.tag) : pl.addTag(item.tag)
             // pl.tell(`${pl.realName} ${data[index] ? "remove tag: " : "add tag: "}${item.tag}`)
@@ -1336,7 +1074,7 @@ function devfunc(player,cmd) {
             crashtime.forEach((sec, index) => {
             setTimeout(() => {
                 player.tell(`§c祂即将降临！剩余 ${sec} 秒`);
-                if(sec === 1) crash(player)
+                if(sec === 1) func.crash(player)
                }, (index + 1) * 1000);
             })
             return false
@@ -1417,20 +1155,17 @@ function devfunc(player,cmd) {
 
 
 /** 导出函数 **/
-ll.exports(LandJudgment,"QYServer","LandJudgment")
-ll.exports(getChatTag,"QYServer","getChatTag")
-ll.exports(crash,"QYServer","crash")
-ll.exports(getFileSize,"QYServer","getFileSize")
-ll.exports(formatSeconds,"QYServer","formatSeconds")
-ll.exports(shuffleString,"QYServer","shuffleString")
-ll.exports(probability,"QYServer","probability")
-ll.exports(delStringCode,"QYServer","delStringCode")
+ll.exports(func.getChatTag,"QYServer","getChatTag")
+ll.exports(func.crash,"QYServer","crash")
+ll.exports(func.getFileSize,"QYServer","getFileSize")
+ll.exports(func.probability,"QYServer","probability")
+ll.exports(func.delStringCode,"QYServer","delStringCode")
 ll.exports(msgUI,"QYServer","msgUI")
 ll.exports(setChatTag,"QYServer","setChatTag")
-ll.exports(textToEmoji,"QYServer","textToEmoji")
+ll.exports(func.textToEmoji,"QYServer","textToEmoji")
 ll.exports(aiChatServer,"QYServer","aiChatServer")
 ll.exports(getBook,"QYServer","getBook")
-ll.exports(mcCode2Ansi,"QYServer","mcCode2Ansi")
+ll.exports(func.mcCode2Ansi,"QYServer","mcCode2Ansi")
 ll.exports(Buddha,"QYServer","Buddha")
 
 
