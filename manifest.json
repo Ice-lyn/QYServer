@@ -2,9 +2,9 @@
     "entry": "QYServer.js",
     "name": "QYServer",
     "type": "lse-quickjs",
-    "version": "1.0.0",
+    "version": "1.0.0-beta.1",
     "author": "fangfubin0782",
-    "description": "QY服务器专用插件",
+    "description": "QYServer专用插件",
     "extraInfo": {},
     "dependencies": [
         {

@@ -1,10 +1,9 @@
-ll.registerPlugin("QYServer","QY服务器专用插件",[1,0,0],{"author":"fangfubin0782"})
-
+//LiteLoaderScript Dev Helper
+/// <reference path="/root/VSCode/Library/JS/index.d.ts" /> 
 const { Minecraft, Recipes, I18nAPI } = require('./GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS')
 const { Event } = require("./GMLIB-LegacyRemoteCallApi/lib/EventAPI-JS");
 const { PAPI } = require('./GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS')
 
-const playerTime = new JsonConfigFile("./plugins/QYServer/Data/System/playerTime.json")
 const il = require("./iListenAttentively-LseExport/lib/iListenAttentively.js")
 const config = require("./QYServer/config/config.js")
 import "./plugins/QYServer/lib/index.js"
@@ -14,7 +13,7 @@ logger.setTitle("Server")
 // 初始化变量
 let is_reload = (mc.getOnlinePlayers().length != 0)
 
-PAPI.registerPlayerPlaceholder(getChatTag,"QYServer","player_chatTag")// 注册PAPI
+PAPI.registerPlayerPlaceholder(getChatTag, "QYServer", "player_chatTag")// 注册PAPI
 mc.listen("onEndermanTakeBlock", () => false) // 防搬方块
 mc.listen("onWitherBossDestroy", () => false) // 凋零防爆
 mc.listen("onRespawnAnchorExplode",(pos,pl) => {// 重生毛爆炸
@@ -99,15 +98,12 @@ mc.listen("onJoin",(pl) => {
 // 玩家连接世界
 mc.listen("onPreJoin",(pl) => {
     if (is_reload) return
-    // if (pl.getDevice().serverAddress === "qymc.fucku.top:41657" && pl.hasTag("player")) return
-    // logger.info(PAPI.translateString("玩家 %player_realname% 连接中，版本：%player_client_version%(%player_protocol_version%)",pl))
     mc.runcmdEx("playsound custom.online_sound @a")
 })
 
 // 玩家加入事件
 mc.listen("onJoin",(player) => {
-    if (!player || !player.inWorld) return
-    //return player.kick("停服维护，结束时间看QQ群")
+    if (!player || !player.inWorld) return;
     if (config.banName.has(player.realName) 
         || config.banXuid.has(player.xuid) 
         || config.banClient.has(player.getDevice().clientId)
@@ -179,12 +175,6 @@ mc.listen("onChat", (player, msg) => {
         case player.hasTag("isCat"):
             mc.runcmdEx("execute as @a at @s run playsound mob.cat.meow @s");
             break;
-        case msg.includes("死"):
-            aiChatServer(textToEmoji(msg,1))
-            player.tell("§l你不孤单，我们都在！！")
-            player.tell(">> 如果需要帮助，请拨打全国24小时免费心理咨询热线")
-            player.tell(">> 010-82951332")
-            break;
         default:
             mc.runcmdEx("execute as @a at @s run playsound custom.called_sound @s");
             mc.runcmdEx(`execute as "${player.realName}" at @s[m=!spectator] anchored eyes run particle qys:sky_called ~~0.2~`)
@@ -221,12 +211,6 @@ mc.listen("onPlayerCmd", (player, cmd) => {
             if (player.hasTag("qys:no_fc")) return false
             setTimeout(() => mc.runcmdEx(`ride "${player.realName}" start_riding @e[type=qys:ride,name="qys:rideing_${player.realName}"]`),250)
             return player.tell("[§aTip§r] 再次输入\"/fc\"开关自由视角")
-        case "rotate":
-            if (!isNull(player.getBlockFromViewVector(false)?.pos) && !LandJudgment(player,player.getBlockFromViewVector(false)?.pos)) {
-                player.tell("这里是领地，你无权操作",3)
-                return false
-            }
-            return
     }
     return devfunc(player,cmd)
 })
@@ -267,7 +251,7 @@ mc.listen("onAttackEntity",(player,entity) => {
 
 // 漏斗传输物品
 mc.listen("onHopperPushOut",(pos,isMinecart,item) => {
-    if (isMinecart) return
+    // if (isMinecart) return
     if (item.type.includes("bundle")) return false
 })
 
@@ -693,37 +677,6 @@ mc.listen("onServerStarted", ()=> {
         }
 
     })
-    cmd.setup()
-})
-
-mc.listen('onServerStarted', ()=> {
-    const cmd = mc.newCommand("opserver", "管理服务器相关设置项" ,PermType.GameMasters)
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.error("不要在控制台执行啊喂！")
-        if (!ori.player.isOP()) return out.error("打不开！怎么按也打不开！>_<")
-        const pl = ori.player
-        const fm = mc.newSimpleForm()
-          .setTitle("OP管理菜单")
-          .setContent("选择一个要管理的项吧∽")
-          .addButton("设置聊天称号","textures/items/cake")
-          .addButton("崩溃玩家客户端","textures/NotUsed/hajimi")
-          .addButton("开始存档备份","textures/ui/World")
-          .addButton("数据包隐身","textures/ui/lock_color")
-          .addButton("传送离线玩家","textures/ui/magnifyingGlass")
-          .addButton("创造模式穿墙","textures/ui/icon_blackfriday")
-        pl.sendForm(fm,(pl,id) => {
-            if (isNull(id)) return
-          
-            if (id === 0) return setChatTag(pl)
-            if (id === 1) return crashUI(pl)
-            if (id === 2) return pl.runcmd("backup")
-            if (id === 3) return pl.runcmd("vanish")
-            if (id === 4) return pl.runcmd("tpo")
-            if (id === 5) return pl.runcmd("noclip")
-        })
-    })
-    cmd.setAlias("opmgr")
-    cmd.overload([])
     cmd.setup()
 })
 
@@ -1170,10 +1123,6 @@ function newPlayerUi(pl) {
     if (!pl.hasTag("player")) {
         mc.runcmdEx(`execute at "${pl.realName}" run structure load 新手装备 ~~~`)
         logger.warn(`${pl.realName} 首次加入服务器`)
-        playerTime.set(
-          `${pl.realName}`,// usfID为初加入时间戳
-          `${pl.getNbt().getTag("DynamicProperties").getTag("9472c503-5a92-43c8-7ddf-0492de2362d7").getData("usfV2:id")}`
-        )
         pl.addTag("player")
     }
     pl.closeForm()
@@ -1326,85 +1275,6 @@ function meSetUI(pl) {
     })
 }
 
-// 查询历史玩家
-function playerTimeUI(player) {
-    playerTime.reload()
-    const data = JSON.parse(playerTime.read())
-    
-    const format = t => {
-        const d = new Date(+t)
-        const pad = n => n.toString().padStart(2,'0')
-        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
-    }
-    
-    const todayStart = new Date().setHours(0,0,0,0)
-    const today = [], history = []
-    
-    Object.entries(data).forEach(([n,t]) => {
-        const ts = +t
-        ts >= todayStart && ts < todayStart + 86400000 ? 
-            today.push(`${n} - ${format(t)}`) : 
-            history.push({name:n, time:ts, formatted:format(t)})
-    })
-    
-    // 按年份->月份分组并统计人数
-    const historyByYear = {}
-    history.sort((a,b) => a.time - b.time).forEach(p => {
-        const d = new Date(p.time)
-        const year = d.getFullYear()
-        const month = d.getMonth() + 1
-        
-        if (!historyByYear[year]) historyByYear[year] = {}
-        if (!historyByYear[year][month]) historyByYear[year][month] = {count:0, list:[]}
-        
-        historyByYear[year][month].count++
-        historyByYear[year][month].list.push(`§a§l${p.name}§r - (${p.formatted})`)
-    })
-    
-    // 构建显示内容
-    let historyContent = ''
-    for (const year in historyByYear) {
-        historyContent += `# ${year}年\n\n`
-        for (const month in historyByYear[year]) {
-            const monthData = historyByYear[year][month]
-            historyContent += `=== ${month}月 (${monthData.count}人) ===\n${monthData.list.join('\n')}\n\n`
-        }
-        historyContent += '\n'
-    }
-    
-    const showList = (title, content, returnMain = true) => {
-        const fm = mc.newSimpleForm().setTitle(title).setContent(content)
-        if (returnMain) fm.addButton('返回主菜单')
-        player.sendForm(fm, (pl, id) => id === 0 && returnMain && playerTimeUI(pl))
-    }
-    
-    const todayStr = new Date().toISOString().slice(0,10).replace(/-/g,'-')
-    const main = mc.newSimpleForm()
-        .setTitle('玩家加入时间查询')
-        .setContent(`今日(${todayStr})新增: ${today.length}人\n历史记录: ${history.length}人`)
-        .addButton('查看今日玩家')
-        .addButton('查看历史玩家')
-        .addButton('搜索玩家')
-    
-    player.sendForm(main, (pl, id) => {
-        if (id === 0) showList(`今日玩家 (${today.length}人)`, today.join('\n'))
-        else if (id === 1) showList('历史玩家', historyContent.trim())
-        else if (id === 2) {
-            const searchForm = mc.newCustomForm()
-                .setTitle('搜索玩家')
-                .addInput('输入玩家名 §b(支持模糊搜索)§r','')
-            pl.sendForm(searchForm, (pl2, res) => {
-                if (!res) return playerTimeUI(pl2)
-                const search = res[0].toLowerCase()
-                const results = Object.entries(data)
-                    .filter(([n]) => n.toLowerCase().includes(search))
-                    .map(([n,t]) => `§a§l${n}§r - ${format(t)}`)
-                showList(`搜索结果 (${results.length}个)`, results.join('\n'), false)
-            })
-        }
-    })
-}
-
 // 开发中功能
 let pngMap = null
 function devfunc(player,cmd) {
@@ -1452,9 +1322,6 @@ function devfunc(player,cmd) {
             return false
         case "Firework":
             firework(player)
-            return false
-        case "pltime":
-            playerTimeUI(player)
             return false
         case "giveskin":
             mc.runcmdEx(`sendshowstoreoffer "${player.realName}" character 927cab07-ab94-44d4-8581-b2a5342b07b4`)
