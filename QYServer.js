@@ -6,7 +6,7 @@ const { PAPI } = require('./GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS')
 
 const il = require("./iListenAttentively-LseExport/lib/iListenAttentively.js")
 const config = require("./QYServer/config/config.js")
-import "./plugins/QYServer/lib/index.js"
+import "./plugins/QYServer/lib/modeLoad.js"
 
 logger.setTitle("Server")
 

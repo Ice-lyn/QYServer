@@ -3,13 +3,6 @@
 ## 概述
 QYServer 是一款基于 **LiteLoaderSE (LegacyScriptEngine-QuickJS)** 的 Minecraft Bedrock Server 服务端插件，为 QY 服务器提供核心功能支持。
 
-| 项目 | 信息 |
-|------|------|
-| 名称 | QYServer |
-| 版本 | 1.1.0-beta |
-| 类型 | lse-quickjs |
-| 作者 | 冰凌呀 |
-
 ## 依赖项
 - legacy-script-engine-quickjs
 - GMLIB-LegacyRemoteCallApi
