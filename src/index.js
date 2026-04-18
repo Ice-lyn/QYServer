@@ -134,7 +134,7 @@ mc.listen("onConsoleCmd", (cmd) => {
             setTimeout(() => mc.runcmd("scriptevent qys:command noChat true"), 2000)
             return
         case "testfor":
-            mc.getOnlinePlayers().forEach(pl => log(`${pl.realName} -> ${mc.runcmdEx("execute as \"" + pl.realName + "\" at @s run testfor @e[r=160]").output?.split(", ")?.length}`))
+            mc.getOnlinePlayers().forEach(pl => log(`${pl.realName} -> ${func.enRuncmd(pl, "testfor @e[r=160]").output?.split(", ")?.length}`))
             return false
         case "tps":
             logger.info(mc.runcmdEx("cleaner tps").output)
@@ -202,7 +202,7 @@ mc.listen("onPlayerCmd", (player, cmd) => {
             player.tell("==============");
             player.tell(`所有实体数: ${mc.runcmdEx("testfor @e").output.split(", ").length}`);
             player.tell("玩家240格附近实体数：");
-            mc.getOnlinePlayers().forEach(pl => player.tell(`${pl.realName} -> ${mc.runcmdEx("execute as \"" + pl.realName + "\" at @s run testfor @e[r=240]").output?.split(", ")?.length}`));
+            mc.getOnlinePlayers().forEach(pl => player.tell(`${pl.realName} -> ${func.enRuncmd(pl, "testfor @e[r=240]").output?.split(", ")?.length}`));
             player.tell("==============");
             return false;
     }
@@ -284,10 +284,10 @@ mc.listen("onUseItem", (pl, item) => {
     if (item.type === "qys:wing") {
         if (pl.maxHealth === 60) return pl.tell("[§aTip§r] 您的光翼已达上限(" + pl.maxHealth + "/60)")
         pl.setMaxHealth(pl.maxHealth + 1)
-        pl.tell("" + mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound random.orb @s`).output)
+        pl.tell("" + func.enRuncmd(pl, "playsound random.orb @s").output)
         return pl.clearItem("qys:wing", 1)
     }
-    if (item.type === "qys:magic") return mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound custom.magic_use_sound @a[r=10] ~~~`)
+    if (item.type === "qys:magic") return func.enRuncmd(pl, "playsound custom.magic_use_sound @a[r=10] ~~~")
     if (pl.isSneaking && !pl.getHand()?.isNull()) return xpFix(pl)
 })
 
@@ -296,7 +296,7 @@ mc.listen("onMobDie", (mob, source) => {
     if (!mob || !source) return
     if (source.type !== "minecraft:player") return
     if (func.probability(15)) mc.spawnItem(mc.newItem("qys:candle_white", 1), mob.pos)
-    mc.runcmdEx(`execute as "${source.toPlayer().realName}" at @s run function function/killEntity`)
+    func.enRuncmd(source.toPlayer(), "function function/killEntity")
 })
 
 // 玩家重生事件
@@ -455,7 +455,7 @@ mc.listen('onServerStarted', () => {
         player.sendForm(fm, (pl, data) => {
             if (func.isNull(data)) return;
             mc.runcmdEx(`tag "${pl.realName}" add "usf.${tagList[data]}"`);
-            mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound random.levelup @s ~~~ 10 2`);
+            func.enRuncmd(pl, "playsound random.levelup @s ~~~ 10 2");
             setTimeout(() => pl.tell("[§e称号系统§r] >> §a佩戴成功, 已佩戴称号§r: " + tagList[data].replace(/^tag:/, "")), 20);
         });
     })
@@ -660,10 +660,10 @@ function firework(pl) {
 
         if (!(money.getScore(pl) >= 50)) return pl.tell("§c蜡烛不足!§r")
 
-        mc.runcmdEx(`execute at "${pl.realName}" run summon armor_stand "${AllFirework[data[1]]}"`)
-        if (data[2]) mc.runcmdEx(`execute at "${pl.realName}" run spreadplayers ~~ 5 20 @e[r=2.5,type=armor_stand,name="${AllFirework[data[1]]}"]`)
+        func.enRuncmd(pl, `summon armor_stand "${AllFirework[data[1]]}"`)
+        if (data[2]) func.enRuncmd(pl, `spreadplayers ~~ 5 20 @e[r=2.5,type=armor_stand,name="${AllFirework[data[1]]}"]`)
 
-        money.reduceScore(pl, 50) && mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound random.orb @s`)
+        money.reduceScore(pl, 50) && func.enRuncmd(pl, "playsound random.orb @s")
     })
 }
 
@@ -753,7 +753,7 @@ function musicMenuUi(pl) {
     pl.sendForm(fm, (pl, id) => {
         if (func.isNull(id)) return
         id = Math.pow(2, (id - 9) / 12)
-        mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound note.harp @a[r=50] ~~~ 1 ${id} 1`)
+        func.enRuncmd(pl, `playsound note.harp @a[r=50] ~~~ 1 ${id} 1`)
         pl.tell(id + "")
         //for (let i = 0; i < 15; i++) 
         musicMenuUi(pl)
@@ -767,7 +767,7 @@ function musicMenuUi(pl) {
     pl.sendForm(fm,(pl,id,reason) => {
         if (id === null) return
         id = (id * 0.1) + 0.2
-        mc.runcmdEx(`execute as "${pl.realName}" at @s run playsound note.harp @a[r=50] ~~~ 10 ${id} 10`)
+        func.enRuncmd(pl, `playsound note.harp @a[r=50] ~~~ 10 ${id} 10`)
         //pl.tell(""+id)
         for (let i = 0; i < 5; i++) musicMenuUi(pl)
     })
@@ -797,7 +797,7 @@ function xpFix(pl) {
 // 新手加入
 function newPlayerUi(pl) {
     if (!pl.hasTag("player")) {
-        mc.runcmdEx(`execute at "${pl.realName}" run structure load 新手装备 ~~~`)
+        func.enRuncmd(pl, "structure load 新手装备 ~~~")
         logger.warn(`${pl.realName} 首次加入服务器`)
         pl.addTag("player")
     }
