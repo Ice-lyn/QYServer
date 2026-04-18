@@ -399,13 +399,13 @@ mc.listen('onServerStarted', () => {
 // sinfo - 查询服务器运行状态
 mc.listen('onServerStarted', () => {
     const cmd = mc.newCommand('sinfo', '§a查询服务器运行状态', PermType.Any);
-    cmd.setCallback((_cmd, ori, out, _res) => {
+    cmd.setCallback((_cmd, _ori, out, _res) => {
         const info = [
             "============ 服务器运行状态 ============",
             `当前时间: ${system.getTimeStr()}`,
             "TPS: %server_tps_colored%",
             "MSPT: %server_mspt_colored%",
-            "服务器版本: %server_version%(%server_protocol_version%) - LL %levilamina_version%",
+            "服务器版本: %server_version%(%server_protocol_version%) - levilamina %levilamina_version%",
             "BDS使用内存: %server_ram_bds_used%",
             "已使用内存: %server_ram_used%",
             "最大内存: %server_ram_max%",
@@ -625,7 +625,7 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_cmd, ori, out, res) => {
         const { data, mode, key } = res;
         if (key !== "saydata-0000-114514") return out.error("验证密钥错误");
-        if (ori.type !== 14 && ori.type !== 7) logger.warn(`发现未知通信对象 <Type：${ori.type}|Name：${ori.name}>`);
+        if (ori.type !== 14 && ori.type !== 7 && ori.type !== 0) logger.warn(`发现未知通信对象 <Type：${ori.type}|Name：${ori.name}>`);
 
         try {
             if (mode === 1) out.success(`${ll.eval(data.replace(/\${name}/g, ori.name))}`);

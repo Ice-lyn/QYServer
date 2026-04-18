@@ -7,7 +7,6 @@ const lib_list = Object.entries({ // 这样显得更好看 并且更容易维护
         "ItemRunCmd.js", // 物品运行命令
         "ShowBiome.js", // 群系提示
         "ScoreChanged.js", // 积分榜提示
-        "onPluginEvent.js", // 触发自定义事件
         "JoinTime.js", // 加入时间相关
     ],
 
