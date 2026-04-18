@@ -1,6 +1,11 @@
 import("./plugins/QYServer/src/index.js").catch(err => logger.error(err));
 import * as func from "./plugins/QYServer/src/lib/func.js";
 
+export const GMLIB_API = require('./GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS')
+export const BEPlaceholderAPI = require('./GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS');
+export const iListenAttentively = require("./iListenAttentively-LseExport/lib/iListenAttentively.js");
+export const EventAPI = require('./GMLIB-LegacyRemoteCallApi/lib/EventAPI-JS');
+
 // 导出接口
 try {
     let load_ok = 0;

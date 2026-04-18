@@ -1,5 +1,6 @@
-const { Minecraft } = require('./GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS');
-const { Event } = require('./GMLIB-LegacyRemoteCallApi/lib/EventAPI-JS');
+import { GMLIB_API, EventAPI} from "../../../index.js";
+const { Minecraft } = GMLIB_API;
+const { Event } = EventAPI;
 
 const AllContainerData = new Map();
 const openBoxIds = new Map();

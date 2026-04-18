@@ -1,14 +1,16 @@
-//LiteLoaderScript Dev Helper
+// LiteLoaderScript Dev Helper
 /// <reference path="/root/VSCode/Library/JS/index.d.ts" /> 
-const { Minecraft, Recipes, I18nAPI } = require('./GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS')
-const { PAPI } = require('./GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS');
-const il = require("./iListenAttentively-LseExport/lib/iListenAttentively.js");
+
+import { GMLIB_API, BEPlaceholderAPI, iListenAttentively } from "../../../index.js";
+
+const { Recipes } = GMLIB_API;
+const { PAPI } = BEPlaceholderAPI;
+const il = iListenAttentively;
 
 import config from "../Config/config.js";
 import * as func from "./lib/func.js";
 import "./module/load.js";
 logger.setTitle("Server");
-
 
 // 初始化变量
 let is_reload = (mc.getOnlinePlayers().length != 0);
@@ -22,7 +24,6 @@ mc.listen("onRespawnAnchorExplode", (pos, pl) => {// 重生毛爆炸
         return false;
     }
 });
-
 
 // 服务器启动后事件
 mc.listen("onServerStarted", () => {
