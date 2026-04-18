@@ -1,3 +1,5 @@
+import config from "../Config/config.js";
+
 /**
  * 判断是否有权限在领地内操作
  * @param {Player} Player 玩家对象

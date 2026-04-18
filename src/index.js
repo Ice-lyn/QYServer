@@ -6,9 +6,9 @@ const il = require("./iListenAttentively-LseExport/lib/iListenAttentively.js");
 
 import config from "../Config/config.js";
 import * as func from "./lib/func.js";
-
 import "./module/load.js";
 logger.setTitle("Server");
+
 
 // 初始化变量
 let is_reload = (mc.getOnlinePlayers().length != 0);
@@ -953,10 +953,9 @@ function meSetUI(pl) {
     })
 }
 
-// 开发中功能
+// 触发一个功能项
 let pngMap = null;
-// 玩家可以用
-const playerCmd = {
+const playerCmd = {// 玩家可以用
     xpfix: (player) => xpFix(player),
     meSet: (player) => meSetUI(player),
     firework: (player) => firework(player),
@@ -992,8 +991,7 @@ const playerCmd = {
     }
 };
 
-// OP 可以用
-const opCmd = {
+const opCmd = { // OP 可以用
     tpch: (player, command) => player.runcmd(`tp @s ${command[1] * 16 + 8} ~ ${command[2] * 16 + 8}`),
     getNbt: (player) => File.writeTo("./plugins/QYServer/nbt.txt", JSON.stringify(player.getHand().getNbt().toSNBT())),
 
@@ -1030,7 +1028,7 @@ function onmode(player, cmd) {
 
     return (() => {
         if (playerCmd[command[0]]) return playerCmd[command[0]](player, command);
-        else if ((player.isOP() || player.hasTag("op")) && opCmd[command[0]]) return opCmd[command[0]](player, command);
+        else if ((player.isOP() || player.hasTag("op")) && opCmd[command[0]]) return opCmd[command[0]](player, command, pngMap);
         else return false;
     })();
 }

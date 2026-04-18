@@ -9,8 +9,8 @@ setInterval(() => {
         const BiomeName = pl.getBiomeName()
         if (playerBiome.get(pl.xuid) === BiomeName) return
         //pl.setTitle(`${BiomeNameCn.get(BiomeName,BiomeName)}`,2)
-        pl.setTitle(`§§\n\n\n\n\n\n${BiomeNameCn.get(BiomeName,BiomeName)}                  §§`,2)
+        pl.setTitle(`§§\n\n\n\n\n\n${BiomeNameCn.get(BiomeName, BiomeName)}              §§`, 2)
         //pl.setTitle("§8此提示为早期测试版本，未来可能会修改或删除",3)
-        playerBiome.set(pl.xuid,BiomeName)
+        playerBiome.set(pl.xuid, BiomeName)
     })
-},3000)
+}, 3000)

@@ -1,21 +1,21 @@
 import { config } from "../../../Config/config.js";
 
 // 玩家跳跃
-mc.listen("onJump",(pl) => {
+mc.listen("onJump", (pl) => {
     const block = pl.getBlockStandingOn();
     if (block?.type !== config.sky_block_type) return;
-  
+
     const targetY = findUpBlock(pl.blockPos);
     if (!targetY) return pl.tell("楼上没有云朵啦>_<", 5);
     pl.teleport(new FloatPos(pl.pos.x, targetY + 0.1, pl.pos.z, pl.pos.dimid)) && pl.tell("§a叮咚~上楼!", 5);
 });
 
 // 玩家潜行
-mc.listen("onSneak",(pl, isSneaking) => {   
+mc.listen("onSneak", (pl, isSneaking) => {
     if (!isSneaking) return;
     const block = pl.getBlockStandingOn();
     if (block?.type !== config.sky_block_type) return;
-  
+
     const targetY = findDownBlock(pl.blockPos);
     if (!targetY) return pl.tell("楼下没有云朵啦>_<", 5);
     pl.teleport(new FloatPos(pl.pos.x, targetY + 0.1, pl.pos.z, pl.pos.dimid)) && pl.tell("§a叮咚~下楼!", 5);
@@ -29,7 +29,7 @@ function findUpBlock(pos) {
         if (mc.getBlock(checkPos(y + 1))?.type != config.sky_block_type) return y + 1;
         const higherResult = findUpBlock(checkPos(y + 1));
         if (higherResult) return higherResult;
-        
+
     }
     return null;
 }
@@ -42,7 +42,7 @@ function findDownBlock(pos) {
         if (mc.getBlock(checkPos(y - 1))?.type != config.sky_block_type) return y + 1;
         const lowerResult = findDownBlock(checkPos(y - 1));
         if (lowerResult) return lowerResult;
-        
+
     }
     return null;
 }

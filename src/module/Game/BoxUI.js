@@ -5,7 +5,7 @@ const AllContainerData = new Map();
 const openBoxIds = new Map();
 const inBoxGui = new Map();
 
-mc.listen("onLeft",(pl) => {
+mc.listen("onLeft", (pl) => {
     inBoxGui.delete(pl.xuid);
     openBoxIds.delete(pl.xuid);
 })
@@ -71,7 +71,7 @@ addContainerData("elytraUI", {
                 item: mc.newItem(NBT.parseSNBT(`{"Count":1b,"Damage":0s,"Name":"minecraft:white_dye","WasPickedUp":0b,"tag":{"RepairCost":0,"display":{"Name":"§f白色鞘翅"},"ench":[]}}`)),
                 slot: 8
             },
-            
+
             // 第2行 (slot 9-17)
             {
                 item: mc.newItem(NBT.parseSNBT(`{"Count":1b,"Damage":0s,"Name":"minecraft:light_gray_dye","WasPickedUp":0b,"tag":{"RepairCost":0,"display":{"Name":"§7淡灰色鞘翅"},"ench":[]}}`)),
@@ -109,7 +109,7 @@ addContainerData("elytraUI", {
                 item: mc.newItem(NBT.parseSNBT(`{"Count":1b,"Damage":0s,"Name":"minecraft:red_dye","WasPickedUp":0b,"tag":{"RepairCost":0,"display":{"Name":"§c红色鞘翅"},"ench":[]}}`)),
                 slot: 17
             },
-            
+
             // 第3行 (slot 18-26)
             {
                 item: mc.newItem(NBT.parseSNBT(`{"Count":1b,"Damage":0s,"Name":"minecraft:feather","WasPickedUp":0b,"tag":{"RepairCost":0,"display":{"Name":"§f羽毛鞘翅"},"ench":[]}}`)),
@@ -156,12 +156,12 @@ Event.emplaceListener(
     "gmlib::HandleRequestActionAfterEvent", (event) => {
         const params = event.params
         if (!inBoxGui.has(params[0].xuid)
-          || params[3] == "InventoryContainer"
-          || params[3] == "HotbarContainer"
-          || params[1] != "Place"
+            || params[3] == "InventoryContainer"
+            || params[3] == "HotbarContainer"
+            || params[1] != "Place"
         ) return
         AllContainerData.get("elytraUI").event(params[0], params[4])
-        
+
         /*
         
         const player = params[0]
@@ -180,8 +180,8 @@ Event.emplaceListener(
         const pl = event.params[0]
         if (!inBoxGui.has(pl?.xuid)) return
         const pos = inBoxGui.get(pl.xuid)
-        sendUpdateBlockPacket(pl,pos,mc.getBlock(pos)?.type || "minecraft:air")
-      
+        sendUpdateBlockPacket(pl, pos, mc.getBlock(pos)?.type || "minecraft:air")
+
         inBoxGui.delete(pl.xuid)
         openBoxIds.delete(pl.xuid)
     }
@@ -191,14 +191,14 @@ function showFakeChest(player, name) {
     if (player.gameMode === 6 || !AllContainerData.has(name)) return
     const containerData = AllContainerData.get(name)
     openBoxIds.set(player.xuid, name)
-    
+
     try {
         // 计算箱子位置
         const chestPos = new IntPos(player.pos.x, player.pos.y + 2, player.pos.z, player.pos.dimid)
-        
+
         // 发送方块数据包
         sendUpdateBlockPacket(player, chestPos, "minecraft:chest");
-        
+
         // 设置箱子方块实体数据
         const blockEntityData = new NbtCompound({
             'Findable': new NbtByte(0),
@@ -209,24 +209,24 @@ function showFakeChest(player, name) {
             'z': new NbtInt(chestPos.z),
             'CustomName': new NbtString(containerData.title ?? "§§")
         });
-        
+
         const packet = new BinaryStream();
         packet.writeVarInt(chestPos.x);
         packet.writeUnsignedVarInt(chestPos.y);
         packet.writeVarInt(chestPos.z);
         packet.writeCompoundTag(blockEntityData ?? new NbtCompound());
         player.sendPacket(packet.createPacket(56));
-        
+
         setTimeout(() => {
             sendOpenContainerPacket(player, chestPos, containerData.boxId);
             inBoxGui.set(player.xuid, chestPos);
-            
+
             // 填充箱子内容 * 27槽位
             for (const data of containerData.data()) {
                 player.sendInventorySlotPacket(-30, data.slot, data.item);
             }
         }, 200);
-        
+
     } catch (error) {
         player.tell(`[§cError§r]: 创建箱子数据包时出错\n ${error}`);
         logger.error(`创建箱子数据包时出错\n ${error}`)
