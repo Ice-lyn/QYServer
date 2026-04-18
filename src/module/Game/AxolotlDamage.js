@@ -1,3 +1,4 @@
+import { LandJudgment } from "../../lib/func.js";
 const mobList = new Set([
     "minecraft:tropicalfish",
     "minecraft:squid",

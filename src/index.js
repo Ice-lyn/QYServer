@@ -1,13 +1,10 @@
 // LiteLoaderScript Dev Helper
 /// <reference path="/root/VSCode/Library/JS/index.d.ts" /> 
+const { Minecraft, Recipes, I18nAPI } = require('./GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS')
+const { PAPI } = require('./GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS');
+const il = require("./iListenAttentively-LseExport/lib/iListenAttentively.js");
 
-import { GMLIB_API, BEPlaceholderAPI, iListenAttentively } from "../../../index.js";
-
-const { Recipes } = GMLIB_API;
-const { PAPI } = BEPlaceholderAPI;
-const il = iListenAttentively;
-
-import config from "../Config/config.js";
+import { config } from "../Config/config.js";
 import * as func from "./lib/func.js";
 import "./module/load.js";
 logger.setTitle("Server");
@@ -107,7 +104,7 @@ mc.listen("onJoin", (player) => {
     if (config.banName.has(player.realName)
         || config.banXuid.has(player.xuid)
         || config.banClient.has(player.getDevice().clientId)
-    ) return crash(player);
+    ) return func.crash(player);
     if (!player.hasTag("player")) newPlayerUi(player);
     if (!is_reload) func.enRuncmd(player, "function function/Server/player_initializ");
 })
@@ -151,7 +148,7 @@ mc.listen("onConsoleCmd", (cmd) => {
         case "list -i":
             mc.getOnlinePlayers().forEach(pl => {
                 const dev = pl.getDevice()
-                logger.info(mcCode2Ansi(`${pl.realName} §a-ping §l${dev.avgPing}ms§r §b-os §l${dev.os}§r §e-ip §l${dev.ip}§r §d-clientId §l${dev.clientId}§r`))
+                logger.info(func.mcCode2Ansi(`${pl.realName} §a-ping §l${dev.avgPing}ms§r §b-os §l${dev.os}§r §e-ip §l${dev.ip}§r §d-clientId §l${dev.clientId}§r`))
             })
             return false
     }
@@ -172,7 +169,7 @@ mc.listen("onChat", (player, msg) => {
     if (!(player.isOP() || player.hasTag("op"))) msg = msg.replace(/\n/g, '\\n');
     func.titleLog.info("Chat", `<${player.realName}> ${msg}`);
     if (msg[0] === "+") return;
-    msg = textToEmoji(msg);
+    msg = func.textToEmoji(msg);
     mc.broadcast(`[${tag}][${dim}]${ms}${player.realName} >> ${msg}`, 1);
     switch (true) {
         case msg.toLowerCase().includes("ciallo"):
@@ -298,7 +295,7 @@ mc.listen("onUseItem", (pl, item) => {
 mc.listen("onMobDie", (mob, source) => {
     if (!mob || !source) return
     if (source.type !== "minecraft:player") return
-    if (probability(15)) mc.spawnItem(mc.newItem("qys:candle_white", 1), mob.pos)
+    if (func.probability(15)) mc.spawnItem(mc.newItem("qys:candle_white", 1), mob.pos)
     mc.runcmdEx(`execute as "${source.toPlayer().realName}" at @s run function function/killEntity`)
 })
 
@@ -422,7 +419,7 @@ mc.listen('onServerStarted', () => {
             `领地数据文件大小：${func.getFileSize(File.getFileSize("./plugins/iland/data.json"))}`,
             `成就数据文件大小：${func.getFileSize(File.getFileSize("./plugins/Achievement/Data.json"))}`,
             `当日日志文件大小：${func.getFileSize(File.getFileSize(`./logs/BehaviorLog/BehaviorLog-${system.getTimeStr().split(" ")[0]}.csv`))}`,
-            `日志记录文件总数：${File.getFilesList("./logs/BehaviorLog/").length}`,
+            `日志记录文件总数：${File.getFilesList("./logs/BehaviorLog/")?.length}`,
             "======================================"
         ];
         info.forEach(i => out.success(PAPI.translateString(i)));
@@ -454,7 +451,7 @@ mc.listen('onServerStarted', () => {
 
         const fm = mc.newCustomForm()
             .setTitle("称号设置")
-            .addDropdown("选择一个要佩戴的称号\n已佩戴称号: " + getChatTag(ori.player), tagList);
+            .addDropdown("选择一个要佩戴的称号\n已佩戴称号: " + func.getChatTag(ori.player), tagList);
         player.sendForm(fm, (pl, data) => {
             if (func.isNull(data)) return;
             mc.runcmdEx(`tag "${pl.realName}" add "usf.${tagList[data]}"`);
@@ -531,7 +528,7 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_cmd, ori, out, res) => {
         if (res.text) {
             const data = `${ori.player ? ori.player.realName : ori.name} >> ${res.text}`;
-            logger.warn(delStringCode(`[反馈] ${data}`));
+            logger.warn(func.delStringCode(`[反馈] ${data}`));
             File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}] ${data}`);
             return out.success("反馈已提交！");
         }
@@ -541,7 +538,7 @@ mc.listen("onServerStarted", () => {
             .addInput("反馈内容");
         ori.player.sendForm(fm, (pl, data) => {
             if (!data) return;
-            logger.warn(delStringCode(`[反馈] ${pl.realName} >> ${data}`));
+            logger.warn(func.delStringCode(`[反馈] ${pl.realName} >> ${data}`));
             File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}] ${pl.realName} >> ${data}`);
             pl.tell("§a反馈已提交！");
         })
@@ -579,7 +576,7 @@ mc.listen("onServerStarted", () => {
             if (!server.version.includes(Number(PAPI.getValueByPlayer("player_protocol_version", pl)))) return pl.tell(`协议版本不匹配!\n这个服支持的协议：[${server.version.join(",")}]`);
             if (!pl.transServer(server.ip, server.port)) return pl.tell("过不去! 怎么样都过不去!>_<");
             mc.broadcast(`[§dTPServer§r] >> ${pl.realName} 前往了${server.name}`);
-            func.titleLog.info("TPServer", `${pl.realName} 前往了${delStringCode(server.name)}`);
+            func.titleLog.info("TPServer", `${pl.realName} 前往了${func.delStringCode(server.name)}`);
         })
     });
     cmd.overload([]);
@@ -608,7 +605,7 @@ mc.listen("onServerStarted", () => {
     loggerCmd.mandatory('mode', ParamType.Int);
     loggerCmd.overload(["mode", "text"]);
     loggerCmd.setCallback((_cmd, ori, out, res) => {
-        const text = mcCode2Ansi(res.text);
+        const text = func.mcCode2Ansi(res.text);
         logger.setTitle("CmdLog");
         if (res.mode === 0) logger.info(text);
         if (res.mode === 1) logger.warn(text);

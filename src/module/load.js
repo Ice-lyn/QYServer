@@ -2,24 +2,24 @@ const lib_list = Object.entries({ // 这样显得更好看 并且更容易维护
 
     // === 世界类 === //
     World: [
-        "WorldBorder", // 世界边境
-        "AfkTestfor", // 挂机检测
-        "ItemRunCmd", // 物品运行命令
-        "ShowBiome", // 群系提示
-        "ScoreChanged", // 积分榜提示
-        "onPluginEvent", // 触发自定义事件
-        "JoinTime", // 加入时间相关
+        "WorldBorder.js", // 世界边境
+        "AfkTestfor.js", // 挂机检测
+        "ItemRunCmd.js", // 物品运行命令
+        "ShowBiome.js", // 群系提示
+        "ScoreChanged.js", // 积分榜提示
+        "onPluginEvent.js", // 触发自定义事件
+        "JoinTime.js", // 加入时间相关
     ],
 
     // === 玩法类 === //
     Game: [
-        "AIChat", // AI聊天相关
-        "AxolotlDamage", // 美西螈攻击
-        "BoxUI", // 箱子UI
-        "SkinEffect", // 皮肤效果
-        "CloudLift", // 云朵电梯
-        "Mail", // 邮件系统
-        "Doll" // 玩偶
+        "AIChat.js", // AI聊天相关
+        "AxolotlDamage.js", // 美西螈攻击
+        "BoxUI.js", // 箱子UI
+        "SkinEffect.js", // 皮肤效果
+        "CloudLift.js", // 云朵电梯
+        "Mail.js", // 邮件系统
+        "Doll.js" // 玩偶
     ]
 }).flatMap(([k, v]) => v.map(i => `./${k}/${i}`));
 

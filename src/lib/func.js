@@ -1,4 +1,4 @@
-import config from "../Config/config.js";
+import { config } from "../../Config/config.js";
 
 /**
  * 判断是否有权限在领地内操作
@@ -160,22 +160,22 @@ export function isNull(enter) {
 export const titleLog = {
     info: ((title, ...data) => {
         logger.setTitle(title);
-        logger.info(data);
+        logger.info(...data);
         logger.setTitle("Server");
     }),
     warn: ((title, ...data) => {
         logger.setTitle(title);
-        logger.warn(data);
+        logger.warn(...data);
         logger.setTitle("Server");
     }),
     error: ((title, ...data) => {
         logger.setTitle(title);
-        logger.error(data);
+        logger.error(...data);
         logger.setTitle("Server");
     }),
     debug: ((title, ...data) => {
         logger.setTitle(title);
-        logger.debug(data);
+        logger.debug(...data);
         logger.setTitle("Server");
     })
 }

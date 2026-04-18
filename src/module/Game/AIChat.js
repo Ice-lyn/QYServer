@@ -26,6 +26,6 @@ function aiChatServer(text, plName = null) {
             if (res.split("\n")[1]?.startsWith("issues ")) mc.runcmdEx(res.split("\n")[1]);
 
             mc.runcmd(`say ${res.split("\n")[0].replace(/[`^$&\\]/g, '')}`);
-            func.titleLog("AIChat", textToEmoji(res));
+            func.titleLog("AIChat", func.textToEmoji(res));
         });
 }
