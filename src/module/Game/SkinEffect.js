@@ -1,4 +1,4 @@
-const config = require("./QYServer/config/config.js")
+import { config } from "../../../Config/config.js";
 
 // 玩家移除效果事件
 mc.listen("onRespawn",(pl) => {

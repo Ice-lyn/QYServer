@@ -1,12 +1,10 @@
-const config = require("./QYServer/config/config.js");
-
 /**
  * 判断是否有权限在领地内操作
  * @param {Player} Player 玩家对象
  * @param {IntPos} Pos 方块的坐标对象
  * @returns {Boolean} - 返回是否有权限
  */
-function LandJudgment(Player, Pos) {
+export function LandJudgment(Player, Pos) {
     const toRawPos = (Pos) => ({
         'x': Pos.x,
         'y': Pos.y,
@@ -32,7 +30,7 @@ function LandJudgment(Player, Pos) {
  * @param {Player} player - 目标玩家对象
  * @return {string} - 返回称号字符串
  */
-function getChatTag(player) {
+export function getChatTag(player) {
     const tag = player.getNbt()// 从USF数据里获取
         .getTag("DynamicProperties")
         .getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
@@ -44,7 +42,7 @@ function getChatTag(player) {
  * 崩溃玩家客户端
  * @param {Player} player - 目标玩家对象
  */
-function crash(player) {
+export function crash(player) {
     const pack = new BinaryStream()
     pack.writeVarInt64(Number(player.uniqueId))
     player.sendPacket(pack.createPacket(0x0E))
@@ -60,7 +58,7 @@ function crash(player) {
  * @param {number} mode - 输入单位模式 (0:B, 1:KB, 2:MB, 3:GB)
  * @returns {string} - 格式化后的文件大小字符串（自动选择合适单位）
  */
-function getFileSize(bytes, mode = 0) {
+export function getFileSize(bytes, mode = 0) {
     const bytesValue = bytes * 1024 ** mode;
     const units = ["B", "KB", "MB", "GB"];
     const unitIndex = Math.min(3, Math.floor(Math.log2(bytesValue) / 10));
@@ -72,7 +70,7 @@ function getFileSize(bytes, mode = 0) {
  * @param {number} seconds - 要格式化的秒数
  * @returns {string} - 格式化后的时间字符串
  */
-function formatSeconds(seconds) {
+export function formatSeconds(seconds) {
     const units = [
         { value: 86400, label: '天' },
         { value: 3600, label: '小时' },
@@ -95,7 +93,7 @@ function formatSeconds(seconds) {
  * @param {string} str - 要打乱的字符串
  * @returns {string} 返回打乱后的字符串
  */
-function shuffleString(str) {
+export function shuffleString(str) {
     const arr = str.split('');
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -109,7 +107,7 @@ function shuffleString(str) {
  * @param {number} percent - 触发概率百分比，范围 0-100
  * @returns {boolean} 是否触发概率事件
  */
-function probability(percent) {
+export function probability(percent) {
     return Math.random() * 100 < Math.max(0, Math.min(100, percent))
 }
 
@@ -118,7 +116,7 @@ function probability(percent) {
  * @param {string} text - 原始文本
  * return {string} 返回去除后的文本
  */
-function delStringCode(text) {
+export function delStringCode(text) {
     return text.replace(/§./g, '')
 }
 
@@ -128,7 +126,7 @@ function delStringCode(text) {
  * @param {number} mode - 替换模式 0:emoji转特殊表情 1:特殊表情转emoji
  * @returns {string} - 过滤替换后的消息文本
  */
-function textToEmoji(msg, mode = 0) {
+export function textToEmoji(msg, mode = 0) {
     const words = Array.from(config.replaceMap.keys()).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
     const regex = new RegExp(words.join('|'), 'gi');
     return mode === 0
@@ -141,33 +139,45 @@ function textToEmoji(msg, mode = 0) {
  * @param {*} enter - 需要检查的输入值
  * @returns {boolean} - 如果值为null或undefined则返回true，否则返回false
  */
-function isNull(enter) {
+export function isNull(enter) {
     if (enter === null) return true
     if (enter === undefined) return true
     return false
 }
 
 /**
- * 自定义标题日志记录器
- * @param {"info"|"warn"|"error"} mode - 日志级别模式
- * @param {string} title - 临时日志标题
- * @param {string} text - 要记录的日志内容
+ * 创建标题日志记录器对象
+ * @returns {Object} - 返回包含info、warn、error、debug四个方法的日志对象
+ * 
+ * 返回值说明：
+ * - info(title, ...data): 以指定标题输出info级别日志
+ * - warn(title, ...data): 以指定标题输出warn级别日志  
+ * - error(title, ...data): 以指定标题输出error级别日志
+ * - debug(title, ...data): 以指定标题输出debug级别日志
  */
-function titleLogger(mode, title, text) {
-    logger.setTitle(`${title}`)
-    switch (mode) {
-        case "info":
-            logger.info(`${text}`)
-            break
-        case "warn":
-            logger.warn(`${text}`)
-            break
-        case "error":
-            logger.error(`${text}`)
-            break
-    }
-    logger.setTitle("Server")
+export const titleLog = {
+    info: ((title, ...data) => {
+        logger.setTitle(title);
+        logger.info(data);
+        logger.setTitle("Server");
+    }),
+    warn: ((title, ...data) => {
+        logger.setTitle(title);
+        logger.warn(data);
+        logger.setTitle("Server");
+    }),
+    error: ((title, ...data) => {
+        logger.setTitle(title);
+        logger.error(data);
+        logger.setTitle("Server");
+    }),
+    debug: ((title, ...data) => {
+        logger.setTitle(title);
+        logger.debug(data);
+        logger.setTitle("Server");
+    })
 }
+
 
 /**
  * 为实体执行Minecraft命令
@@ -175,13 +185,13 @@ function titleLogger(mode, title, text) {
  * @param {string} cmd - 要执行的Minecraft命令
  * @returns {boolean} - 命令执行结果，失败返回false
  */
-function enRuncmd(entity, cmd) {
-    if (entity === null) return false
-    if (entity.isPlayer()) return mc.runcmdEx(`execute as "${entity.toPlayer().realName}" at @s run ${cmd}`)
+export function enRuncmd(entity, cmd) {
+    if (entity === null) return false;
+    if (entity.isPlayer()) return mc.runcmdEx(`execute as "${entity.toPlayer().realName}" at @s run ${cmd}`);
 
-    entity.addTag(`qys:runcmd_${entity.uniqueId}`) // 使用唯一ID做判断
-    setTimeout(() => entity?.removeTag(`qys:runcmd_${entity?.uniqueId}`), 20)
-    return mc.runcmdEx(`execute as @e[tag="qys:runcmd_${entity.uniqueId}"] at @s run ${cmd}`)
+    entity.addTag(`qys:runcmd_${entity.uniqueId}`); // 使用唯一ID做判断
+    setTimeout(() => entity?.removeTag(`qys:runcmd_${entity?.uniqueId}`), 5);
+    return mc.runcmdEx(`execute as @e[tag="qys:runcmd_${entity.uniqueId}"] at @s run ${cmd}`);
 }
 
 /**
@@ -201,7 +211,7 @@ function enRuncmd(entity, cmd) {
  * 
  * 注意：支持ANSI组合代码（如\x1b[1;34m）的解析和转换
  */
-function mcCode2Ansi(text, mode = 0) {
+export function mcCode2Ansi(text, mode = 0) {
     if (mode === 0) { // MC → ANSI
         const mc2ansi = {
             '§0': '\x1b[30m', '§1': '\x1b[34m', '§2': '\x1b[32m', '§3': '\x1b[36m',
@@ -233,18 +243,30 @@ function mcCode2Ansi(text, mode = 0) {
     }
 }
 
-module.exports = { // 导出函数
-    LandJudgment,
-    getChatTag,
-    crash,
-    getFileSize,
-    formatSeconds,
-    shuffleString,
-    probability,
-    delStringCode,
-    textToEmoji,
-    isNull,
-    titleLogger,
-    enRuncmd,
-    mcCode2Ansi
+/**
+ * 带超时倒计时的跨服传送函数
+ * @param {Player} player - 要传送的玩家对象
+ * @param {string} ip - 目标服务器IP地址
+ * @param {number|string} port - 目标服务器端口号
+ * @param {number} timeout - 倒计时秒数
+ * @param {Function} [err] - 传送失败时的回调函数，参数为玩家对象，默认为提示切换失败
+ * 
+ * 功能说明：
+ * - 从timeout秒开始倒计时，每秒向玩家发送提示信息
+ * - 倒计时结束时执行跨服传送操作
+ * - 如果传送失败，执行err回调函数
+ * 
+ * 注意：
+ * - 函数不会阻塞执行，倒计时通过setTimeout异步进行
+ * - 传送失败回调默认发送"[TPServer] 切换失败，请联系op"
+ */
+export function timeoutJoinServer(player, ip, port, timeout, err = (pl) => pl.tell("[TPServer] 切换失败，请联系op")) {
+    const timeoutList = [];
+    for (let i = timeout; i >= 0; i--) timeoutList.push(i)
+    timeoutList.forEach((sec, index) => {
+        setTimeout(() => {
+            player.tell(`[TPServer] 正在将您您切换至其他服务器，剩余 §a${sec}§r 秒`)
+            if (sec === 1) player.transServer(`${ip}`, Number(port)) || err(player)
+        }, (index + 1) * 1000)
+    })
 }

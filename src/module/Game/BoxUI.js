@@ -1,13 +1,13 @@
-const { Minecraft } = require('./GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js');
+const { Minecraft } = require('./GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS');
 const { Event } = require('./GMLIB-LegacyRemoteCallApi/lib/EventAPI-JS');
 
-const AllContainerData = new Map()
-const openBoxIds = new Map()
-const inBoxGui = new Map()
+const AllContainerData = new Map();
+const openBoxIds = new Map();
+const inBoxGui = new Map();
 
 mc.listen("onLeft",(pl) => {
-    inBoxGui.delete(pl.xuid)
-    openBoxIds.delete(pl.xuid)
+    inBoxGui.delete(pl.xuid);
+    openBoxIds.delete(pl.xuid);
 })
 
 mc.listen("onPlayerCmd", (player, cmd) => {
