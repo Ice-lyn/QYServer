@@ -1,5 +1,14 @@
 import { config } from "../../Config/config.js";
 
+const chatTagMap = new Map();
+
+mc.listen("onLeft", (player) => {
+    chatTagMap.delete(player.xuid);
+})
+
+
+// ==== 函数实现 ==== //
+
 /**
  * 判断是否有权限在领地内操作
  * @param {Player} Player 玩家对象
@@ -33,10 +42,12 @@ export function LandJudgment(Player, Pos) {
  * @return {string} - 返回称号字符串
  */
 export function getChatTag(player) {
+    if (chatTagMap.has(player.xuid)) return chatTagMap.get(player.xuid);
     const tag = player.getNbt()// 从USF数据里获取
         .getTag("DynamicProperties")
         .getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
         .getData("usfV2:chat_tag");
+    chatTagMap(player.xuid, (tag || "§e萌§a新§b求§d带§r"));
     return tag || "§e萌§a新§b求§d带§r";
 }
 

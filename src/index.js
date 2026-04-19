@@ -730,8 +730,8 @@ function musicMenuUi(pl) {
 }
 /*function musicMenuUi(pl) {
     const fm = mc.newSimpleForm()
-      .setTitle("琴")
-      .setContent("qys:music_menu_ui")
+        .setTitle("琴")
+        .setContent("qys:music_menu_ui")
     for (let i = 0; i < 15; i++) fm.addButton("看见我了说明你材质包坏啦！(｡･ω･｡)","textures/blocks/noteblock")
     pl.sendForm(fm,(pl,id,reason) => {
         if (id === null) return
