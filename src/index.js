@@ -1,5 +1,3 @@
-// LiteLoaderScript Dev Helper
-/// <reference path="/root/VSCode/Library/JS/index.d.ts" /> 
 import { Minecraft, Recipes, I18nAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js';
 import { PAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS.js';
 import * as il from "../../iListenAttentively-LseExport/lib/iListenAttentively.js";
