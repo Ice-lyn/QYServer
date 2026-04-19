@@ -1,5 +1,5 @@
-import "./plugins/QYServer/src/index.js";//).catch(err => logger.error(err));
-import * as func from "./plugins/QYServer/src/lib/func.js";
+import "./src/index.js";//).catch(err => logger.error(err));
+import * as func from "./src/lib/func.js";
 
 
 // 导出接口
