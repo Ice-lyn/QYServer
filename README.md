@@ -1,12 +1,5 @@
 # 📖 QYServer - 让光遇见方块 ✨
 
-<!--
-<div align="center">
-https://via.placeholder.com/800x200/2d2d2d/00aaff?text=QYServer+Core
-光是遇见，就很美好 🌟
-</div>
--->
-
 **光是遇见，就很美好 🌟**
 
 一个为 LeviLamina 打造的温馨、功能丰富且充满"灵魂"的基岩版综合插件核心。
