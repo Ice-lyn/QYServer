@@ -1,5 +1,6 @@
-const { Minecraft } = require('./GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS');
-const { Event } = require('./GMLIB-LegacyRemoteCallApi/lib/EventAPI-JS');
+import { Minecraft } from '../../../../GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js';
+import pkg from '../../../../GMLIB-LegacyRemoteCallApi/lib/EventAPI-JS.js';
+const { Event } = pkg;
 
 const AllContainerData = new Map();
 const openBoxIds = new Map();
@@ -11,10 +12,9 @@ mc.listen("onLeft", (pl) => {
 })
 
 mc.listen("onPlayerCmd", (player, cmd) => {
-    if (cmd !== "om a") return
-    if (!player.hasTag("op")) return
-    showFakeChest(player, "elytraUI")
-    return false
+    if (cmd !== "om a") return;
+    showFakeChest(player, "elytraUI");
+    return false;
 });
 
 addContainerData("elytraUI", {
@@ -188,17 +188,27 @@ Event.emplaceListener(
 )
 
 function showFakeChest(player, name) {
-    if (player.gameMode === 6 || !AllContainerData.has(name)) return
-    const containerData = AllContainerData.get(name)
-    openBoxIds.set(player.xuid, name)
+    if (player.gameMode === 6 || !AllContainerData.has(name)) return;
+    const containerData = AllContainerData.get(name);
+    openBoxIds.set(player.xuid, name);
 
     try {
         // 计算箱子位置
-        const chestPos = new IntPos(player.pos.x, player.pos.y + 2, player.pos.z, player.pos.dimid)
-
+        const chestPos = new IntPos(player.pos.x, player.pos.y + 1, player.pos.z, player.pos.dimid);
+      
         // 发送方块数据包
-        sendUpdateBlockPacket(player, chestPos, "minecraft:chest");
-
+        //sendUpdateBlockPacket(player, chestPos, "minecraft:chest");
+        mc.runcmdEx(`jsdebug (()=>{
+const packet = new BinaryStream();
+packet.writeVarInt(${chestPos.x});
+packet.writeUnsignedVarInt(${chestPos.y});
+packet.writeVarInt(${chestPos.z});
+packet.writeUnsignedVarInt(${Minecraft.getBlockRuntimeId("minecraft:chest")});
+packet.writeUnsignedVarInt(0);
+packet.writeUnsignedVarInt(0);
+(mc.getPlayer("${player.realName}")).sendPacket(packet.createPacket(21));
+})()`);
+      
         // 设置箱子方块实体数据
         const blockEntityData = new NbtCompound({
             'Findable': new NbtByte(0),
