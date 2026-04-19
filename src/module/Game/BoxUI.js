@@ -1,5 +1,6 @@
 import { Minecraft } from '../../../../GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js';
 import pkg from '../../../../GMLIB-LegacyRemoteCallApi/lib/EventAPI-JS.js';
+import * as func from "../../lib/func.js";
 const { Event } = pkg;
 
 const AllContainerData = new Map();
@@ -21,17 +22,17 @@ addContainerData("elytraUI", {
     boxId: -30,
     title: "鞘翅设置",
     event: (player, slot) => {
-        if (slot === 4 || slot === 13) return
-        let skinId = slot
-        if (slot >= 0 && slot < 4) skinId += 1
-        if (slot > 13) skinId -= 1
-        skinId = skinId == 19 ? 18 : skinId == 21 ? 0 : skinId == 23 ? 20 : skinId == 25 ? 19 : skinId
+        if (slot === 4 || slot === 13) return;
+        let skinId = slot;
+        if (slot >= 0 && slot < 4) skinId += 1;
+        if (slot > 13) skinId -= 1;
+        skinId = skinId == 19 ? 18 : skinId == 21 ? 0 : skinId == 23 ? 20 : skinId == 25 ? 19 : skinId;
         const elytraData = player.getAllTags()
             .filter(tag => tag.startsWith("qys_data:elytra:"))
-            .reduce((acc, tag) => [...acc, ...JSON.parse((tag.length > 16 ? tag.slice(16) : "[]"))], [])
-        if (elytraData.indexOf(skinId) === -1 && skinId !== 0) return mc.runcmdEx(`execute as "${player.realName}" at @s run playsound mob.villager.no @s ~~~ 100 1 100`)
-        mc.runcmdEx(`execute as "${player.realName}" at @s run playsound random.orb @s`)
-        mc.runcmdEx(`execute as "${player.realName}" run scriptevent qys:cmd property qys:elytra_color ${skinId}`)
+            .reduce((acc, tag) => [...acc, ...JSON.parse((tag.length > 16 ? tag.slice(16) : "[]"))], []);
+        if (elytraData.indexOf(skinId) === -1 && skinId !== 0) return func.enRuncmd(player, "playsound mob.villager.no @s ~~~ 100 1 100");
+        func.enRuncmd(player, "playsound random.orb @s");
+        func.enRuncmd(player, `scriptevent qys:cmd property qys:elytra_color ${skinId}`);
     },
     data: () => {
         return new Set([
@@ -154,13 +155,13 @@ addContainerData("elytraUI", {
 // 容器物品处理请求
 Event.emplaceListener(
     "gmlib::HandleRequestActionAfterEvent", (event) => {
-        const params = event.params
+        const params = event.params;
         if (!inBoxGui.has(params[0].xuid)
             || params[3] == "InventoryContainer"
             || params[3] == "HotbarContainer"
             || params[1] != "Place"
-        ) return
-        AllContainerData.get("elytraUI").event(params[0], params[4])
+        ) return;
+        AllContainerData.get("elytraUI").event(params[0], params[4]);
 
         /*
         
@@ -177,13 +178,13 @@ Event.emplaceListener(
 // 容器界面关闭
 Event.emplaceListener(
     "gmlib::ContainerClosePacketSendAfterEvent", (event) => {
-        const pl = event.params[0]
-        if (!inBoxGui.has(pl?.xuid)) return
-        const pos = inBoxGui.get(pl.xuid)
-        sendUpdateBlockPacket(pl, pos, mc.getBlock(pos)?.type || "minecraft:air")
+        const pl = event.params[0];
+        if (!inBoxGui.has(pl?.xuid)) return;
+        const pos = inBoxGui.get(pl.xuid);
+        sendUpdateBlockPacket(pl, pos, mc.getBlock(pos)?.type || "minecraft:air");
 
-        inBoxGui.delete(pl.xuid)
-        openBoxIds.delete(pl.xuid)
+        inBoxGui.delete(pl.xuid);
+        openBoxIds.delete(pl.xuid);
     }
 )
 
@@ -195,20 +196,22 @@ function showFakeChest(player, name) {
     try {
         // 计算箱子位置
         const chestPos = new IntPos(player.pos.x, player.pos.y + 1, player.pos.z, player.pos.dimid);
-      
+
         // 发送方块数据包
-        //sendUpdateBlockPacket(player, chestPos, "minecraft:chest");
-        mc.runcmdEx(`jsdebug (()=>{
-const packet = new BinaryStream();
-packet.writeVarInt(${chestPos.x});
-packet.writeUnsignedVarInt(${chestPos.y});
-packet.writeVarInt(${chestPos.z});
-packet.writeUnsignedVarInt(${Minecraft.getBlockRuntimeId("minecraft:chest")});
-packet.writeUnsignedVarInt(0);
-packet.writeUnsignedVarInt(0);
-(mc.getPlayer("${player.realName}")).sendPacket(packet.createPacket(21));
-})()`);
-      
+        // sendUpdateBlockPacket(player, chestPos, "minecraft:chest");
+        mc.runcmdEx( // 用sendUpdateBlockPacket发箱子块会炸，用这个先顶一下
+            `jsdebug (()=>{`
+            + `const packet = new BinaryStream();`
+            + `packet.writeVarInt(${chestPos.x});`
+            + `packet.writeUnsignedVarInt(${chestPos.y});`
+            + `packet.writeVarInt(${chestPos.z});`
+            + `packet.writeUnsignedVarInt(${Minecraft.getBlockRuntimeId("minecraft:chest")});`
+            + `packet.writeUnsignedVarInt(0);`
+            + `packet.writeUnsignedVarInt(0);`
+            + `(mc.getPlayer("${player.realName}")).sendPacket(packet.createPacket(21));`
+            + `})()`
+        );
+    
         // 设置箱子方块实体数据
         const blockEntityData = new NbtCompound({
             'Findable': new NbtByte(0),
@@ -239,10 +242,10 @@ packet.writeUnsignedVarInt(0);
 
     } catch (error) {
         player.tell(`[§cError§r]: 创建箱子数据包时出错\n ${error}`);
-        logger.error(`创建箱子数据包时出错\n ${error}`)
+        logger.error(`创建箱子数据包时出错\n ${error}`);
 
-        inBoxGui.delete(player.xuid)
-        openBoxIds.delete(player.xuid)
+        inBoxGui.delete(player.xuid);
+        openBoxIds.delete(player.xuid);
     }
 }
 
@@ -258,8 +261,8 @@ packet.writeUnsignedVarInt(0);
  * - 成功执行后返回容器set方法的返回值
  */
 function addContainerData(name, data) {
-    if (name == null || data == null) return false
-    return AllContainerData.set(name, data)
+    if (name == null || data == null) return false;
+    return AllContainerData.set(name, data);
 }
 
 /**

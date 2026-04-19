@@ -4,7 +4,6 @@ import * as il from "../../iListenAttentively-LseExport/lib/iListenAttentively.j
 
 import { config } from "../Config/config.js";
 import * as func from "./lib/func.js";
-import "./module/load.js";
 logger.setTitle("Server");
 
 // 初始化变量
@@ -61,34 +60,6 @@ mc.listen("onServerStarted", () => {
     // 注册切石机合成表
     Recipes.registerStoneCutterRecipe("qys:amethyst", "amethyst_block", 0, "amethyst_shard", 0, 4); // 紫水晶
 })
-
-// 玩家加入事件
-/*
-mc.listen("onJoin",(pl) => {
-    // if (!pl.hasTag("op")) return
-    // pl.tell(""+PAPI.getValueByPlayer("player_protocol_version", pl))
-    const fm = mc.newSimpleForm()
-      .setTitle("§l紧急通知｜服务器正在应对网络攻击")
-      .setContent(`亲爱的旅人们：
-
-因遭受§l恶意玩家的登录泛洪攻击§r，我们正在紧急将您转移至Java互通服。
-§l基岩主服的存档已安全保留，攻击结束后将自动恢复开放！§r
-
-请放心，您在云端的每一块砖瓦、每一次搭建，都不会消失。
-
-§b具体情况及进展请移步QQ群查看：§l1029879634§r
-
-感谢你的耐心与陪伴。
-风雨总会过去，遇境的灯火依然为你亮着。`)
-      .addButton("§a立刻加入")
-    pl.sendForm(fm,(pl,id) => {
-        //if (id !== 0) return
-        // if (![844, 859, 860, 898, 924].includes(Number(PAPI.getValueByPlayer("player_protocol_version", pl)))) return pl.tell("§c您的版本不支持进入活动服务器! 请升级至1.21.11x以上版本")
-        //func.runTimeoutJoinServer(pl,"qyjavabe.s.odn.cc",19132)
-    })
-})
-//*/
-
 
 // 玩家连接世界
 mc.listen("onPreJoin", () => {

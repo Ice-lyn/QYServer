@@ -189,7 +189,9 @@ export const titleLog = {
  */
 export function enRuncmd(entity, cmd) {
     if (entity === null) return false;
-    if (entity.isPlayer()) return mc.runcmdEx(`execute as "${entity.toPlayer().realName}" at @s run ${cmd}`);
+
+    // isPlayer在这里会炸，用realName绕过一下，也能判断玩家
+    if (entity.realName) return mc.runcmdEx(`execute as "${entity.realName}" at @s run ${cmd}`);
 
     entity.addTag(`qys:runcmd_${entity.uniqueId}`); // 使用唯一ID做判断
     setTimeout(() => entity?.removeTag(`qys:runcmd_${entity?.uniqueId}`), 5);
