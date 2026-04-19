@@ -1,13 +1,13 @@
 {
     "name": "QYServer",
     "entry": "index.js",
-    "type": "lse-quickjs",
-    "version": "1.0.0-beta.2",
+    "type": "lse-nodejs",
+    "version": "1.0.0-beta.3",
     "author": "冰凌呀",
     "description": "QYServer专用插件",
     "dependencies": [
         {
-            "name": "legacy-script-engine-quickjs"
+            "name": "legacy-script-engine-nodejs"
         },
         {
             "name": "GMLIB-LegacyRemoteCallApi"

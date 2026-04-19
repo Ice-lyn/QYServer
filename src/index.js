@@ -1,8 +1,8 @@
 // LiteLoaderScript Dev Helper
 /// <reference path="/root/VSCode/Library/JS/index.d.ts" /> 
-const { Minecraft, Recipes, I18nAPI } = require('./GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS')
-const { PAPI } = require('./GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS');
-const il = require("./iListenAttentively-LseExport/lib/iListenAttentively.js");
+import { Minecraft, Recipes, I18nAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js';
+import { PAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS.js';
+import * as il from "../../iListenAttentively-LseExport/lib/iListenAttentively.js";
 
 import { config } from "../Config/config.js";
 import * as func from "./lib/func.js";
@@ -293,10 +293,10 @@ mc.listen("onUseItem", (pl, item) => {
 
 // 生物死亡事件
 mc.listen("onMobDie", (mob, source) => {
-    if (!mob || !source) return
-    if (source.type !== "minecraft:player") return
-    if (func.probability(15)) mc.spawnItem(mc.newItem("qys:candle_white", 1), mob.pos)
-    func.enRuncmd(source.toPlayer(), "function function/killEntity")
+    if (!mob || !source) return;
+    if (source.type !== "minecraft:player") return;
+    if (func.probability(15)) mc.spawnItem(mc.newItem("qys:candle_white", 1), mob.pos);
+    func.enRuncmd(source.toPlayer(), "function function/killEntity");
 })
 
 // 玩家重生事件
@@ -993,7 +993,7 @@ const opCmd = { // OP 可以用
     tpch: (player, command) => player.runcmd(`tp @s ${command[1] * 16 + 8} ~ ${command[2] * 16 + 8}`),
     getNbt: (player) => File.writeTo("./plugins/QYServer/nbt.txt", JSON.stringify(player.getHand().getNbt().toSNBT())),
 
-    setNbt: (player, command) => {
+    setNbt: (player) => {
         if (!player?.getHand()?.isNull()) return player.tell("吧唧吧唧，我要吃空气！");
         //log(JSON.parse(File.readFrom("./plugins/QYServer/nbt.txt")));
         const itemNbt = mc.newItem(NBT.parseSNBT(JSON.parse(File.readFrom("./plugins/QYServer/nbt.txt"))));
@@ -1001,7 +1001,7 @@ const opCmd = { // OP 可以用
         player.refreshItems();
     },
 
-    getbin: (player, command) => {
+    getbin: (player, _command, pngMap) => {
         if (pngMap === null) system.cmd(`cd . && ".\\bin\\img2bin.exe" -in 1.png -out 1`, (exitcode, output) => {
             player.tell("ExitCode : " + exitcode);
             player.tell(output);

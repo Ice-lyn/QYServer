@@ -1,0 +1,12 @@
+{
+    "name": "qyerver",
+    "version": "1.0.0-beta.2",
+    "description": "QYServer专用插件",
+    "author": "冰凌呀",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    
+    "dependencies": {}
+}
