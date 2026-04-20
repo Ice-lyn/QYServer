@@ -2,8 +2,10 @@ import { Minecraft, Recipes, I18nAPI } from '../../GMLIB-LegacyRemoteCallApi/lib
 import { PAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS.js';
 import * as il from "../../iListenAttentively-LseExport/lib/iListenAttentively.js";
 
+import { moduleList } from "./src/module/load.js";
 import { config } from "../Config/config.js";
 import * as func from "./lib/func.js";
+
 logger.setTitle("Server");
 
 // 初始化变量
@@ -876,7 +878,7 @@ const playerCmd = {// 玩家可以用
             .addInput("小说名", "在这里填写你想要搜索的小说名");
         player.sendForm(fm, (pl, data) => {
             if (data === null) pl.tell("表单已放弃");
-            else getBook(data, pl);
+            else moduleList["./Game/BookLook.js"].getBook(data, pl);
         });
     },
 

@@ -16,6 +16,7 @@ const lib_list = Object.entries({ // 这样显得更好看 并且更容易维护
         "AIChat.js", // AI聊天相关
         "AxolotlDamage.js", // 美西螈攻击
         "BoxUI.js", // 箱子UI
+        "BookLook.js",
         "SkinEffect.js", // 皮肤效果
         "CloudLift.js", // 云朵电梯
         "Mail.js", // 邮件系统
@@ -31,12 +32,15 @@ logger.setTitle("Server");
 const startTime = Date.now();
 lib_list.forEach(lib => {
     import(lib)
-        .then((module) => {
+        .then(mod => {
             logger.info(`${lib} 加载完成(${((Date.now() - startTime) / 1000).toFixed(3)}s)`)
             checkProgress();
+            try { 
+                moduleList.set(lib, mod);
+            } catch (e) { };
         })
         .catch(err => {
-            logger.error(`组件 ${lib} 加载失败：\n   ${err}`);
+            logger.error(`组件 ${lib} 加载失败：\n      ${err}`);
             checkProgress();
         });
 });

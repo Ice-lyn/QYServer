@@ -1,7 +1,7 @@
 import { config } from "../../../Config/config.js";
 
 // 游戏类小说阅读器UI
-function getBook(text, pl) {
+export function getBook(text, pl) {
     network.httpGet(`https://yunzhiapi.cn/API/fqmfxs.php?token=${config.token}&name=` + text, (code, res) => {
         const resJson = JSON.parse(res)
         if (code !== 200
