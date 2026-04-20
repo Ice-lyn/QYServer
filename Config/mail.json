@@ -15,7 +15,7 @@
                 "items": [
                     "{\"Count\":3b,\"Damage\":0s,\"Name\":\"qys:magic\",\"WasPickedUp\":0b,\"tag\":{\"RepairCost\":0,\"display\":{\"Lore\":[\"runner:6\"],\"Name\":\"§l随意抚摸魔法§r\\n§b(让您任意抚摸生物)§r\"}}}",
                     "{\"Count\":5b,\"Damage\":0s,\"Name\":\"qys:magic\",\"WasPickedUp\":0b,\"tag\":{\"RepairCost\":0,\"display\":{\"Lore\":[\"runner:3\"],\"Name\":\"§l缩小魔法\\n§r§b(在一段时间内改变身高)\"}}}",
-                  "{\"Count\":40b,\"Damage\":0s,\"Name\":\"qys:firework_blue_spawn_egg\",\"WasPickedUp\":0b}"
+                    "{\"Count\":40b,\"Damage\":0s,\"Name\":\"qys:firework_blue_spawn_egg\",\"WasPickedUp\":0b}"
                 ]
             },
             "timestamp": 1771274200000

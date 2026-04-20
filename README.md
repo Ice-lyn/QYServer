@@ -1,137 +1,246 @@
-# 📖 QYServer - 让光遇见方块 ✨
+# QYServer 插件
 
-**光是遇见，就很美好 🌟**
-
-一个为 LeviLamina 打造的温馨、功能丰富且充满"灵魂"的基岩版综合插件核心。
-
-![Version](https://img.shields.io/badge/version-1.0.0--beta.3-blue)
-![License](https://img.shields.io/badge/license-Unlicensed-red)
-![Platform](https://img.shields.io/badge/platform-LeviLamina-green)
-
-## ✨ 特性介绍
-
-> "看好了小子，这一刀，会很帅" - 项目注释
-
-### 🗣️ 傲娇的服务器娘
-- 集成了AI聊天，她会陪你聊天、偶尔插嘴、帮你反馈问题，甚至在你骂她的时候会"回击"（注：无记忆，每次对话都是新的开始 QwQ）。
-
-### ☁️ 云朵电梯
-- 在云朵方块上跳跃或蹲下即可上下楼，再也不用爬梯子了！（设计初衷竟然是为了当墙壁？）。
-
-### 📧 邮件系统
-- 向玩家发送带附件的全服邮件，支持未读提醒和时效性管理。逢年过节发点小福利，温暖每一位旅人。
-
-### 🎭 个性化系统
-- **聊天称号**: 通过成就或活动获得独特的聊天前缀。
-- **皮肤特效**: 穿上特定的皮肤物品，可以获得对应的药水效果或播放动画（如小月、爱丽丝、莉莉丝等）。
-- **鞘翅换色**: 使用假箱子UI，像翻牌子一样挑选你喜欢的鞘翅颜色。
-
-### 🛡️ 综合管理
-- **世界边界**: 防止玩家走丢，硬核限制生存范围。
-- **反作弊联动**: 监听 iListenAttentively 的作弊事件，对"被反作弊娘注视"的玩家发出警告。
-- **玩家保护**: 耕地防踩、防末影人搬方块、凋零防爆、主世界禁用重生锚。
-
-### 🐟 奇怪的细节
-- 美西螈可以设置为不攻击鱼类。
-- 经验修补可以在潜行时手动触发。
-- 右击留言纸船可以查看或删除留言。
-- 自动替换聊天中的Emoji为游戏内特殊字符。
-
-## 📂 项目结构一览
-
-```text
-QYServer/
-├── Config/                   # 核心配置文件
-│   ├── config.js             # 主配置：封禁名单、服务器列表、世界边界、一言列表等
-│   └── mail.json             # 全服邮件配置
-├── Data/                     # 运行时产生的数据
-│   ├── issues.txt            # 玩家通过 /issues 反馈的问题记录
-│   └── System/               # 系统数据存储
-│       ├── BiomeName.json    # 群系中文名映射表
-│       ├── mail_playerData.json # 玩家的邮件阅读/领取状态
-│       └── playerTime.json   # 玩家首次进入服务器的时间戳
-├── src/                      # 源代码目录
-│   ├── index.js              # 插件主入口，注册所有事件和命令
-│   ├── lib/                  # 公共函数库
-│   │   └── func.js           # 工具函数集合
-│   └── module/               # 功能模块（核心玩法）
-│       ├── load.js           # 动态模块加载器
-│       ├── Game/             # 玩法相关模块
-│       │   ├── AIChat.js     # AI 聊天（服务器娘）
-│       │   ├── AxolotlDamage.js # 美西螈攻击管理
-│       │   ├── BoxUI.js      # 假箱子UI（鞘翅皮肤等）
-│       │   ├── CloudLift.js  # 云朵电梯逻辑
-│       │   ├── Doll.js       # 玩偶交互
-│       │   ├── Mail.js       # 邮件系统核心逻辑
-│       │   └── SkinEffect.js # 皮肤特殊效果
-│       └── World/            # 世界管理模块
-│           ├── AfkTestfor.js # AFK 挂机检测
-│           ├── ItemRunCmd.js # 物品执行命令
-│           ├── JoinTime.js   # 玩家加入时间记录与查询
-│           ├── ScoreChanged.js # 计分板变动提示
-│           ├── ShowBiome.js  # 群系名称HUD显示
-│           └── WorldBorder.js # 世界边界限制
-├── index.js                  # LSE 加载入口，负责导出接口
-├── manifest.json             # 插件清单文件
-└── package.json              # Node.js 项目描述文件
-```
-
-## 🛠️ 维护指南 (For Ops)
-
-> "服务器太卡了"——来自 issues.txt 的高频词。
-
-### 1. 性能优化
-- **AI聊天 (AIChat.js)**: AI响应时间可能较长，且使用的是外网API，网络波动时可能导致onChat事件处理变慢。如果服务器TPS堪忧，可以考虑临时禁用该模块。
-- **挂机检测 (AfkTestfor.js)**: 每3秒遍历所有在线玩家，建议保持现状。如有性能问题，可适当增加间隔。
-- **世界边界 (WorldBorder.js)**: 每4秒检测一次，逻辑上已做了"远离边界不检测"的优化，通常无压力。
-
-### 2. 数据管理
-- **封禁名单**: 在 Config/config.js 的 banName, banXuid, banClient 中维护。被命中的玩家在进入时会被"崩溃客户端"。
-- **全服邮件**: 编辑 Config/mail.json 文件后，无需重启，插件会在玩家下次查询或登录时读取。请确保JSON格式正确。
-- **玩家反馈**: 玩家使用 /issues <内容> 提交的反馈会记录在 Data/issues.txt 中，定期查看有助于发现玩家痛点。
-
-### 3. 调试命令 (需要OP)
-- `/logger <mode> <text>`: 向控制台发送一条带格式的日志。mode: 0(info), 1(warn), 2(error), 3(debug)。
-- `/saydata <key> <mode> <data>`: 脚本间数据通信，用于调试（需验证密钥）。
-- `/tps`, `/mspt`: 控制台可用，查看服务器性能。
-- `/list -v`: 控制台查看在线玩家的客户端版本。
-- `/list -i`: 控制台查看在线玩家的IP、延迟、设备等信息。
-
-### 4. 常见问题排查
-- **玩家反馈卡顿/卡死**: 检查是否有大量密集实体（如史莱姆、蜜蜂）、资源包冲突（如后室服材质）、或高频红石机械。
-- **新人出生点被锁**: 检查 newPlayerUi 函数中的相机路径坐标是否与主城实际结构匹配。
-- **功能方块失效**: 检查 config.banBlock 是否误封禁了某些功能方块。
-
-## 📚 开发者文档：导出函数 (Exports)
-
-本插件向LLSE导出了 src/lib/func.js 中的所有函数。你可以在其他LSE插件中通过 `ll.import("QYServer", "函数名")` 来调用它们。
-
-| 函数名 | 描述 | 参数 | 返回值 |
-|--------|------|------|--------|
-| LandJudgment | 判断玩家是否有权限在指定位置操作（需要iLand前置） | Player, IntPos | Boolean |
-| getChatTag | 获取玩家的聊天称号 | Player | String |
-| crash | 尝试崩溃一个玩家的客户端 | Player | void |
-| getFileSize | 格式化文件大小 | bytes, mode? | String |
-| formatSeconds | 格式化秒数为 X天 X小时... | seconds | String |
-| shuffleString | 随机打乱一个字符串 | String | String |
-| probability | 根据百分比概率返回 true 或 false | percent | Boolean |
-| delStringCode | 移除字符串中所有Minecraft颜色代码 (§) | String | String |
-| textToEmoji | 在文本与游戏内特殊表情符号之间转换 | msg, mode | String |
-| isNull | 检查值是否为 null 或 undefined | any | Boolean |
-| titleLog | 创建一个带有自定义标题的Logger对象 | - | Object |
-| enRuncmd | 以某个实体为执行者和执行位置运行Minecraft命令 | Entity, cmd | Boolean |
-| mcCode2Ansi | 将Minecraft颜色代码 (§) 与ANSI转义序列互转 | text, mode | String |
-| timeoutJoinServer | 带倒计时提示地将玩家传送到另一个服务器 | player, ip, port, timeout, errCb? | void |
-
-## 💖 特别鸣谢与致敬
-
-- **佛祖**: index.js 末尾的佛祖保佑图，保佑代码"永无BUG"。
-- **冰凌呀**: 作者，用爱发电，创造了这个充满细节的世界。
-- **奈依rere**: 烟花设计者。
-- **所有反馈问题的玩家**: 虽然issues.txt里充满了吐槽，但这正是服务器成长的动力。
+> 光遇主题 · 多功能综合服务器插件  
+> "光是遇见，就很美好" —— 专为《光·遇》风格生存服打造  
+> "不要在工位上打开，因为代码里藏着太多颜文字 (｡･ω･｡)ﾉ♡"
 
 ---
 
-> "你说长痛不如短痛，我想，这句话不对，长痛的话，你一直在我身边，而短痛，便是了无音讯" - 来自项目的一言库。
+## ⚠️ 重要说明
 
-愿我们与这个项目，都是长久而温暖的陪伴。
+本项目仅作为 LeviLamina + NodeJS 插件开发的技术参考开源。
+
+- 配套的 **行为包 (Behavior Pack)** 与 **资源包 (Resource Pack)** 并未随本仓库开源，因此直接安装本插件将无法正常运行大部分功能（如云朵电梯、烟花、皮肤特效、自定义 UI 等）。
+- 若您有意在生产环境中使用，请自行根据代码中的 scriptevent 调用和方块 ID 配置修改并适配您自己的行为包。
+- 欢迎 Fork 并修改代码以符合您的服务器架构，但请保留原作者信息。
+
+---
+
+## 🌟 简介
+
+**QYServer** 是一款为 LeviLamina + LegacyScriptEngine-NodeJS 环境设计的综合性基岩版服务器插件。它集成了 **玩家管理、趣味玩法、世界控制、AI聊天、邮件系统** 等大量功能，致力于为玩家营造一个温暖、有趣、充满细节的游戏世界。
+
+本插件原本为私人服务器定制，现开源分享。代码中充满了 **颜文字、网络热梗、可爱的服务器娘** 风格，阅读代码时请保持心情愉快 (｡･ω･｡)ﾉ♡
+
+---
+
+## ✨ 主要特性
+
+### 🧸 玩家系统增强
+
+- **新手引导动画** —— 首次进服自动播放光遇风格镜头动画，介绍主城设施
+- **个人设置菜单** —— 开关横扫之刃、群系提示、每日一言、自动补种等
+- **称号系统** —— 玩家可自由佩戴获得的聊天前缀称号
+- **主副手切换** (/offhand) / **头盔互换** (/helmet) 命令
+- **自定义玩家大小** (/scale)
+- **鞘翅颜色选择** —— 假箱子 UI 选择已解锁的鞘翅皮肤
+
+### 🗺️ 世界机制
+
+- **世界边界限制** —— 可配置矩形边界，超出自动传送回安全位置
+- **云朵电梯** —— 站在特殊云朵方块上跳跃/潜行即可上下楼层
+- **群系名称显示** —— 进入新群系时在屏幕上方显示中文名称
+- **封禁方块** —— 防止玩家放置特定的方块
+- **耕地防踩、防搬方块、凋零防爆、禁止主世界使用重生锚**
+
+### 🤖 AI 聊天 & 反馈
+
+- **服务器娘 AI 对话** —— 基于豆包 API，当玩家消息包含关键词时自动触发回复
+- **问题反馈系统** (/issues) —— 玩家提交的反馈自动记录到 Data/issues.txt
+
+### 📬 邮件系统
+
+- 支持带附件的服务器公告邮件
+- 玩家上线自动检测未读邮件，可领取附件物品
+- 管理员通过修改 JSON 文件发送新邮件
+
+### ⏱️ 挂机检测
+
+- 10分钟无操作自动进入挂机状态，显示 BossBar 并修改玩家名牌
+
+### 🎆 趣味内容
+
+- **自定义烟花发射** —— 消耗蜡烛，多种烟花效果可选
+- **玩偶系统** —— 放置特殊玩偶方块，右键触发不同效果（吹飞、播放坤坤音乐等）
+- **钢琴弹奏** —— 简易 GUI 弹奏音符盒音效（需配套资源包）
+- **经验修补重写** —— 潜行时右键工具消耗经验修复耐久
+- **聊天表情替换** —— 内置大量 emoji 映射到资源包特殊字符
+
+### 🛡️ 管理工具
+
+- 封禁名单（按玩家名、XUID、设备ID）
+- 崩溃玩家客户端功能（用于测试/惩罚）
+- 运行状态查询 (/sinfo) —— 显示 TPS、内存、实体数等
+- 跨服传送菜单 (/nodeui, /tpserver)
+
+---
+
+## ⚙️ 配置文件说明
+
+### Config/config.js
+
+| 配置项 | 说明 |
+|--------|------|
+| banName / banXuid / banClient | 封禁名单，玩家进入时自动踢出 |
+| banBlock | 禁止普通玩家放置的方块列表 |
+| serverList | 其他类型服列表（用于 /tpserver） |
+| nodeList | 线路节点列表（用于 /nodeui） |
+| sky_block_type | 云朵电梯使用的方块 ID |
+| world_limits | 世界边界坐标范围 |
+| meSetList | 个人设置开关列表（标签控制） |
+| wordList | 每日一言轮播内容 |
+| replaceMap | 聊天表情替换映射表 |
+| FireworkList | 烟花种类配置 |
+| SkinEffect | 皮肤装备时附加的药水效果 |
+
+### Config/mail.json
+
+邮件公告存储文件，格式如下：
+
+```json
+{
+  "announcements": [
+    {
+      "id": "ann_001",
+      "title": "公告标题",
+      "content": "正文内容",
+      "timestamp": 1734192000000,
+      "expireDays": 30,
+      "annex": {
+        "items": ["物品SNBT字符串..."]
+      }
+    }
+  ]
+}
+```
+
+### Data/System/
+
+- playerTime.json：记录玩家首次加入时间戳
+- mail_playerData.json：记录玩家已读邮件和已领取附件状态
+- BiomeName.json：群系中文名称映射表
+- issues.txt：玩家反馈记录
+
+---
+
+## 🎮 命令列表
+
+### 玩家命令
+
+| 命令 | 功能 |
+|------|------|
+| /sinfo | 查看服务器运行状态 |
+| /msgui | 快捷私聊菜单 |
+| /chattag | 设置聊天称号 |
+| /offhand | 交换主副手物品 |
+| /helmet | 交换头盔与主手物品 |
+| /scale [倍数] | 调整玩家大小（-2 ~ 35） |
+| /issues [内容] | 提交问题反馈 |
+| /nodeui | 选择线路节点（跨服） |
+| /tpserver | 前往其他类型服 |
+| /mail | 查看邮件 |
+| /fc | 切换自由视角（需已骑乘） |
+| /onmode <功能> | 触发特殊功能（见下文） |
+
+### 特殊功能 /onmode 参数
+
+| 参数 | 效果 |
+|------|------|
+| xpfix | 经验修补（等效潜行右键） |
+| meSet | 打开个人设置 UI |
+| firework | 烟花发射 UI |
+| new | 重播新手引导 |
+| giveskin | 获取皮肤商店商品（测试用） |
+| crash | 5秒倒计时后崩溃自己客户端 |
+| book | 小说阅读器 |
+| killme | 返回重生点并满血（自救） |
+| rc | 请求客户端刷新区块 |
+
+### OP 命令（需 OP 权限或 op 标签）
+
+| 命令 | 功能 |
+|------|------|
+| /logger <mode> <text> | 向控制台输出日志（0=info,1=warn,2=error,3=debug） |
+| /saydata <key> <mode> <data> | 脚本间数据通信（需密钥） |
+| /onmode tpch <chunkX> <chunkZ> | 传送到指定区块中心 |
+| /onmode getNbt | 将手持物品 NBT 保存至文件 |
+| /onmode setNbt | 从文件读取 NBT 并赋予手持物品 |
+| /onmode getbin | 将图片转换为地图画（需配套 exe） |
+
+---
+
+## 📚 导出 API 文档
+
+插件通过 ll.exports 导出了 func.js 中的全部函数，其他插件可通过以下方式调用：
+
+```js
+const QYServer = ll.imports("QYServer");
+QYServer.crash(player);   // 崩溃玩家客户端
+QYServer.getChatTag(player); // 获取玩家聊天称号
+```
+
+### 导出函数列表
+
+| 函数名 | 参数 | 返回值 | 说明 |
+|--------|------|--------|------|
+| LandJudgment(Player, Pos) | 玩家对象、坐标 | Boolean | 判断玩家在领地内是否有操作权限（需 iLand） |
+| getChatTag(player) | 玩家对象 | String | 获取玩家当前佩戴的聊天称号 |
+| crash(player) | 玩家对象 | void | 发送破损数据包尝试崩溃客户端 |
+| getFileSize(bytes, mode) | 字节数，模式(0=B,1=KB,2=MB,3=GB) | String | 格式化文件大小 |
+| formatSeconds(seconds) | 秒数 | String | 格式化为 X天X小时X分钟X秒 |
+| shuffleString(str) | 字符串 | String | 随机打乱字符串顺序 |
+| probability(percent) | 百分比(0-100) | Boolean | 判断是否触发概率事件 |
+| delStringCode(text) | 带 § 的文本 | String | 去除所有颜色代码 |
+| textToEmoji(msg, mode) | 消息文本，模式(0=转emoji,1=转回来) | String | 表情符号转换 |
+| isNull(enter) | 任意值 | Boolean | 判断是否为 null 或 undefined |
+| titleLog | 对象 | {info, warn, error, debug} | 带标题的日志记录器 |
+| enRuncmd(entity, cmd) | 实体对象、命令字符串 | Boolean | 以实体身份执行命令 |
+| mcCode2Ansi(text, mode) | 文本，模式(0=MC→ANSI,1=ANSI→MC) | String | 颜色代码互转 |
+| timeoutJoinServer(player, ip, port, timeout, err) | 玩家、IP、端口、倒计时、失败回调 | void | 带倒计时跨服传送 |
+
+---
+
+## 🛠️ 维护与调试
+
+### 日志
+
+- 所有聊天、命令执行都会通过 func.titleLog 输出到控制台，前缀为 Chat 或 Command。
+- AI 聊天记录会带 AIChat 前缀。
+- 反馈内容会写入 Data/issues.txt 并在控制台打印。
+
+### 常见问题
+
+**Q：玩家进服就崩溃？**  
+A：检查 banName/banXuid/banClient 是否误封，或玩家客户端资源包冲突。
+
+**Q：云朵电梯不工作？**  
+A：确认 sky_block_type 配置的方块 ID 正确，且玩家站在方块上跳跃/潜行。
+
+**Q：AI 聊天不触发？**  
+A：API Token 可能失效，需更换 AIChat.js 中的 token。消息需包含关键词才会触发。
+
+**Q：邮件附件无法领取？**  
+A：物品 SNBT 格式错误，检查 mail.json 中 items 字段是否正确。
+
+### 更新配置后
+
+修改 Config/config.js 或 mail.json 后，无需重启服务器，插件会自动读取最新内容（部分数据有缓存机制）。
+
+---
+
+## 🙏 鸣谢
+
+- 佛祖保佑，永无 Bug 🙏
+- 感谢 YunzhiAPI 提供的 AI 与小说接口
+- 感谢所有为本项目提供灵感和测试的玩家们
+
+---
+
+## 📄 开源许可
+
+本项目采用 MIT 许可证。  
+二次开发或转载时请保留原作者信息，并附上本仓库链接。
+
+小提示：代码中充斥大量 "qys:" 前缀的 scriptevent，若您打算自用，建议全局搜索替换为您自己的命名空间，避免与我们的行为包冲突哦～
+
+愿你的服务器也能成为玩家们心中温暖的"遇境" (๑•̀ㅂ•́)و✧
