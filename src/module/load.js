@@ -1,3 +1,4 @@
+export const moduleList = new Map();
 const lib_list = Object.entries({ // 这样显得更好看 并且更容易维护
 
     // === 世界类 === //
@@ -20,6 +21,7 @@ const lib_list = Object.entries({ // 这样显得更好看 并且更容易维护
         "Mail.js", // 邮件系统
         "Doll.js" // 玩偶
     ]
+
 }).flatMap(([k, v]) => v.map(i => `./${k}/${i}`));
 
 logger.setTitle("Component");
@@ -29,7 +31,7 @@ logger.setTitle("Server");
 const startTime = Date.now();
 lib_list.forEach(lib => {
     import(lib)
-        .then(() => {
+        .then((module) => {
             logger.info(`${lib} 加载完成(${((Date.now() - startTime) / 1000).toFixed(3)}s)`)
             checkProgress();
         })

@@ -1,4 +1,3 @@
-// module.exports = {
 export const config = {
 
     // 封禁名单
@@ -12,6 +11,9 @@ export const config = {
         "minecraft:barrier", "minecraft:jigsaw", "minecraft:end_gateway",
         "minecraft:end_portal", "minecraft:bedrock"
     ]),
+
+    // 网络请求相关
+    token: "UUkR4A3CJNfW",
 
     // 其他类型服列表
     serverList: [

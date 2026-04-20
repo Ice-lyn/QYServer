@@ -1,5 +1,5 @@
+import { config } from "../../../Config/config.js";
 import * as func from "../../lib/func.js";
-const token = "UUkR4A3CJNfW";
 
 mc.listen("onChat", (player, msg) => {
     if (msg[0] !== "+"
@@ -18,7 +18,7 @@ function aiChatServer(text, plName = null) {
         `${plName === null ? "" : `本次对话发送人(玩家名称): ${plName} ||`}接下来是消息原文`,
     ].join("\n")
     network.httpPost("https://yunzhiapi.cn/API/doubao.php", {},
-        `token=${token}&system=${systemInfo}&question=${func.textToEmoji(text, 1)}`,
+        `token=${config.token}&system=${systemInfo}&question=${func.textToEmoji(text, 1)}`,
         "application/x-www-form-urlencoded",
         (code, res) => {
             if (code !== 200) return; // res = `接口请求时发生错误，code: ${code} | res：${res}`
