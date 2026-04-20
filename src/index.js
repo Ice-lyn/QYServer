@@ -1,4 +1,4 @@
-import { Minecraft, Recipes, I18nAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js';
+import { Recipes } from '../../GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js';
 import { PAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS.js';
 import * as il from "../../iListenAttentively-LseExport/lib/iListenAttentively.js";
 
@@ -323,7 +323,7 @@ mc.listen('onServerStarted', () => {
 
     // 玩家延迟显示
     setInterval(() => {
-        mc.getOnlinePlayers().forEach(pl => {
+        mc.getOnlinePlayers().forEach((pl) => {
             if (pl.hasTag("qys:in:afk")) return
             ping = pl.getDevice()?.avgPing ?? 255
             if (ms.getScore(pl) !== ping) ms.setScore(pl, ping)
@@ -352,11 +352,11 @@ mc.listen('onServerStarted', () => {
     // 冲撞魔法
     setInterval(() => {
         mc.getOnlinePlayers().forEach(pl => {
-            if (!(pl.hasTag("qys:can_speed") && pl.isGliding)) return
-            const speed = Math.floor(pl.speed) - 5
-            if (speed <= 10) return
-            mc.runcmdEx(`execute as "${pl.realName}" at @s run damage @e[r=3.5,rm=0.01,family=monster] ${speed} entity_attack entity @s`)
-            pl.tell("speed: " + speed, 3)
+            if (!(pl.hasTag("qys:can_speed") && pl.isGliding)) return;
+            const speed = Math.floor(pl.speed);
+            if (speed <= 10) return;
+            mc.runcmdEx(`execute as "${pl.realName}" at @s run damage @e[r=3.5,rm=0.01,family=monster] ${speed} entity_attack entity @s`);
+            pl.tell("speed: " + speed, 3);
         })
     }, 100)
 
@@ -470,27 +470,61 @@ mc.listen('onServerStarted', () => {
     cmd.setup();
 })
 
+// nodeui - 线路节点选择
+mc.listen("onServerStarted", () => {
+    const cmd = mc.newCommand("nodeui", "§b线路节点选择", PermType.Any);
+    cmd.setAlias("server");
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return out.success("过不去，怎么样都过不去>_<");
+        const nodeList = config.nodeList;
+        ori.player.sendSimpleForm("切换高速节点", "快来选择一个适合你的节点吧∽", nodeList.map(i => i.name), nodeList.map(i => i.ui), (pl, id) => {
+            if (func.isNull(id)) return;
+            if (nodeList.some(i => `${i.ip}:${i.port}` === pl.getDevice().serverAddress)) return pl.tell(`你目前正在使用 ${nodeList[id].name} 节点哦∽`);
+            pl.transServer(nodeList[id].ip, nodeList[id].port) || pl.tell("过不去! 怎么样都过不去!>_<");
+        })
+    });
+    cmd.overload([]);
+    cmd.setup();
+})
+
+// tpserver - 传送到其他服
+mc.listen("onServerStarted", () => {
+    const cmd = mc.newCommand("tpserver", "§b前往其他类型服", PermType.Any);
+    cmd.setAlias("qyserver");
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return out.success("过不去，怎么样都过不去>_<")
+        ori.player.sendSimpleForm("前往其他服", "生存玩腻了? 快来其他服玩玩吧∽", config.serverList.map(s => s.name), config.serverList.map(s => s.ui), (pl, id) => {
+            if (func.isNull(id)) return;
+            const server = config.serverList[id];
+            if (!server.version.includes(Number(PAPI.getValueByPlayer("player_protocol_version", pl)))) return pl.tell(`协议版本不匹配!\n这个服支持的协议：[${server.version.join(",")}]`);
+            if (!pl.transServer(server.ip, server.port)) return pl.tell("过不去! 怎么样都过不去!>_<");
+            mc.broadcast(`[§dTPServer§r] >> ${pl.realName} 前往了${server.name}`);
+            func.titleLog.info("TPServer", `${pl.realName} 前往了${func.delStringCode(server.name)}`);
+        })
+    });
+    cmd.overload([]);
+    cmd.setup();
+})
+
 // scale - 自定义大小
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand("scale", "§b自定义大小", PermType.Any);
     cmd.optional('Int', ParamType.Int, 1);
-    cmd.overload(['Int']);
     cmd.setCallback((_cmd, ori, out, res) => {
-        // return out.error("The \"/scale\" command is not supported anymore.")
         const player = ori.player;
         if (!player) return;
-        if (func.isNull(res.Int)) {
+        if (!res.Int) {
             player.setScale(1);
             return out.success("大小已恢复为默认值");
         }
         if (res.Int > 35) return out.success("最大不能超过35!");
-        if (res.Int < -2) return out.success("最小不能低于-2!");
+        if (res.Int < 1) return out.success("最小不能低于1!");
         player.setScale(res.Int);
         out.success(`大小已修改为${res.Int}倍！`);
     });
+    cmd.overload(['Int']);
     cmd.setup();
 })
-
 
 // issues - 反馈问题
 mc.listen("onServerStarted", () => {
@@ -518,43 +552,7 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 })
 
-// nodeui - 线路节点选择
-mc.listen("onServerStarted", () => {
-    const nodeuiCmd = mc.newCommand("nodeui", "§b线路节点选择", PermType.Any);
-    nodeuiCmd.setAlias("server");
-    nodeuiCmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.success("过不去，怎么样都过不去>_<");
-        const nodeList = config.nodeList;
-        ori.player.sendSimpleForm("切换高速节点", "快来选择一个适合你的节点吧∽", nodeList.map(i => i.name), nodeList.map(i => i.ui), (pl, id) => {
-            if (func.isNull(id)) return;
-            if (nodeList.some(i => `${i.ip}:${i.port}` === pl.getDevice().serverAddress)) return pl.tell(`你目前正在使用 ${nodeList[id].name} 节点哦∽`);
-            pl.transServer(nodeList[id].ip, nodeList[id].port) || pl.tell("过不去! 怎么样都过不去!>_<");
-        })
-    });
-    nodeuiCmd.overload([]);
-    nodeuiCmd.setup();
-})
-
-// tpserver - 传送到其他服
-mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand("tpserver", "§b前往其他类型服", PermType.Any);
-    cmd.setAlias("qyserver");
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.success("过不去，怎么样都过不去>_<")
-        ori.player.sendSimpleForm("前往其他服", "生存玩腻了? 快来其他服玩玩吧∽", config.serverList.map(s => s.name), config.serverList.map(s => s.ui), (pl, id) => {
-            if (func.isNull(id)) return;
-            const server = config.serverList[id];
-            if (!server.version.includes(Number(PAPI.getValueByPlayer("player_protocol_version", pl)))) return pl.tell(`协议版本不匹配!\n这个服支持的协议：[${server.version.join(",")}]`);
-            if (!pl.transServer(server.ip, server.port)) return pl.tell("过不去! 怎么样都过不去!>_<");
-            mc.broadcast(`[§dTPServer§r] >> ${pl.realName} 前往了${server.name}`);
-            func.titleLog.info("TPServer", `${pl.realName} 前往了${func.delStringCode(server.name)}`);
-        })
-    });
-    cmd.overload([]);
-    cmd.setup();
-})
-
-// onmode - 触发一个功能性
+// onmode - 触发一个功能项
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand("onmode", "触发一个功能项", PermType.Any);
     cmd.setAlias("om");
@@ -562,7 +560,7 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_cmd, ori, out, res) => {
         if (res.text === "-outData") return out.success(`<Type：${ori.type}|Name：${ori.name}|Pos: ${ori.pos}>`);
         if (!ori.player) return out.error("玩家对象不存在");
-        onmode(ori.player, res.text)// || out.error("命令对象未注册或没有执行权限");
+        onmode(ori.player, res.text) ?? out.error("命令对象未注册或没有执行权限");
     });
     cmd.overload(["text"]);
     cmd.setup();
@@ -575,7 +573,7 @@ mc.listen("onServerStarted", () => {
     loggerCmd.mandatory('text', ParamType.RawText);
     loggerCmd.mandatory('mode', ParamType.Int);
     loggerCmd.overload(["mode", "text"]);
-    loggerCmd.setCallback((_cmd, ori, out, res) => {
+    loggerCmd.setCallback((_cmd, _ori, out, res) => {
         const text = func.mcCode2Ansi(res.text);
         logger.setTitle("CmdLog");
         if (res.mode === 0) logger.info(text);
@@ -926,8 +924,8 @@ function onmode(player, cmd) {
     const command = cmd.split(" "); // 提取主命令
 
     return (() => {
-        if (playerCmd[command[0]]) return playerCmd[command[0]](player, command);
-        else if ((player.isOP() || player.hasTag("op")) && opCmd[command[0]]) return opCmd[command[0]](player, command, pngMap);
-        else return false;
+        if (playerCmd[command[0]]) return (playerCmd[command[0]](player, command) ?? true);
+        else if ((player.isOP() || player.hasTag("op")) && opCmd[command[0]]) return (opCmd[command[0]](player, command, pngMap) ?? true);
+        else return null;
     })();
 }

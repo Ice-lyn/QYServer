@@ -9,6 +9,7 @@ const lib_list = Object.entries({ // 这样显得更好看 并且更容易维护
         "ShowBiome.js", // 群系提示
         "ScoreChanged.js", // 积分榜提示
         "JoinTime.js", // 加入时间相关
+        "UserMigrate.js" // 帐号迁移
     ],
 
     // === 玩法类 === //

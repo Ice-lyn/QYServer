@@ -1,9 +1,7 @@
 // import dts
 /// <reference path="/root/VSCode/Library/ImportAll.d.ts"/>
 import * as func from "./src/lib/func.js";
-
 import "./src/index.js";
-import "./src/module/load.js";
 
 // 导出接口
 try {
