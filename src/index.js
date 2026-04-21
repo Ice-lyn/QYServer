@@ -2,7 +2,7 @@ import { Recipes } from '../../GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js';
 import { PAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS.js';
 import * as il from "../../iListenAttentively-LseExport/lib/iListenAttentively.js";
 
-import { moduleList } from "./src/module/load.js";
+import { moduleList } from "./module/load.js";
 import { config } from "../Config/config.js";
 import * as func from "./lib/func.js";
 

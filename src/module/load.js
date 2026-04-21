@@ -26,7 +26,7 @@ const lib_list = Object.entries({ // 这样显得更好看 并且更容易维护
 
 }).flatMap(([k, v]) => v.map(i => `./${k}/${i}`));
 
-logger.setTitle("Component");
+logger.setTitle("QYComponent");
 logger.warn(`${lib_list.length} 个QYServer附加组件开始加载...`);
 logger.setTitle("Server");
 
@@ -51,8 +51,9 @@ function checkProgress() {
     loadedCount++;
     if (loadedCount == lib_list.length) {
         const totalTime = ((Date.now() - startTime) / 1000).toFixed(3);
-        logger.setTitle("Component");
-        logger.warn(`${loadedCount}个附加组件在 (${totalTime}) 秒内启动完成`);
+        logger.setTitle("QYComponent");
+        logger.warn(`成功捕获 ${moduleList.size} 个组件导出`);
+        logger.warn(`${loadedCount} 个附加组件在 (${totalTime}) 秒内启动完成`);
         logger.setTitle("Server");
     }
 }
