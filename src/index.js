@@ -1,3 +1,6 @@
+// import dts
+/// <reference path="/root/VSCode/Library/ImportAll.d.ts"/>
+
 import { Recipes } from '../../GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js';
 import { PAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS.js';
 import * as il from "../../iListenAttentively-LseExport/lib/iListenAttentively.js";
@@ -414,8 +417,8 @@ mc.listen('onServerStarted', () => {
 mc.listen('onServerStarted', () => {
     const cmd = mc.newCommand('chattag', '§e设置聊天称号', PermType.Any);
     cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return;
         const player = ori.player;
-        if (!player) return;
         const tagList = player.getAllTags().filter(item => item.startsWith("tag:"));//tagList.unshift("tag:§e萌§a新§b求§d带§r");
         if (tagList.length === 0) return out.success("[§e称号系统§r] >> 未找到可佩戴的称号");
         if (player.hasTag("qys.tag:unset")) return out.success("[§e称号系统§r] >> §c当前称号无法更改");
@@ -438,8 +441,8 @@ mc.listen('onServerStarted', () => {
 mc.listen('onServerStarted', () => {
     const cmd = mc.newCommand('offhand', '§a主副手切换', PermType.Any);
     cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return;
         const player = ori.player;
-        if (func.isNull(player)) return;
         if (player.getHand()?.getNbt()?.getTag("tag")?.getData("PickUp")) return out.error("请放下搬运物再使用吧");
         const itemBak = player.getHand().clone();
         player.getHand().set(player.getOffHand());
@@ -456,8 +459,8 @@ mc.listen('onServerStarted', () => {
 mc.listen('onServerStarted', () => {
     const cmd = mc.newCommand('helmet', '§a头部盔甲切换', PermType.Any);
     cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return;
         const player = ori.player;
-        if (func.isNull(player)) return;
         if (player.getHand()?.getNbt()?.getTag("tag")?.getData("PickUp")) return out.error("请放下搬运物再使用吧");
         const itemBak = player.getHand().clone();
         player.getHand().set(player.getArmor().getItem(0));
@@ -477,11 +480,14 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (!ori.player) return out.success("过不去，怎么样都过不去>_<");
         const nodeList = config.nodeList;
-        ori.player.sendSimpleForm("切换高速节点", "快来选择一个适合你的节点吧∽", nodeList.map(i => i.name), nodeList.map(i => i.ui), (pl, id) => {
-            if (func.isNull(id)) return;
-            if (nodeList.some(i => `${i.ip}:${i.port}` === pl.getDevice().serverAddress)) return pl.tell(`你目前正在使用 ${nodeList[id].name} 节点哦∽`);
-            pl.transServer(nodeList[id].ip, nodeList[id].port) || pl.tell("过不去! 怎么样都过不去!>_<");
-        })
+        ori.player.sendSimpleForm("切换高速节点", "快来选择一个适合你的节点吧∽",
+            nodeList.map(i => i.name),
+            nodeList.map(i => i.ui),
+            (pl, id) => {
+                if (func.isNull(id)) return;
+                if (nodeList.some(i => `${i.ip}:${i.port}` === pl.getDevice().serverAddress)) return pl.tell(`你目前正在使用 ${nodeList[id].name} 节点哦∽`);
+                pl.transServer(nodeList[id].ip, nodeList[id].port) || pl.tell("过不去! 怎么样都过不去!>_<");
+            })
     });
     cmd.overload([]);
     cmd.setup();
@@ -493,14 +499,17 @@ mc.listen("onServerStarted", () => {
     cmd.setAlias("qyserver");
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (!ori.player) return out.success("过不去，怎么样都过不去>_<")
-        ori.player.sendSimpleForm("前往其他服", "生存玩腻了? 快来其他服玩玩吧∽", config.serverList.map(s => s.name), config.serverList.map(s => s.ui), (pl, id) => {
-            if (func.isNull(id)) return;
-            const server = config.serverList[id];
-            if (!server.version.includes(Number(PAPI.getValueByPlayer("player_protocol_version", pl)))) return pl.tell(`协议版本不匹配!\n这个服支持的协议：[${server.version.join(",")}]`);
-            if (!pl.transServer(server.ip, server.port)) return pl.tell("过不去! 怎么样都过不去!>_<");
-            mc.broadcast(`[§dTPServer§r] >> ${pl.realName} 前往了${server.name}`);
-            func.titleLog.info("TPServer", `${pl.realName} 前往了${func.delStringCode(server.name)}`);
-        })
+        ori.player.sendSimpleForm("前往其他服", "生存玩腻了? 快来其他服玩玩吧∽",
+            config.serverList.map(s => s.name),
+            config.serverList.map(s => s.ui),
+            (pl, id) => {
+                if (func.isNull(id)) return;
+                const server = config.serverList[id];
+                if (!server.version.includes(Number(PAPI.getValueByPlayer("player_protocol_version", pl)))) return pl.tell(`协议版本不匹配!\n这个服支持的协议：[${server.version.join(",")}]`);
+                if (!pl.transServer(server.ip, server.port)) return pl.tell("过不去! 怎么样都过不去!>_<");
+                mc.broadcast(`[§dTPServer§r] >> ${pl.realName} 前往了${server.name}`);
+                func.titleLog.info("TPServer", `${pl.realName} 前往了${func.delStringCode(server.name)}`);
+            })
     });
     cmd.overload([]);
     cmd.setup();
@@ -531,22 +540,23 @@ mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand("issues", "§b反馈问题", PermType.Any);
     cmd.optional('text', ParamType.RawText);
     cmd.setCallback((_cmd, ori, out, res) => {
+        if (!res.text && !ori.player) return out.error("请输入文本！");
         if (res.text) {
-            const data = `${ori.player ? ori.player.realName : ori.name} >> ${res.text}`;
-            logger.warn(func.delStringCode(`[反馈] ${data}`));
-            File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}] ${data}`);
-            return out.success("反馈已提交！");
+            const data = `${ori?.player?.realName || ori.name} >> ${res.text}`;
+            func.titleLog.warn("QYIssues", data);
+            File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}]${data}`);
+            out.success("反馈已提交！");
+        } else {
+            const fm = mc.newCustomForm()
+                .setTitle("反馈UI")
+                .addInput("反馈内容");
+            ori.player.sendForm(fm, (pl, data) => {
+                if (!data) return;
+                logger.warn(func.delStringCode(`[反馈] ${pl.realName} >> ${data}`));
+                File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}] ${pl.realName} >> ${data}`);
+                out.success("§a反馈已提交！");
+            })
         }
-        if (!ori.player) return out.error("控制台请带参数使用");
-        const fm = mc.newCustomForm()
-            .setTitle("反馈UI")
-            .addInput("反馈内容");
-        ori.player.sendForm(fm, (pl, data) => {
-            if (!data) return;
-            logger.warn(func.delStringCode(`[反馈] ${pl.realName} >> ${data}`));
-            File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}] ${pl.realName} >> ${data}`);
-            pl.tell("§a反馈已提交！");
-        })
     })
     cmd.overload(['text']);
     cmd.setup();
@@ -600,7 +610,7 @@ mc.listen("onServerStarted", () => {
             if (mode === 1) out.success(`${ll.eval(data.replace(/\${name}/g, ori.name))}`);
             if (mode === 2) File.writeTo("./getdata.txt", `${data}`);
         } catch (error) {
-            logger.error(`脚本间通讯传输失败！模式：${{ 1: "运行JS字符串", 2: "写入临时文件", 3: "打印日志" }[mode] || mode} | ${error}`);
+            logger.error(`脚本间通讯传输失败！模式：${{ 1: "运行JS字符串", 2: "写入临时文件" }[mode] || mode} | ${error}`);
         }
     });
     cmd.overload(["key", "mode", "data"]);
@@ -626,12 +636,9 @@ function firework(pl) {
     pl.sendForm(fm, (pl, data) => {
         if (func.isNull(data)) return pl.tell("表单已放弃")
         const money = mc.getScoreObjective("蜡烛")
-
         if (!(money.getScore(pl) >= 50)) return pl.tell("§c蜡烛不足!§r")
-
         func.enRuncmd(pl, `summon armor_stand "${AllFirework[data[1]]}"`)
         if (data[2]) func.enRuncmd(pl, `spreadplayers ~~ 5 20 @e[r=2.5,type=armor_stand,name="${AllFirework[data[1]]}"]`)
-
         money.reduceScore(pl, 50) && func.enRuncmd(pl, "playsound random.orb @s")
     })
 }
@@ -652,95 +659,42 @@ function playerInfo(player) {
         `操作模式: §a${['', '键鼠', '触屏', '手柄', '运动控制器'][d.inputMode] || '未知'}`,
         '-------------------------------'
     ];
-
     return info.join('\n');
 }
 
 // 私聊菜单
-function msgUI(pl, swi = false, lastPlayerName = pl.realName) {
-    const allPlayers = mc.getOnlinePlayers()
-    const playerNames = allPlayers.map(player => "私聊-" + player.realName)
-    let defaultIndex = 0
-    if (lastPlayerName) {
-        const targetIndex = allPlayers.findIndex(p => p.realName === lastPlayerName)
-        if (targetIndex !== -1) defaultIndex = targetIndex
-    }
+function msgUI(pl, swi = false, oldPlayer = pl.realName) {
+    const allPlayers = mc.getOnlinePlayers();
+    const oldIndex = allPlayers.findIndex(p => p.realName === oldPlayer);
+    oldPlayer = (oldIndex === -1) ? 0 : oldIndex;
+
     const fm = mc.newCustomForm()
-    fm.setTitle("私聊快捷菜单")
-    fm.addDropdown("选择要发送信息的玩家", playerNames, defaultIndex)
-    fm.addInput("私聊信息")
-    fm.addSwitch("发送后再次打开表单", swi)
+        .setTitle("私聊快捷菜单")
+        .addDropdown("选择要发送信息的玩家", (allPlayers.map(player => "私聊-" + player.realName)), oldPlayer)
+        .addInput("私聊信息")
+        .addSwitch("发送后再次打开表单", swi);
     pl.sendForm(fm, (pl, data) => {
-        if (!data) return pl.tell("表单已放弃")
-        const selectedPlayer = allPlayers[data[0]]
-        pl.runcmd(`msg "${selectedPlayer.realName}" ${data[1]}`)
-        if (data[2]) msgUI(pl, data[2], selectedPlayer.realName)
+        if (func.isNull(data)) return pl.tell("表单已放弃");
+        const sendPlayer = allPlayers[data[0]];
+        pl.runcmd(`msg "${sendPlayer.realName}" ${data[1]}`);
+        if (data[2]) msgUI(pl, data[2], sendPlayer.realName);
     });
-}
-
-// 称号添加菜单
-function setChatTag(pl) {
-    const allPlayers = mc.getOnlinePlayers()
-    const playerNames = allPlayers.map(player => player.realName)
-    let defaultIndex = 0
-
-    const fm = mc.newCustomForm()
-    fm.setTitle("快捷设置玩家称号")
-    fm.addDropdown("选择玩家", playerNames)
-    fm.addInput("称号")
-    fm.addSwitch("立刻生效", false)
-    pl.sendForm(fm, (pl, data) => {
-        if (!data) return pl.tell("表单已放弃")
-        const player = allPlayers[data[0]]
-        pl.runcmd(`tag "${player.realName}" add tag:${data[1]}§r`)
-        if (data[2]) pl.runcmd(`tag "${player.realName}" add usf.tag:${data[1]}§r`)
-    });
-}
-
-// 客户端崩溃菜单
-function crashUI(pl) {
-    const allPlayers = mc.getOnlinePlayers()
-    const playerNames = allPlayers.map(player => player.realName)
-
-    const fm = mc.newCustomForm()
-        .setTitle("崩溃玩家客户端")
-        .addDropdown("选择玩家", playerNames)
-    pl.sendForm(fm, (pl, data) => {
-        if (func.isNull(data)) return pl.tell("表单已放弃")
-        crash(allPlayers[data[0]])
-        pl.tell("崩溃请求已发送...")
-    })
 }
 
 // 钢琴
-function musicMenuUi(pl) {
+function musicMenu(player, mode = 0, pitche = "note.harp") {
+    mode = [15, 21][mode];
     const fm = mc.newSimpleForm()
         .setTitle("钢琴")
-        .setContent("qys:music_menu_ui")
-    for (let i = 0; i < 15; i++) fm.addButton((i < 7 ? "白键" : "黑键"), "textures/blocks/noteblock")
+        .setContent("qys:music_menu_ui");
+    for (let i = 0; i < mode; i++) fm.addButton("看见我了说明你材质包坏啦！(｡･ω･｡)", "textures/blocks/noteblock");
 
-    pl.sendForm(fm, (pl, id) => {
-        if (func.isNull(id)) return
-        id = Math.pow(2, (id - 9) / 12)
-        func.enRuncmd(pl, `playsound note.harp @a[r=50] ~~~ 1 ${id} 1`)
-        pl.tell(id + "")
-        //for (let i = 0; i < 15; i++) 
-        musicMenuUi(pl)
+    player.sendForm(fm, (player, id) => {
+        if (func.isNull(id)) return;
+        func.enRuncmd(player, `playsound ${pitche} @a[r=50] ~~~ 5 ${func.pitchList[mode][id]} 2.5`);
+        for (let i = 0; i < 3; i++) musicMenu(player, mode, pitche);
     })
 }
-/*function musicMenuUi(pl) {
-    const fm = mc.newSimpleForm()
-        .setTitle("琴")
-        .setContent("qys:music_menu_ui")
-    for (let i = 0; i < 15; i++) fm.addButton("看见我了说明你材质包坏啦！(｡･ω･｡)","textures/blocks/noteblock")
-    pl.sendForm(fm,(pl,id,reason) => {
-        if (id === null) return
-        id = (id * 0.1) + 0.2
-        func.enRuncmd(pl, `playsound note.harp @a[r=50] ~~~ 10 ${id} 10`)
-        //pl.tell(""+id)
-        for (let i = 0; i < 5; i++) musicMenuUi(pl)
-    })
-}*/
 
 
 // 经验修补
@@ -776,17 +730,17 @@ function newPlayerUi(pl) {
     pl.tell("", 5)
     pl.sendModalForm("欢迎", "你是第一次来到《光遇》的世界吗？", " 是", " 否", (pl, id) => {
         if (!id) {
-            mc.runcmdEx(`hud "${pl.realName}" reset`)
-            mc.runcmdEx(`camera "${pl.realName}" clear`)
-            return
+            mc.runcmdEx(`hud "${pl.realName}" reset`);
+            mc.runcmdEx(`camera "${pl.realName}" clear`);
+            return pl.tell("新手引导已取消...", 5);
         }
-        mc.runcmdEx(`camera "${pl.realName}" set minecraft:free ease 7.5 linear pos 36.5 67.5 33.5 rot 0 -90`)
-        pl.setTitle("screen.sky")
-        pl.setTitle("(如果你看到了这段话，就说明你材质包没下完，快去下！)", 3)
+        mc.runcmdEx(`camera "${pl.realName}" set minecraft:free ease 7.5 linear pos 36.5 67.5 33.5 rot 0 -90`);
+        pl.setTitle("screen.sky");
+        pl.setTitle("(如果你看到了这段话，就说明你材质包没下完，快去下！)", 3);
         //pl.setTitle("§l光·遇",2)
         //pl.setTitle("§l§b光是遇见 §a就很美好§r\n§7=== §r§l欢迎来到 §bQ§aY§eServer§r §7===",3)
-        pl.tell("新手指引加载中...", 5)
-        setTimeout(() => helpAnimated(pl), 5500)
+        pl.tell("新手指引加载中...", 5);
+        setTimeout(() => helpAnimated(pl), 5500);
     })
 }
 
@@ -853,6 +807,7 @@ function meSetUI(pl) {
 // 触发一个功能项
 let pngMap = null;
 const playerCmd = {// 玩家可以用
+    help: (player) => player.tell(`可用参数：${(Object.keys(playerCmd)).join(", ")}\n${(player.hasTag("op") || player.isOP()) ? (Object.keys(opCmd)).join(", ") : ""}`),
     xpfix: (player) => xpFix(player),
     meSet: (player) => meSetUI(player),
     firework: (player) => firework(player),
