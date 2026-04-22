@@ -3,29 +3,29 @@ import { config } from "../../../Config/config.js";
 // 游戏类小说阅读器UI
 export function getBook(text, pl) {
     network.httpGet(`https://yunzhiapi.cn/API/fqmfxs.php?token=${config.token}&name=` + text, (code, res) => {
-        const resJson = JSON.parse(res)
+        const resJson = JSON.parse(res);
         if (code !== 200
             || resJson.code !== 200
             || resJson.data?.length == 0
-        ) return pl.tell("请求失败")
+        ) return pl.tell("请求失败");
         const fm = mc.newSimpleForm()
             .setTitle("小说阅读器")
-            .setContent("获取到以下小说: ")
+            .setContent("获取到以下小说: ");
         resJson.data.forEach(bookData => {
-            fm.addButton(bookData.小说名称, "textures/ui/icon_bookshelf")
-        })
+            fm.addButton(bookData.小说名称, "textures/ui/icon_bookshelf");
+        });
         pl.sendForm(fm, (player, id) => {
             network.httpGet(resJson.data[id].章节目录, (_code, res) => {
-                const resJson = JSON.parse(res)
+                const resJson = JSON.parse(res);
                 const fm = mc.newSimpleForm()
                     .setTitle("小说阅读器")
-                    .setContent("选择阅读的章节: ")
+                    .setContent("选择阅读的章节: ");
                 resJson.data.chapters.forEach(bookData => {
-                    fm.addButton(bookData.章节名称, "textures/ui/icon_book_writable")
-                })
+                    fm.addButton(bookData.章节名称, "textures/ui/icon_book_writable");
+                });
                 player.sendForm(fm, (player, id) => {
-                    getBookTxt(resJson.data.chapters[id].开始阅读, player)
-                })
+                    getBookTxt(resJson.data.chapters[id].开始阅读, player);
+                });
             })
         })
     })

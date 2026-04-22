@@ -2,7 +2,7 @@
     "name": "QYServer",
     "entry": "index.js",
     "type": "lse-nodejs",
-    "version": "1.0.0-beta.3",
+    "version": "2.0.0",
     "author": "冰凌呀",
     "description": "QYServer专用插件",
     "dependencies": [

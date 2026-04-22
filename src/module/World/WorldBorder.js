@@ -2,29 +2,35 @@ import { config } from "../../../Config/config.js";
 const { minX, maxX, minZ, maxZ } = config.world_limits;
 const lastPositions = new Map();
 
+mc.listen("onLeft", (pl) => lastPositions.delete(pl.xuid));
+
 setInterval(() => {
     mc.getOnlinePlayers().forEach(pl => {
         if (pl.pos.dimid == -1) return;
 
         const pos = pl.pos;
-        const key = pl.realName;
+        const key = pl.xuid;
         const lastPos = lastPositions.get(key);
 
-        // 1. 位置未变化检测（最轻量）
-        if (lastPos && Math.abs(lastPos.x - pos.x) < 1 && Math.abs(lastPos.z - pos.z) < 1) {
-            return;
-        }
+        if (lastPos // 位置未变化检测
+            && Math.abs(lastPos.x - pos.x) < 1
+            && Math.abs(lastPos.z - pos.z) < 1
+        ) return;
 
-        // 2. 快速边界预判（比100格检测更高效）
+        // 快速边界预判
         // 如果玩家在边界内且有足够安全距离，直接跳过
-        if (pos.x > minX + 200 && pos.x < maxX - 200 &&
-            pos.z > minZ + 200 && pos.z < maxZ - 200) {
-            lastPositions.set(key, pos); // 仍需更新位置
-            return;
-        }
+        if (pos.x > minX + 200
+            && pos.x < maxX - 200
+            && pos.z > minZ + 200
+            && pos.z < maxZ - 200
+        ) return lastPositions.set(key, pos); // 更新位置
 
-        // 3. 精确边界检测（仅对靠近边界的玩家执行）
-        if (pos.x < minX || pos.x > maxX || pos.z < minZ || pos.z > maxZ) {
+        // 精确边界检测（仅对靠近边界的玩家执行）
+        if (pos.x < minX
+            || pos.x > maxX
+            || pos.z < minZ
+            || pos.z > maxZ
+        ) {
             pl.teleport(getNearestValidPos(pos));
             pl.tell(`§c你已超出世界边界！\nX: (${minX} - ${maxX}), Z: (${minZ} - ${maxZ})`);
         }

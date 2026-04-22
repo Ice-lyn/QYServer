@@ -1,29 +1,42 @@
 export const moduleList = new Map();
-const lib_list = Object.entries({ // 这样显得更好看 并且更容易维护
-
-    // === 世界类 === //
-    World: [
-        "WorldBorder.js", // 世界边境
-        "AfkTestfor.js", // 挂机检测
-        "ItemRunCmd.js", // 物品运行命令
-        "ShowBiome.js", // 群系提示
-        "ScoreChanged.js", // 积分榜提示
+const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
+    /**
+     * === 核心类 ===
+     * 核心机制，数据管理，或者框架实现
+     * 底层逻辑，或者离线玩家/web什么的
+     */
+    Core: [
         "JoinTime.js", // 加入时间相关
+        "Mail.js", // 邮件系统
         "UserMigrate.js" // 帐号迁移
     ],
 
-    // === 玩法类 === //
+    /**
+     * === 玩法类 ===
+     * 玩法内容，涉及到个体玩家的东西
+     * 单个玩家执行什么的
+     */
     Game: [
+        "BookLook.js", // 游戏内看书
+        "BoxUI.js", // 箱子UI
+        "CloudLift.js", // 云朵电梯
+        "Doll.js", // 玩偶
+        "SkinEffect.js" // 皮肤效果
+    ],
+
+    /**
+     * === 世界类 ===
+     * 世界/环境管理，全局什么的
+     * 多个或全体在线玩家什么的
+     */
+    World: [
+        "AfkTestfor.js", // 挂机检测
         "AIChat.js", // AI聊天相关
         "AxolotlDamage.js", // 美西螈攻击
-        "BoxUI.js", // 箱子UI
-        "BookLook.js",
-        "SkinEffect.js", // 皮肤效果
-        "CloudLift.js", // 云朵电梯
-        "Mail.js", // 邮件系统
-        "Doll.js" // 玩偶
+        "ScoreChanged.js", // 积分榜提示
+        "ShowBiome.js", // 群系提示
+        "WorldBorder.js" // 世界边境
     ]
-
 }).flatMap(([k, v]) => v.map(i => `./${k}/${i}`));
 
 logger.setTitle("QYComponent");
