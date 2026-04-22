@@ -17,7 +17,6 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
      * 单个玩家执行什么的
      */
     Game: [
-        "BookLook.js", // 游戏内看书
         "BoxUI.js", // 箱子UI
         "CloudLift.js", // 云朵电梯
         "Doll.js", // 玩偶
@@ -50,7 +49,7 @@ lib_list.forEach(lib => {
             logger.info(`${lib} 加载完成(${((Date.now() - startTime) / 1000).toFixed(3)}s)`)
             checkProgress();
             try { 
-                moduleList.set(lib, mod);
+                if (Object.keys(mod).length !== 0) moduleList.set(lib, mod);
             } catch (e) { };
         })
         .catch(err => {

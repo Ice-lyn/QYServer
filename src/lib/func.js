@@ -36,9 +36,9 @@ export function LandJudgment(Player, Pos) {
  */
 export function getChatTag(player) {
     const tag = player.getNbt()// 从USF数据里获取
-        .getTag("DynamicProperties")
-        .getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
-        .getData("usfV2:chat_tag");
+        ?.getTag("DynamicProperties")
+        ?.getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
+        ?.getData("usfV2:chat_tag");
     return tag || "§e萌§a新§b求§d带§r";
 }
 
