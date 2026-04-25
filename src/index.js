@@ -16,9 +16,9 @@ let is_reload = (mc.getOnlinePlayers().length != 0);
 PAPI.registerPlayerPlaceholder(func.getChatTag, "QYServer", "player_chatTag"); // 注册PAPI
 mc.listen("onEndermanTakeBlock", () => false); // 防搬方块
 mc.listen("onWitherBossDestroy", () => false); // 凋零防爆
-mc.listen("onRespawnAnchorExplode", (pos, pl) => {// 重生毛爆炸
+mc.listen("onRespawnAnchorExplode", (pos, player) => {// 重生毛爆炸
     if (pos.dimid === 0) {
-        pl.tell("不要在主世界使用重生猫啊喂！");
+        player.tell("不要在主世界使用重生猫啊喂！");
         return false;
     }
 });
@@ -32,7 +32,7 @@ mc.listen("onServerStarted", () => {
     if (is_reload) return logger.warn("QYServer core component restart...");
 
     il.emplaceListener("lac::punish::PlayerBanWaveEvent", (i) => mc.broadcast(`§e${i.self.toPlayer().realName} 被反作弊娘吃掉了 (｡･ω･｡)`)); // 监听反作弊提出
-    il.emplaceListener("lac::punish::PlayerCheatEvent", (i) => i.self.toPlayer().tell("§e注意！您已被反作弊娘注视！")); // 监听反作弊提出
+    il.emplaceListener("lac::punish::PlayerCheatEvent", (i) => i.self.toPlayer().tell("§e注意！您已被反作弊娘注视！")); // 监听反作弊
 
     const sclist = mc.getAllScoreObjectives().filter(sc => sc.name.startsWith("farmersdelight:"));
     if (sclist.length >= 10) sclist.forEach(sc => mc.removeScoreObjective(sc.name));
@@ -48,6 +48,14 @@ mc.listen("onServerStarted", () => {
     Recipes.unregisterRecipe("minecraft:bundle"); // 收纳袋
     Recipes.unregisterRecipe("minecraft:brew_awkward_slime_block"); // 渗浆药水
     Recipes.unregisterRecipe("minecraft:brew_awkward_stone"); // 虫蚀
+
+    // 注册有序工作台合成表
+    Recipes.registerShapedRecipe(// 附魔金苹果
+        "qys:enchanted_golden_apple",
+        ["AAA", "ABA", "AAA"],
+        ["minecraft:diamond_block", "minecraft:enchanted_golden_apple"],
+        "minecraft:enchanted_golden_apple", 2, "None"
+    );
 
     // 注册无序工作台合成表
     Recipes.registerShapelessRecipe("qys:santahat", [// 圣诞帽
@@ -112,7 +120,7 @@ mc.listen("onConsoleCmd", (cmd) => {
             setTimeout(() => mc.runcmd("scriptevent qys:command noChat true"), 2000)
             return
         case "testfor":
-            mc.getOnlinePlayers().forEach(pl => log(`${pl.realName} -> ${func.enRuncmd(pl, "testfor @e[r=160]").output?.split(", ")?.length}`))
+            mc.getOnlinePlayers().forEach(player => log(`${player.realName} -> ${func.enRuncmd(player, "testfor @e[r=160]").output?.split(", ")?.length}`))
             return false
         case "tps":
             logger.info(mc.runcmdEx("cleaner tps").output)
@@ -121,12 +129,12 @@ mc.listen("onConsoleCmd", (cmd) => {
             logger.info(mc.runcmdEx("cleaner mspt").output)
             return false
         case "list -v":
-            mc.getOnlinePlayers().forEach(pl => logger.info(PAPI.translateString("%player_realname% version %player_client_version%", pl)))
+            mc.getOnlinePlayers().forEach(player => logger.info(PAPI.translateString("%player_realname% version %player_client_version%", player)))
             return false
         case "list -i":
-            mc.getOnlinePlayers().forEach(pl => {
-                const dev = pl.getDevice()
-                logger.info(func.mcCode2Ansi(`${pl.realName} §a-ping §l${dev.avgPing}ms§r §b-os §l${dev.os}§r §e-ip §l${dev.ip}§r §d-clientId §l${dev.clientId}§r`))
+            mc.getOnlinePlayers().forEach(player => {
+                const dev = player.getDevice()
+                logger.info(func.mcCode2Ansi(`${player.realName} §a-ping §l${dev.avgPing}ms§r §b-os §l${dev.os}§r §e-ip §l${dev.ip}§r §d-clientId §l${dev.clientId}§r`))
             })
             return false
     }
@@ -180,7 +188,7 @@ mc.listen("onPlayerCmd", (player, cmd) => {
             player.tell("==============");
             player.tell(`所有实体数: ${mc.runcmdEx("testfor @e").output.split(", ").length}`);
             player.tell("玩家240格附近实体数：");
-            mc.getOnlinePlayers().forEach(pl => player.tell(`${pl.realName} -> ${func.enRuncmd(pl, "testfor @e[r=240]").output?.split(", ")?.length}`));
+            mc.getOnlinePlayers().forEach(player => player.tell(`${player.realName} -> ${func.enRuncmd(player, "testfor @e[r=240]").output?.split(", ")?.length}`));
             player.tell("==============");
             return false;
     }
@@ -221,7 +229,7 @@ mc.listen("onAttackEntity", (player, entity) => {
     if (entity.type === "qys:message") {
         const messageName = entity.name.split('\n').pop();
         if (messageName.includes(`${player.realName}§n§a§m§e§校§验`) || messageName.includes(`匿名\n§k${player.realName}§n§a§m§e§校§验`)) {
-            player.sendModalForm("留言纸船", "是否删除这条留言？这将无法恢复！", "§c立刻删除§r", "§a我再想想§r", (pl, ui) => {
+            player.sendModalForm("留言纸船", "是否删除这条留言？这将无法恢复！", "§c立刻删除§r", "§a我再想想§r", (player, ui) => {
                 if (ui) entity.despawn();
             })
         }
@@ -235,36 +243,42 @@ mc.listen("onHopperPushOut", (_pos, isMinecart, item) => {
 })
 
 // 玩家尝试放置方块
-mc.listen("onPlaceBlock", (pl, bl) => {
-    if (((config.banBlock.has(bl.type) || bl.type.includes("minecraft:element_")) && !pl.isOP())) {
-        pl.tell("§c您需要创造模式 + 操作员权限来放置此方块§r");
-        pl.refreshChunks();
+mc.listen("onPlaceBlock", (player, block) => {
+    if (((config.banBlock.has(block.type) || block.type.includes("minecraft:element_")) && !player.isOP())) {
+        player.tell("§c您需要创造模式 + 操作员权限来放置此方块§r");
+        player.refreshChunks();
         return false;
     }
 })
 
 // 玩家对方块使用物品
-mc.listen("onUseItemOn", (pl, item, block, side, pos) => {
-    if (item.type.match("spawn_egg") && pl.gameMode != 1) {
+mc.listen("onUseItemOn", (player, item, block, side, pos) => {
+    if (item.type.match("spawn_egg") && player.gameMode != 1) {
         if (block.type === "minecraft:trial_spawner") return false
         if (block.type === "minecraft:mob_spawner") return false
     }
+
     if (item.type === "minecraft:camera" && side === 1) {
-        setTimeout(() => mc.runcmdEx(`clear "${pl.realName}" camera 1 1`), 100)
+        setTimeout(() => mc.runcmdEx(`clear "${player.realName}" camera 1 1`), 100)
         return
     }
+
+    if (player.pos.dimid === 1
+        && item.type === "minecraft:water_bucket"
+        && mc.getBlock(pos)?.type === "minecraft:air"
+    ) mc.setBlock(pos, "minecraft:flowing_water", 0);
 })
 
 // 玩家使用物品
-mc.listen("onUseItem", (pl, item) => {
+mc.listen("onUseItem", (player, item) => {
     if (item.type === "qys:wing") {
-        if (pl.maxHealth === 60) return pl.tell("[§aTip§r] 您的光翼已达上限(" + pl.maxHealth + "/60)")
-        pl.setMaxHealth(pl.maxHealth + 1)
-        pl.tell("" + func.enRuncmd(pl, "playsound random.orb @s").output)
-        return pl.clearItem("qys:wing", 1)
+        if (player.maxHealth === 60) return player.tell("[§aTip§r] 您的光翼已达上限(" + player.maxHealth + "/60)")
+        player.setMaxHealth(player.maxHealth + 1)
+        player.tell("" + func.enRuncmd(player, "playsound random.orb @s").output)
+        return player.clearItem("qys:wing", 1)
     }
-    if (item.type === "qys:magic") return func.enRuncmd(pl, "playsound custom.magic_use_sound @a[r=10] ~~~")
-    if (pl.isSneaking && !pl.getHand()?.isNull()) return xpFix(pl)
+    if (item.type === "qys:magic") return func.enRuncmd(player, "playsound custom.magic_use_sound @a[r=10] ~~~")
+    if (player.isSneaking && !player.getHand()?.isNull()) return xpFix(player)
 })
 
 // 生物死亡事件
@@ -272,16 +286,16 @@ mc.listen("onMobDie", (mob, source) => {
     if (!mob || !source) return;
     if (source.type !== "minecraft:player") return;
     if (func.probability(15)) mc.spawnItem(mc.newItem("qys:candle_white", 1), mob.pos);
-    func.enRuncmd(source.toPlayer(), "function function/killEntity");
+    if (mob?.type !== "spark:hoglin_remains") func.enRuncmd(source.toPlayer(), "function function/killEntity");
 })
 
 // 玩家重生事件
-mc.listen("onRespawn", (pl) => {
-    if (pl.maxHealth > 20) {
-        pl.setMaxHealth(pl.maxHealth - 1) // 扣一颗心
-        mc.runcmdEx(`playsound custom.Injured_sound "${pl.realName}"`)
+mc.listen("onRespawn", (player) => {
+    if (player.maxHealth > 20) {
+        player.setMaxHealth(player.maxHealth - 1) // 扣一颗心
+        mc.runcmdEx(`playsound custom.Injured_sound "${player.realName}"`)
     } else {
-        pl.setMaxHealth(20); // 心小于20时设置成20
+        player.setMaxHealth(20); // 心小于20时设置成20
     }
 });
 
@@ -328,40 +342,40 @@ mc.listen('onServerStarted', () => {
 
     // 玩家延迟显示
     setInterval(() => {
-        mc.getOnlinePlayers().forEach((pl) => {
-            if (pl.hasTag("qys:in:afk")) return
-            ping = pl.getDevice()?.avgPing ?? 255
-            if (ms.getScore(pl) !== ping) ms.setScore(pl, ping)
+        mc.getOnlinePlayers().forEach((player) => {
+            if (player.hasTag("qys:in:afk")) return
+            ping = player.getDevice()?.avgPing ?? 255
+            if (ms.getScore(player) !== ping) ms.setScore(player, ping)
         })
     }, 2 * 1000)
 
     // 光环耐久扣除
     setInterval(() => {
-        mc.getOnlinePlayers().forEach((pl) => {
-            if (pl.hasTag("qys:in:afk")) return
-            const item = pl.getArmor().getItem(0)
-            if (!pl.hasTag("tag:§r§l§d爱心§e捐§a助§b者§r")
+        mc.getOnlinePlayers().forEach((player) => {
+            if (player.hasTag("qys:in:afk")) return
+            const item = player.getArmor().getItem(0)
+            if (!player.hasTag("tag:§r§l§d爱心§e捐§a助§b者§r")
                 && (item?.type.startsWith("qys:hoshino_") || item?.type.startsWith("qys:shiroko_"))
-            ) item.setDamage(Math.max(0, item.damage + 1)) && pl.refreshItems()
+            ) item.setDamage(Math.max(0, item.damage + 1)) && player.refreshItems()
         })
     }, 60 * 1000)
 
     // 一言
     setInterval(() => {
         const text = config.wordList[Math.floor(Math.random() * config.wordList.length)]
-        mc.getOnlinePlayers().forEach((pl) => {
-            if (!pl.hasTag("qys:no_word")) pl.tell(`${text}`, 5)
+        mc.getOnlinePlayers().forEach((player) => {
+            if (!player.hasTag("qys:no_word")) player.tell(`${text}`, 5)
         })
     }, config.wordtime * 60 * 1000)
 
     // 冲撞魔法
     setInterval(() => {
-        mc.getOnlinePlayers().forEach(pl => {
-            if (!(pl.hasTag("qys:can_speed") && pl.isGliding)) return;
-            const speed = Math.floor(pl.speed);
+        mc.getOnlinePlayers().forEach(player => {
+            if (!(player.hasTag("qys:can_speed") && player.isGliding)) return;
+            const speed = Math.floor(player.speed);
             if (speed <= 10) return;
-            mc.runcmdEx(`execute as "${pl.realName}" at @s run damage @e[r=3.5,rm=0.01,family=monster] ${speed} entity_attack entity @s`);
-            pl.tell("speed: " + speed, 3);
+            mc.runcmdEx(`execute as "${player.realName}" at @s run damage @e[r=3.5,rm=0.01,family=monster] ${speed} entity_attack entity @s`);
+            player.tell("speed: " + speed, 3);
         })
     }, 100)
 
@@ -428,11 +442,11 @@ mc.listen('onServerStarted', () => {
         const fm = mc.newCustomForm()
             .setTitle("称号设置")
             .addDropdown("选择一个要佩戴的称号\n已佩戴称号: " + func.getChatTag(ori.player), tagList);
-        player.sendForm(fm, (pl, data) => {
+        player.sendForm(fm, (player, data) => {
             if (func.isNull(data)) return;
-            mc.runcmdEx(`tag "${pl.realName}" add "usf.${tagList[data]}"`);
-            func.enRuncmd(pl, "playsound random.levelup @s ~~~ 10 2");
-            setTimeout(() => pl.tell("[§e称号系统§r] >> §a佩戴成功, 已佩戴称号§r: " + tagList[data].replace(/^tag:/, "")), 20);
+            mc.runcmdEx(`tag "${player.realName}" add "usf.${tagList[data]}"`);
+            func.enRuncmd(player, "playsound random.levelup @s ~~~ 10 2");
+            setTimeout(() => player.tell("[§e称号系统§r] >> §a佩戴成功, 已佩戴称号§r: " + tagList[data].replace(/^tag:/, "")), 20);
         });
     })
     cmd.overload([]);
@@ -485,10 +499,10 @@ mc.listen("onServerStarted", () => {
         ori.player.sendSimpleForm("切换高速节点", "快来选择一个适合你的节点吧∽",
             nodeList.map(i => i.name),
             nodeList.map(i => i.ui),
-            (pl, id) => {
+            (player, id) => {
                 if (func.isNull(id)) return;
-                if (nodeList.some(i => `${i.ip}:${i.port}` === pl.getDevice().serverAddress)) return pl.tell(`你目前正在使用 ${nodeList[id].name} 节点哦∽`);
-                pl.transServer(nodeList[id].ip, nodeList[id].port) || pl.tell("过不去! 怎么样都过不去!>_<");
+                if (nodeList.some(i => `${i.ip}:${i.port}` === player.getDevice().serverAddress)) return player.tell(`你目前正在使用 ${nodeList[id].name} 节点哦∽`);
+                player.transServer(nodeList[id].ip, nodeList[id].port) || player.tell("过不去! 怎么样都过不去!>_<");
             })
     });
     cmd.overload([]);
@@ -504,13 +518,13 @@ mc.listen("onServerStarted", () => {
         ori.player.sendSimpleForm("前往其他服", "生存玩腻了? 快来其他服玩玩吧∽",
             config.serverList.map(s => s.name),
             config.serverList.map(s => s.ui),
-            (pl, id) => {
+            (player, id) => {
                 if (func.isNull(id)) return;
                 const server = config.serverList[id];
-                if (!server.version.includes(Number(PAPI.getValueByPlayer("player_protocol_version", pl)))) return pl.tell(`协议版本不匹配!\n这个服支持的协议：[${server.version.join(",")}]`);
-                if (!pl.transServer(server.ip, server.port)) return pl.tell("过不去! 怎么样都过不去!>_<");
-                mc.broadcast(`[§dTPServer§r] >> ${pl.realName} 前往了${server.name}`);
-                func.titleLog.info("TPServer", `${pl.realName} 前往了${func.delStringCode(server.name)}`);
+                if (!server.version.includes(Number(PAPI.getValueByPlayer("player_protocol_version", player)))) return player.tell(`协议版本不匹配!\n这个服支持的协议：[${server.version.join(",")}]`);
+                if (!player.transServer(server.ip, server.port)) return player.tell("过不去! 怎么样都过不去!>_<");
+                mc.broadcast(`[§dTPServer§r] >> ${player.realName} 前往了${server.name}`);
+                func.titleLog.info("TPServer", `${player.realName} 前往了${func.delStringCode(server.name)}`);
             })
     });
     cmd.overload([]);
@@ -552,10 +566,10 @@ mc.listen("onServerStarted", () => {
             const fm = mc.newCustomForm()
                 .setTitle("反馈UI")
                 .addInput("反馈内容");
-            ori.player.sendForm(fm, (pl, data) => {
+            ori.player.sendForm(fm, (player, data) => {
                 if (!data) return;
-                logger.warn(func.delStringCode(`[反馈] ${pl.realName} >> ${data}`));
-                File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}] ${pl.realName} >> ${data}`);
+                logger.warn(func.delStringCode(`[反馈] ${player.realName} >> ${data}`));
+                File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}] ${player.realName} >> ${data}`);
                 out.success("§a反馈已提交！");
             })
         }
@@ -622,7 +636,7 @@ mc.listen("onServerStarted", () => {
 /**** 函数区 ****/
 
 // 烟花发射UI
-function firework(pl) {
+function firework(player) {
     const AllFirework = [
         ...config.FireworkList.get("小型烟花"),
         //...config.FireworkList.get("中型烟花"),
@@ -635,13 +649,13 @@ function firework(pl) {
         .addLabel("在当前位置发射一个烟花\n§b烟花设计: 奈依rere\n§a(50蜡烛一次)§r")
         .addDropdown("选择类型", AllFirework)
         .addSwitch("扩散至周围", false)
-    pl.sendForm(fm, (pl, data) => {
-        if (func.isNull(data)) return pl.tell("表单已放弃")
+    player.sendForm(fm, (player, data) => {
+        if (func.isNull(data)) return player.tell("表单已放弃")
         const money = mc.getScoreObjective("蜡烛")
-        if (!(money.getScore(pl) >= 50)) return pl.tell("§c蜡烛不足!§r")
-        func.enRuncmd(pl, `summon armor_stand "${AllFirework[data[1]]}"`)
-        if (data[2]) func.enRuncmd(pl, `spreadplayers ~~ 5 20 @e[r=2.5,type=armor_stand,name="${AllFirework[data[1]]}"]`)
-        money.reduceScore(pl, 50) && func.enRuncmd(pl, "playsound random.orb @s")
+        if (!(money.getScore(player) >= 50)) return player.tell("§c蜡烛不足!§r")
+        func.enRuncmd(player, `summon armor_stand "${AllFirework[data[1]]}"`)
+        if (data[2]) func.enRuncmd(player, `spreadplayers ~~ 5 20 @e[r=2.5,type=armor_stand,name="${AllFirework[data[1]]}"]`)
+        money.reduceScore(player, 50) && func.enRuncmd(player, "playsound random.orb @s")
     })
 }
 
@@ -665,7 +679,7 @@ function playerInfo(player) {
 }
 
 // 私聊菜单
-function msgUI(pl, swi = false, oldPlayer = pl.realName) {
+function msgUI(player, swi = false, oldPlayer = player.realName) {
     const allPlayers = mc.getOnlinePlayers();
     const oldIndex = allPlayers.findIndex(p => p.realName === oldPlayer);
     oldPlayer = (oldIndex === -1) ? 0 : oldIndex;
@@ -675,11 +689,11 @@ function msgUI(pl, swi = false, oldPlayer = pl.realName) {
         .addDropdown("选择要发送信息的玩家", (allPlayers.map(player => "私聊-" + player.realName)), oldPlayer)
         .addInput("私聊信息")
         .addSwitch("发送后再次打开表单", swi);
-    pl.sendForm(fm, (pl, data) => {
-        if (func.isNull(data)) return pl.tell("表单已放弃");
+    player.sendForm(fm, (player, data) => {
+        if (func.isNull(data)) return player.tell("表单已放弃");
         const sendPlayer = allPlayers[data[0]];
-        pl.runcmd(`msg "${sendPlayer.realName}" ${data[1]}`);
-        if (data[2]) msgUI(pl, data[2], sendPlayer.realName);
+        player.runcmd(`msg "${sendPlayer.realName}" ${data[1]}`);
+        if (data[2]) msgUI(player, data[2], sendPlayer.realName);
     });
 }
 
@@ -700,8 +714,8 @@ function musicMenu(player, mode = 0, pitche = "note.harp") {
 
 
 // 经验修补
-function xpFix(pl) {
-    const item = pl.getHand();
+function xpFix(player) {
+    const item = player.getHand();
     if (item.damage === 0) return;
 
     const enchants = item?.getNbt()?.getTag("tag")?.getTag("ench")?.toArray();
@@ -712,96 +726,96 @@ function xpFix(pl) {
     if (!hasMending) return
     if (unbreakingLevel > 0 && Math.random() < unbreakingLevel * 0.2) {
         item.setDamage(Math.max(0, item.damage - 10));
-    } else if (hasMending && pl.reduceExperience(1)) {
+    } else if (hasMending && player.reduceExperience(1)) {
         item.setDamage(Math.max(0, item.damage - 10));
     }
-    pl.tell("经验修补中，当前物品耐久: " + (item?.maxDamage - item?.damage), 5)
-    pl.refreshItems();
+    player.tell("经验修补中，当前物品耐久: " + (item?.maxDamage - item?.damage), 5)
+    player.refreshItems();
 }
 
 // 新手加入
-function newPlayerUi(pl) {
-    if (!pl.hasTag("player")) {
-        func.enRuncmd(pl, "structure load 新手装备 ~~~")
-        logger.warn(`${pl.realName} 首次加入服务器`)
-        pl.addTag("player")
+function newPlayerUi(player) {
+    if (!player.hasTag("player")) {
+        func.enRuncmd(player, "structure load 新手装备 ~~~")
+        logger.warn(`${player.realName} 首次加入服务器`)
+        player.addTag("player")
     }
-    pl.closeForm()
-    mc.runcmdEx(`camera "${pl.realName}" set minecraft:free pos -77 66 35 facing -75 0 35`)
-    mc.runcmdEx(`hud "${pl.realName}" hide all`)
-    pl.tell("", 5)
-    pl.sendModalForm("欢迎", "你是第一次来到《光遇》的世界吗？", " 是", " 否", (pl, id) => {
+    player.closeForm()
+    mc.runcmdEx(`camera "${player.realName}" set minecraft:free pos -77 66 35 facing -75 0 35`)
+    mc.runcmdEx(`hud "${player.realName}" hide all`)
+    player.tell("", 5)
+    player.sendModalForm("欢迎", "你是第一次来到《光遇》的世界吗？", " 是", " 否", (player, id) => {
         if (!id) {
-            mc.runcmdEx(`hud "${pl.realName}" reset`);
-            mc.runcmdEx(`camera "${pl.realName}" clear`);
-            return pl.tell("新手引导已取消...", 5);
+            mc.runcmdEx(`hud "${player.realName}" reset`);
+            mc.runcmdEx(`camera "${player.realName}" clear`);
+            return player.tell("新手引导已取消...", 5);
         }
-        mc.runcmdEx(`camera "${pl.realName}" set minecraft:free ease 7.5 linear pos 36.5 67.5 33.5 rot 0 -90`);
-        pl.setTitle("screen.sky");
-        pl.setTitle("(如果你看到了这段话，就说明你材质包没下完，快去下！)", 3);
-        //pl.setTitle("§l光·遇",2)
-        //pl.setTitle("§l§b光是遇见 §a就很美好§r\n§7=== §r§l欢迎来到 §bQ§aY§eServer§r §7===",3)
-        pl.tell("新手指引加载中...", 5);
-        setTimeout(() => helpAnimated(pl), 5500);
+        mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 7.5 linear pos 36.5 67.5 33.5 rot 0 -90`);
+        player.setTitle("screen.sky");
+        player.setTitle("(如果你看到了这段话，就说明你材质包没下完，快去下！)", 3);
+        //player.setTitle("§l光·遇",2)
+        //player.setTitle("§l§b光是遇见 §a就很美好§r\n§7=== §r§l欢迎来到 §bQ§aY§eServer§r §7===",3)
+        player.tell("新手指引加载中...", 5);
+        setTimeout(() => helpAnimated(player), 5500);
     })
 }
 
 // 新手指引
-function helpAnimated(pl, mode = 0) {
-    pl.closeForm()
+function helpAnimated(player, mode = 0) {
+    player.closeForm()
     if (mode === -1) {
-        pl.tell("找不到上一个！怎么找也找不到！>_<")
-        helpAnimated(pl, 0)
+        player.tell("找不到上一个！怎么找也找不到！>_<")
+        helpAnimated(player, 0)
         return
     }
     switch (mode) {
         case 0:
-            mc.runcmdEx(`camera "${pl.realName}" set minecraft:free ease 0.75 linear pos 48 66 34 facing @e[type=armor_stand,name=回溯神坛,c=1]`)
-            pl.sendModalForm(
+            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 0.75 linear pos 48 66 34 facing @e[type=armor_stand,name=回溯神坛,c=1]`)
+            player.sendModalForm(
                 "回溯神坛", "当你在冒险中§b意外重生§r，便可用§6回溯神坛§r快速§l返回死亡点§r",
-                "上一个", "下一个", (pl, id) => helpAnimated(pl, (id ? mode - 1 : mode + 1))
+                "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
             )
             return
         case 1:
-            mc.runcmdEx(`camera "${pl.realName}" set minecraft:free ease 0.75 linear pos 51 64 33 facing 53 63 32`)
-            pl.sendModalForm(
+            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 0.75 linear pos 51 64 33 facing 53 63 32`)
+            player.sendModalForm(
                 "石像神龛", "可以在这里接取§6每日任务§r，完成后会获得§b丰厚奖励§r！",
-                "上一个", "下一个", (pl, id) => helpAnimated(pl, (id ? mode - 1 : mode + 1))
+                "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
             )
             return
         case 2:
-            mc.runcmdEx(`camera "${pl.realName}" set minecraft:free ease 1.5 linear pos 19 67 -7 facing 26 65 -9`)
-            pl.sendModalForm(
+            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 1.5 linear pos 19 67 -7 facing 26 65 -9`)
+            player.sendModalForm(
                 "小船商店", "你可以在这里购买一些§6实用的魔法或物品§r",
-                "上一个", "下一个", (pl, id) => helpAnimated(pl, (id ? mode - 1 : mode + 1))
+                "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
             )
             return
         case 3:
-            mc.runcmdEx(`camera "${pl.realName}" set minecraft:free ease 1.5 linear pos 46 66 17 facing 48 63 9`)
-            pl.sendModalForm(
+            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 1.5 linear pos 46 66 17 facing 48 63 9`)
+            player.sendModalForm(
                 "晨岛", "进入这个§6传送门§r，立刻§a开始生存§r吧！",
-                "上一个", "下一个", (pl, id) => helpAnimated(pl, (id ? mode - 1 : mode + 1))
+                "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
             )
             return
         case 4:
-            mc.runcmdEx(`camera "${pl.realName}" clear`)
-            mc.runcmdEx(`hud "${pl.realName}" reset`)
-            pl.setTitle("§a新手引导完毕§r", 2)
-            pl.setTitle("§b出发吧!§e 将光传递下去！", 3)
-            meSetUI(pl)
+            mc.runcmdEx(`camera "${player.realName}" clear`)
+            mc.runcmdEx(`hud "${player.realName}" reset`)
+            player.setTitle("§a新手引导完毕§r", 2)
+            player.setTitle("§b出发吧!§e 将光传递下去！", 3)
+            meSetUI(player)
             return
     }
 }
 
 // 个人设置
-function meSetUI(pl) {
+function meSetUI(player) {
     const fm = mc.newCustomForm().setTitle("个人设置")
-    config.meSetList.forEach(item => fm.addSwitch(item.name, !pl.hasTag(item.tag)))
-    pl.sendForm(fm, (pl, data) => {
+    config.meSetList.forEach(item => fm.addSwitch(item.name, !player.hasTag(item.tag)))
+    player.sendForm(fm, (player, data) => {
         if (func.isNull(data)) return
         config.meSetList.forEach((item, index) => {
-            data[index] ? pl.removeTag(item.tag) : pl.addTag(item.tag)
-            // pl.tell(`${pl.realName} ${data[index] ? "remove tag: " : "add tag: "}${item.tag}`)
+            data[index] ? player.removeTag(item.tag) : player.addTag(item.tag)
+            // player.tell(`${player.realName} ${data[index] ? "remove tag: " : "add tag: "}${item.tag}`)
         })
     })
 }
@@ -809,11 +823,12 @@ function meSetUI(pl) {
 // 触发一个功能项
 let pngMap = null;
 const playerCmd = {// 玩家可以用
-    help: (player) => player.tell(`可用参数：${(Object.keys(playerCmd)).join(", ")}\n${(player.hasTag("op") || player.isOP()) ? (Object.keys(opCmd)).join(", ") : ""}`),
+    help: (player) => player.tell(`可用参数：\n${(Object.keys(playerCmd)).join(", ")}\n${(player.hasTag("op") || player.isOP()) ? (Object.keys(opCmd)).join(", ") : ""}`),
     xpfix: (player) => xpFix(player),
     meSet: (player) => meSetUI(player),
     firework: (player) => firework(player),
-    new: (player) => player.pos.dimid !== 0 ? player.tell("哪有在其他维度开新手指南啊喂") : newPlayerUi(player),
+    musicMenu: (player) => musicMenu(player),
+    new: (player) => player.pos.dimid !== 0 ? player.tell("哪有在其他维度开新手指南啊喂！") : newPlayerUi(player),
     giveskin: (player) => mc.runcmdEx(`sendshowstoreoffer "${player.realName}" character 927cab07-ab94-44d4-8581-b2a5342b07b4`),
     rc: (player) => player.refreshChunks() ? player.tell("§a区块刷新请求已发送至客户端进行处理") : player.tell("§c无法创建请求"),
 
@@ -821,20 +836,10 @@ const playerCmd = {// 玩家可以用
         let crashtime = [5, 4, 3, 2, 1]
         crashtime.forEach((sec, index) => {
             setTimeout(() => {
-                player.tell(`§c祂即将降临！剩余 ${sec} 秒`);
+                player.tell("§c祂即将降临！");
                 if (sec === 1) crash(player)
             }, (index + 1) * 1000);
         })
-    },
-
-    book: (player) => {
-        const fm = mc.newCustomForm()
-            .setTitle("小说阅读器")
-            .addInput("小说名", "在这里填写你想要搜索的小说名");
-        player.sendForm(fm, (pl, data) => {
-            if (data === null) pl.tell("表单已放弃");
-            // else moduleList["./Game/BookLook.js"].getBook(data, pl);
-        });
     },
 
     killme: (player) => {
@@ -842,7 +847,9 @@ const playerCmd = {// 玩家可以用
         mc.runcmdEx(`effect "${player.realName}" clear`);
         mc.runcmdEx(`effect "${player.realName}" instant_health 1 255`);
         mc.runcmdEx(`effect "${player.realName}" saturation 1 255`);
-    }
+    },
+    
+    ...globalThis.ommodList
 };
 
 const opCmd = { // OP 可以用

@@ -12,11 +12,17 @@ mc.listen("onLeft", (pl) => {
     openBoxIds.delete(pl.xuid);
 })
 
-mc.listen("onPlayerCmd", (player, cmd) => {
-    if (cmd !== "om a") return;
-    showFakeChest(player, "elytraUI");
-    return false;
-});
+{
+    const cmd = mc.newCommand('boxui', '打开一个箱子UI', PermType.Any);
+    cmd.optional("name", ParamType.RawText);
+    cmd.setCallback((_cmd, ori, out, res) => {
+        if (!ori.player) return out.error("script::Exception: player is not defined");
+        if (AllContainerData.has(res.name)) showFakeChest(ori.player, res.name)
+        else out.error(`script::Exception: ${res.name} is not defined`);
+    });
+    cmd.overload(["name"]);
+    cmd.setup();
+}
 
 addContainerData("elytraUI", {
     boxId: -30,
@@ -161,7 +167,7 @@ Event.emplaceListener(
             || params[3] == "HotbarContainer"
             || params[1] != "Place"
         ) return;
-        AllContainerData.get("elytraUI").event(params[0], params[4]);
+        AllContainerData.get(inBoxGui.get(params[0].xuid).name).event(params[0], params[4]);
 
         /*
         
@@ -180,7 +186,7 @@ Event.emplaceListener(
     "gmlib::ContainerClosePacketSendAfterEvent", (event) => {
         const pl = event.params[0];
         if (!inBoxGui.has(pl?.xuid)) return;
-        const pos = inBoxGui.get(pl.xuid);
+        const pos = inBoxGui.get(pl.xuid).pos;
         sendUpdateBlockPacket(pl, pos, mc.getBlock(pos)?.type || "minecraft:air");
 
         inBoxGui.delete(pl.xuid);
@@ -232,11 +238,11 @@ function showFakeChest(player, name) {
 
         setTimeout(() => {
             sendOpenContainerPacket(player, chestPos, containerData.boxId);
-            inBoxGui.set(player.xuid, chestPos);
+            inBoxGui.set(player.xuid, {pos: chestPos, name: name});
 
             // 填充箱子内容 * 27槽位
             for (const data of containerData.data()) {
-                player.sendInventorySlotPacket(-30, data.slot, data.item);
+                player.sendInventorySlotPacket(containerData.boxId, data.slot, data.item);
             }
         }, 200);
 

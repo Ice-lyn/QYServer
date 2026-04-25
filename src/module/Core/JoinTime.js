@@ -88,3 +88,5 @@ function playerTimeUI(player) {
         }
     })
 }
+
+globalThis.ommodList.pltime = (player) => playerTimeUI(player);

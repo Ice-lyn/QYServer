@@ -1,14 +1,15 @@
-// import dts
-/// <reference path="/root/VSCode/Library/LSE/index.d.ts"/>
-
-import * as func from "./lib/func.js";
+import * as func from "../../lib/func.js";
+const CD = new Set();
 
 // === OP剑 === //
 mc.listen("onAttackEntity", (player, entity) => {
-    if (!(player.isOP()
+    if (!(!CD.has(player.xuid)
+        && player.isOP()
         && player.isSneaking
         && player.getHand()?.getNbt()?.getTag("tag")?.getData("isOP")
     )) return;
+    CD.add(player.xuid);
+    setTimeout(() => CD.delete(player.xuid), 20);
 
     switch (entity.type) {
         case "qys:message": // 留言纸船
@@ -24,12 +25,17 @@ mc.listen("onAttackEntity", (player, entity) => {
             entity.despawn();
             break;
     }
+    return false;
 })
 
 mc.listen("onUseItemOn", (player, item, entity, block, side, pos) => {
-    if (!(player.isOP()
+    if (!(!CD.has(player.xuid)
+        && player.isOP()
         && player.getHand()?.getNbt()?.getTag("tag")?.getData("isOP")
     )) return;
+    
+    CD.add(player.xuid);
+    setTimeout(() => CD.delete(player.xuid), 20);
 
     if (player.isSneaking) player.setGameMode(player.gameMode === 0 ? 1 : 0);
 })
