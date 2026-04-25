@@ -1,3 +1,6 @@
+// import dts
+/// <reference path="/root/VSCode/Library/ImportAll.d.ts"/>
+
 import { config } from "../../Config/config.js";
 
 // ==== 函数实现 ==== //

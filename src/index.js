@@ -87,6 +87,11 @@ mc.listen("onLeft", (player) => {
     mc.runcmdEx(`kill @e[type=qys:ride,name="qys:rideing_${player.realName}"]`)
 })
 
+// 玩家破坏方块完成
+mc.listen("onDestroyBlock", (player, block) => {
+    if (block.type === "minecraft:budding_amethyst" && func.probability(50)) mc.spawnItem(mc.newItem("minecraft:budding_amethyst", 1), block.pos);
+})
+
 // 生物骑乘
 mc.listen("onRide", (rider, mount) => {
     if (mount.type === "minecraft:ender_dragon" && !rider.hasTag("qys:ride_ender_dragon")) return false;
@@ -219,9 +224,7 @@ mc.listen("onAttackEntity", (player, entity) => {
             player.sendModalForm("留言纸船", "是否删除这条留言？这将无法恢复！", "§c立刻删除§r", "§a我再想想§r", (pl, ui) => {
                 if (ui) entity.despawn();
             })
-        } else if (player.isOP()) player.sendModalForm("留言纸船", "[OP管理] 是否删除？", "§c立刻删除§r", "§a我再想想§r", (pl, ui) => {
-            if (ui) entity.despawn();
-        })
+        }
     }
 })
 
