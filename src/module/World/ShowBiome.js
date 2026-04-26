@@ -1,4 +1,4 @@
-const BiomeNameCn = new JsonConfigFile("./plugins/QYServer/Data/System/BiomeName.json");
+const BiomeNameCn = new JsonConfigFile("./plugins/QYServer/Config/BiomeName.json");
 const playerBiome = new Map();
 
 mc.listen("onLeft", (pl) => playerBiome.delete(pl.xuid));

@@ -1,11 +1,14 @@
-const playerTime = new JsonConfigFile("./plugins/QYServer/Data/System/playerTime.json")
+const playerTime = new KVDatabase("./plugins/QYServer/Data/playerTime");
 import * as events from "../../lib/events.js";
 
 mc.listen("onJoin", (pl) => {
     if (playerTime.get(pl.realName) !== null) return;
     playerTime.set(
         pl.realName,// usfID为初加入时间戳
-        `${pl.getNbt().getTag("DynamicProperties").getTag("9472c503-5a92-43c8-7ddf-0492de2362d7").getData("usfV2:id")}`
+        pl.getNbt()
+            ?.getTag("DynamicProperties")
+            ?.getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
+            ?.getData("usfV2:id") ?? Date.now()
     )
 })
 
@@ -17,8 +20,10 @@ events.on("onModeCallback", (player, cmd) => {
 
 // 查询历史玩家
 function playerTimeUI(player) {
-    // playerTime.reload();
-    const data = JSON.parse(playerTime.read());
+    const data = new Map(); // { 玩家名: 时间戳 }
+    for (const key of playerTime.listKey()) {
+        data.set(key, playerTime.get(key));
+    }
 
     const format = t => {
         const d = new Date(+t);
@@ -29,7 +34,7 @@ function playerTimeUI(player) {
     const todayStart = new Date().setHours(0, 0, 0, 0);
     const today = [], history = [];
 
-    Object.entries(data).forEach(([n, t]) => {
+    data.forEach((t, n) => {
         const ts = +t;
         ts >= todayStart && ts < todayStart + 86400000 ?
             today.push(`${n} - ${format(t)}`) :
@@ -87,7 +92,7 @@ function playerTimeUI(player) {
             pl.sendForm(searchForm, (pl2, res) => {
                 if (!res) return playerTimeUI(pl2);
                 const search = res[0].toLowerCase();
-                const results = Object.entries(data)
+                const results = Array.from(data.entries())
                     .filter(([n]) => n.toLowerCase().includes(search))
                     .map(([n, t]) => `§a§l${n}§r - ${format(t)}`);
                 showList(`搜索结果 (${results.length}个)`, results.join('\n'), false);
