@@ -1,4 +1,3 @@
-import { AllModuleStart } from "../lib/global.js";
 const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
     /**
      * === 核心类 ===
@@ -61,8 +60,6 @@ function checkProgress() {
     loadedCount++;
     if (loadedCount == lib_list.length) {
         const totalTime = ((Date.now() - startTime) / 1000).toFixed(3);
-        AllModuleStart.status = true;
-        AllModuleStart.callback();
         logger.setTitle("QYComponent");
         logger.warn(`${loadedCount} 个附加组件在 (${totalTime}) 秒内启动完成`);
         logger.setTitle("Server");
