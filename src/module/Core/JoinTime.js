@@ -1,4 +1,5 @@
 const playerTime = new JsonConfigFile("./plugins/QYServer/Data/System/playerTime.json")
+import * as events from "../../lib/events.js";
 
 mc.listen("onJoin", (pl) => {
     if (playerTime.get(pl.realName) !== null) return;
@@ -6,6 +7,12 @@ mc.listen("onJoin", (pl) => {
         pl.realName,// usfID为初加入时间戳
         `${pl.getNbt().getTag("DynamicProperties").getTag("9472c503-5a92-43c8-7ddf-0492de2362d7").getData("usfV2:id")}`
     )
+})
+
+events.on("onModeCallback", (player, cmd) => {
+    if (cmd[0] !== "pltime") return;
+    playerTimeUI(player);
+    return true;
 })
 
 // 查询历史玩家
@@ -89,4 +96,3 @@ function playerTimeUI(player) {
     })
 }
 
-globalThis.ommodList.pltime = (player) => playerTimeUI(player);

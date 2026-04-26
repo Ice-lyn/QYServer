@@ -6,6 +6,7 @@ import { PAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS.js
 import * as il from "../../iListenAttentively-LseExport/lib/iListenAttentively.js";
 
 import { config } from "../Config/config.js";
+import * as events from "./lib/events.js";
 import * as func from "./lib/func.js";
 
 logger.setTitle("Server");
@@ -847,9 +848,7 @@ const playerCmd = {// 玩家可以用
         mc.runcmdEx(`effect "${player.realName}" clear`);
         mc.runcmdEx(`effect "${player.realName}" instant_health 1 255`);
         mc.runcmdEx(`effect "${player.realName}" saturation 1 255`);
-    },
-    
-    ...globalThis.ommodList
+    }
 };
 
 const opCmd = { // OP 可以用
@@ -884,11 +883,14 @@ const opCmd = { // OP 可以用
         };
     }
 };
+
 function onmode(player, cmd) {
     const command = cmd.split(" "); // 提取主命令
+    const eventReturn = !func.isNull(events.emitFirst("onModeCallback", player, command));
 
     return (() => {
-        if (playerCmd[command[0]]) return (playerCmd[command[0]](player, command) ?? true);
+        if (eventReturn) return eventReturn
+        else if (playerCmd[command[0]]) return (playerCmd[command[0]](player, command) ?? true);
         else if ((player.isOP() || player.hasTag("op")) && opCmd[command[0]]) return (opCmd[command[0]](player, command, pngMap) ?? true);
         else return null;
     })();

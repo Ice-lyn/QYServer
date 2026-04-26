@@ -1,4 +1,4 @@
-// export const moduleList = new Map();
+import { AllModuleStart } from "../lib/global.js";
 const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
     /**
      * === 核心类 ===
@@ -49,9 +49,6 @@ lib_list.forEach(lib => {
         .then(mod => {
             logger.info(`${lib} 加载完成(${((Date.now() - startTime) / 1000).toFixed(3)}s)`)
             checkProgress();
-            // try { 
-            //    if (Object.keys(mod).length !== 0) moduleList.set(lib, mod);
-            // } catch (e) { };
         })
         .catch(err => {
             logger.error(`组件 ${lib} 加载失败：\n      ${err}`);
@@ -64,8 +61,9 @@ function checkProgress() {
     loadedCount++;
     if (loadedCount == lib_list.length) {
         const totalTime = ((Date.now() - startTime) / 1000).toFixed(3);
+        AllModuleStart.status = true;
+        AllModuleStart.callback();
         logger.setTitle("QYComponent");
-        // logger.warn(`成功捕获 ${moduleList.size} 个组件导出`);
         logger.warn(`${loadedCount} 个附加组件在 (${totalTime}) 秒内启动完成`);
         logger.setTitle("Server");
     }
