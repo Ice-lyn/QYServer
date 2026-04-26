@@ -24,6 +24,7 @@ mc.listen("onLeft", (pl) => {
     cmd.setup();
 }
 
+
 addContainerData("elytraUI", {
     boxId: -30,
     title: "鞘翅设置",
@@ -217,7 +218,7 @@ function showFakeChest(player, name) {
             + `(mc.getPlayer("${player.realName}")).sendPacket(packet.createPacket(21));`
             + `})()`
         );
-    
+
         // 设置箱子方块实体数据
         const blockEntityData = new NbtCompound({
             'Findable': new NbtByte(0),
@@ -238,10 +239,11 @@ function showFakeChest(player, name) {
 
         setTimeout(() => {
             sendOpenContainerPacket(player, chestPos, containerData.boxId);
-            inBoxGui.set(player.xuid, {pos: chestPos, name: name});
+            inBoxGui.set(player.xuid, { pos: chestPos, name: name });
+            const boxData = containerData.data(player);
 
             // 填充箱子内容 * 27槽位
-            for (const data of containerData.data()) {
+            for (const data of boxData) {
                 player.sendInventorySlotPacket(containerData.boxId, data.slot, data.item);
             }
         }, 200);
