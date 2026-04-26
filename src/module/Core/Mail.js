@@ -1,6 +1,5 @@
 const MAIL_CONFIG_PATH = "./plugins/QYServer/config/mail.json";
 const PLAYER_DATA_PATH = "./plugins/QYServer/Data/System/mail_playerData.json";
-const debug_mode = false;
 
 // 邮件配置文件
 const mailConfig = new JsonConfigFile(MAIL_CONFIG_PATH, JSON.stringify({
@@ -298,8 +297,6 @@ function showAnnouncementContent(pl, index) {
 
 // 事件监听（恢复新玩家判断）
 mc.listen("onJoin", (pl) => {
-    if (!debug_mode && pl.realName !== "fangfubin0782") return;
-
     const xuid = pl.xuid;
     const announcements = mailManager.getAvailableAnnouncements(xuid);
 

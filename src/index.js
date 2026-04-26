@@ -180,6 +180,7 @@ mc.listen("onPlayerCmd", (player, cmd) => {
     func.titleLog.info("Command", `<${player.realName}> /${cmd}`);
     switch (cmd) {
         case "reload":
+            if (!player.isOP()) return;
             setTimeout(() => mc.runcmd("scriptevent qys:command noChat true"), 2000);
             return;
         case "msg":
@@ -707,7 +708,7 @@ function musicMenu(player, mode = 0, pitche = "note.harp") {
     for (let i = 0; i < mode; i++) fm.addButton("看见我了说明你材质包坏啦！(｡･ω･｡)", "textures/blocks/noteblock");
 
     player.sendForm(fm, (player, id) => {
-        if (func.isNull(id)) return;
+        if (func.isNull(id)) return player.closeForm();
         func.enRuncmd(player, `playsound ${pitche} @a[r=50] ~~~ 5 ${func.pitchList[mode][id]} 2.5`);
         for (let i = 0; i < 3; i++) musicMenu(player, mode, pitche);
     })
