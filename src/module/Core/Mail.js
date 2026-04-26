@@ -1,35 +1,19 @@
-// ==================== 数据库初始化 ====================
 const playerMailDB = new KVDatabase("./plugins/QYServer/Data/PlayerMail");
-const mailConfig = new JsonConfigFile("./plugins/QYServer/config/mail.json", JSON.stringify({
-    announcements: [
-        {
-            id: "ann_001",
-            title: "服务器更新公告",
-            content: "服务器已更新至1.20版本，新增功能...",
-            textures: "textures/ui/mail_icon.png",
-            annex: {
-                items: [
-                    '{id:"minecraft:diamond",Count:3b,tag:{display:{Name:\'{"text":"测试钻石"}\'}}}',
-                    '{id:"minecraft:gold_ingot",Count:5b}'
-                ]
-            },
-            timestamp: 1734192000000,
-            expireDays: 30
-        }
-    ]
-}));
+const mailConfig = new JsonConfigFile("./plugins/QYServer/Config/mail.json");
 
-// ==================== 数据操作 ====================
+
+// 数据操作 
 const data = {
     getPlayer(xuid) {
-        return JSON.parse(playerMailDB.get(xuid)) || { read: {}, collected: {} };
+        return JSON.parse(playerMailDB.get(xuid) ?? null) || { read: {}, collected: {} };
     },
+
     savePlayer(xuid, obj) {
         return playerMailDB.set(xuid, JSON.stringify(obj));
     },
 
     getAllAnnouncements() {
-        return mailConfig?.announcements || [];
+        return mailConfig.get("mail") ?? [];
     },
 
     hasRead(xuid, id) {
@@ -60,7 +44,7 @@ const data = {
     }
 };
 
-// ==================== 辅助函数 ====================
+// 辅助函数
 function getPlayerJoinTime(pl) {
     return pl.getNbt()
         ?.getTag("DynamicProperties")
@@ -83,7 +67,7 @@ function giveAnnexItems(pl, ann) {
     return count > 0;
 }
 
-// ==================== 核心逻辑 ====================
+// 核心逻辑
 const mailManager = {
     getAvailable(xuid) {
         const pl = mc.getPlayer(xuid);
@@ -98,16 +82,45 @@ const mailManager = {
             const expireTime = ann.expireDays ? ann.timestamp + (ann.expireDays * 86400000) : Infinity;
             const isExpired = now > expireTime;
             const isAfterJoin = ann.timestamp >= joinTime;
+            const hasRead = data.hasRead(xuid, ann.id);
 
-            if (!data.hasRead(xuid, ann.id) && !isExpired && isAfterJoin) {
+            // 规则：
+            // 1. 必须在玩家加入后发布
+            // 2. 已读的邮件：全部显示（包括过期的）
+            // 3. 未读的邮件：只显示未过期的
+            if (isAfterJoin && (hasRead || !isExpired)) {
                 available.push(ann);
             }
         }
         return available.sort((a, b) => b.timestamp - a.timestamp);
+    },
+
+    // 获取未读邮件数量（只统计未过期的）
+    getUnreadCount(xuid) {
+        const announcements = data.getAllAnnouncements();
+        const pl = mc.getPlayer(xuid);
+        if (!pl) return 0;
+
+        const joinTime = getPlayerJoinTime(pl);
+        const now = Date.now();
+        let count = 0;
+
+        for (const ann of announcements) {
+            // const expireTime = ann.expireDays ? ann.timestamp + (ann.expireDays * 86400000) : Infinity;
+            // const isExpired = now > expireTime;
+            const isAfterJoin = ann.timestamp >= joinTime;
+            const hasRead = data.hasRead(xuid, ann.id);
+
+            // 未读 + 未过期 + 在玩家加入后发布
+            if (!hasRead /*&& !isExpired */&& isAfterJoin) {
+                count++;
+            }
+        }
+        return count;
     }
 };
 
-// ==================== 命令 ====================
+// 命令
 const cmd = mc.newCommand('mail', '§a查看邮件', PermType.Any);
 cmd.setCallback((_cmd, ori, out, _res) => {
     if (!ori.player) return;
@@ -116,7 +129,7 @@ cmd.setCallback((_cmd, ori, out, _res) => {
 cmd.overload([]);
 cmd.setup();
 
-// ==================== 界面 ====================
+// 界面
 function mailfm(pl) {
     const xuid = pl.xuid;
     const announcements = mailManager.getAvailable(xuid);
@@ -156,9 +169,9 @@ function showContent(pl, index) {
     fm.setTitle(`§l${ann.title}`);
 
     const date = new Date(ann.timestamp);
-    let content = `发布时间: ${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}\n`;
-    if (ann.expireDays) content += `有效期: ${ann.expireDays}天\n`;
-    content += "§l---------------§r\n\n";
+    let content = `§l发布时间§r: §7${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}§r\n`;
+    if (ann.expireDays) content += `§l有效时间§r: §7${ann.expireDays}天§r\n`;
+    content += "\n§l------------------------------§r\n\n";
     content += `${ann.content}`;
     fm.setContent(content);
 
@@ -185,7 +198,7 @@ function showContent(pl, index) {
     });
 }
 
-// ==================== 事件 ====================
+// 事件
 mc.listen("onJoin", (pl) => {
     const xuid = pl.xuid;
     const announcements = mailManager.getAvailable(xuid);
