@@ -2,8 +2,70 @@
 /// <reference path="/root/VSCode/Library/ImportAll.d.ts"/>
 
 import { config } from "../../Config/config.js";
+// ==== 常量声明 ==== //
+// 我不行了，直接在函数上面写变量vscode会解析错误
+
+const regex = /"([^"]*)"|(\S+)/g;
+
+const toRawPos = (Pos) => ({
+    'x': Pos.x,
+    'y': Pos.y,
+    'z': Pos.z,
+    'dimid': Pos.dimid
+});
+
+const units = [
+    { value: 86400, label: '天' },
+    { value: 3600, label: '小时' },
+    { value: 60, label: '分钟' },
+    { value: 1, label: '秒' }
+];
+
+const mc2ansi = {
+    '§0': '\x1b[30m', '§1': '\x1b[34m', '§2': '\x1b[32m', '§3': '\x1b[36m',
+    '§4': '\x1b[31m', '§5': '\x1b[35m', '§6': '\x1b[33m', '§7': '\x1b[37m',
+    '§8': '\x1b[90m', '§9': '\x1b[94m', '§a': '\x1b[92m', '§b': '\x1b[96m',
+    '§c': '\x1b[91m', '§d': '\x1b[95m', '§e': '\x1b[93m', '§f': '\x1b[97m',
+    '§l': '\x1b[1m', '§o': '\x1b[3m', '§n': '\x1b[4m', '§m': '\x1b[9m',
+    '§r': '\x1b[0m'
+};
+
+const ansi2mc = {
+    '\x1b[30m': '§0', '\x1b[34m': '§1', '\x1b[32m': '§2', '\x1b[36m': '§3',
+    '\x1b[31m': '§4', '\x1b[35m': '§5', '\x1b[33m': '§6', '\x1b[37m': '§7',
+    '\x1b[90m': '§8', '\x1b[94m': '§9', '\x1b[92m': '§a', '\x1b[96m': '§b',
+    '\x1b[91m': '§c', '\x1b[95m': '§d', '\x1b[93m': '§e', '\x1b[97m': '§f',
+    '\x1b[1m': '§l', '\x1b[3m': '§o', '\x1b[4m': '§n', '\x1b[9m': '§m',
+    '\x1b[0m': '§r'
+};
+
 
 // ==== 函数实现 ==== //
+
+/**
+ * 命令行参数字符串解析函数
+ * @param {string} input - 待解析的命令行参数字符串
+ * @returns {string[]} - 解析后的参数数组
+ * 
+ * 解析规则：
+ * - 双引号内的内容作为一个完整参数（忽略其中的空格）
+ * - 非引号内容按空格分割为多个参数
+ * - 不支持引号转义（即引号内不能包含转义的引号）
+ * 
+ * @example
+ * parseArgs('hello "world test" 123')
+ * // 返回: ['hello', 'world test', '123']
+ */
+export function parseArgs(input) {
+    // 匹配引号内容或非空格序列
+    const matches = []
+    let match
+    while ((match = regex.exec(input)) !== null) {
+        // match[1] 是引号内容，match[2] 是非引号内容
+        matches.push(match[1] !== undefined ? match[1] : match[2])
+    }
+    return matches
+}
 
 /**
  * 判断是否有权限在领地内操作
@@ -12,12 +74,6 @@ import { config } from "../../Config/config.js";
  * @returns {Boolean} - 返回是否有权限
  */
 export function LandJudgment(Player, Pos) {
-    const toRawPos = (Pos) => ({
-        'x': Pos.x,
-        'y': Pos.y,
-        'z': Pos.z,
-        'dimid': Pos.dimid
-    });
     if (ll.hasExported('ILAPI_PosGetLand')) {// iLand
         /** 领地ID @type {Number} */
         let LandId = ll.imports('ILAPI_PosGetLand')(toRawPos(Pos));
@@ -67,9 +123,8 @@ export function crash(player) {
  */
 export function getFileSize(bytes, mode = 0) {
     const bytesValue = bytes * 1024 ** mode;
-    const units = ["B", "KB", "MB", "GB"];
     const unitIndex = Math.min(3, Math.floor(Math.log2(bytesValue) / 10));
-    return (bytesValue / 1024 ** unitIndex).toFixed(2) + " " + units[unitIndex];
+    return (bytesValue / 1024 ** unitIndex).toFixed(2) + " " + ["B", "KB", "MB", "GB"][unitIndex];
 }
 
 /**
@@ -78,12 +133,6 @@ export function getFileSize(bytes, mode = 0) {
  * @returns {string} - 格式化后的时间字符串
  */
 export function formatSeconds(seconds) {
-    const units = [
-        { value: 86400, label: '天' },
-        { value: 3600, label: '小时' },
-        { value: 60, label: '分钟' },
-        { value: 1, label: '秒' }
-    ];
     let result = '';
     units.forEach(({ value, label }) => {
         if (seconds >= value) {
@@ -220,36 +269,20 @@ export function enRuncmd(entity, cmd) {
  * 
  * 注意：支持ANSI组合代码（如\x1b[1;34m）的解析和转换
  */
+
 export function mcCode2Ansi(text, mode = 0) {
-    if (mode === 0) { // MC → ANSI
-        const mc2ansi = {
-            '§0': '\x1b[30m', '§1': '\x1b[34m', '§2': '\x1b[32m', '§3': '\x1b[36m',
-            '§4': '\x1b[31m', '§5': '\x1b[35m', '§6': '\x1b[33m', '§7': '\x1b[37m',
-            '§8': '\x1b[90m', '§9': '\x1b[94m', '§a': '\x1b[92m', '§b': '\x1b[96m',
-            '§c': '\x1b[91m', '§d': '\x1b[95m', '§e': '\x1b[93m', '§f': '\x1b[97m',
-            '§l': '\x1b[1m', '§o': '\x1b[3m', '§n': '\x1b[4m', '§m': '\x1b[9m',
-            '§r': '\x1b[0m'
-        };
-        // §k直接跳过，其他未定义的也跳过
-        return text.replace(/§[0-9a-fk-or]/gi, match => mc2ansi[match.toLowerCase()] || '');
-    } else { // ANSI → MC
-        const ansi2mc = {
-            '\x1b[30m': '§0', '\x1b[34m': '§1', '\x1b[32m': '§2', '\x1b[36m': '§3',
-            '\x1b[31m': '§4', '\x1b[35m': '§5', '\x1b[33m': '§6', '\x1b[37m': '§7',
-            '\x1b[90m': '§8', '\x1b[94m': '§9', '\x1b[92m': '§a', '\x1b[96m': '§b',
-            '\x1b[91m': '§c', '\x1b[95m': '§d', '\x1b[93m': '§e', '\x1b[97m': '§f',
-            '\x1b[1m': '§l', '\x1b[3m': '§o', '\x1b[4m': '§n', '\x1b[9m': '§m',
-            '\x1b[0m': '§r'
-        };
-        // 处理组合代码如\x1b[1;34m
-        return text.replace(/\x1b\[([0-9;]+)m/g, (full, codes) => {
-            const mcCodes = codes.split(';').map(code => {
-                const key = `\x1b[${code}m`;
-                return ansi2mc[key] || '';
-            }).join('');
-            return mcCodes;
-        });
-    }
+    // MC → ANSI
+    // §k直接跳过，其他未定义的也跳过
+    if (mode === 0) return text.replace(/§[0-9a-fk-or]/gi, match => mc2ansi[match.toLowerCase()] || '');
+    // ANSI → MC
+    // 处理组合代码如\x1b[1;34m
+    else return text.replace(/\x1b\[([0-9;]+)m/g, (full, codes) => {
+        const mcCodes = codes.split(';').map(code => {
+            const key = `\x1b[${code}m`;
+            return ansi2mc[key] || '';
+        }).join('');
+        return mcCodes;
+    });
 }
 
 /**

@@ -18,6 +18,10 @@ events.on("onModeCallback", (player, cmd) => {
     return true;
 })
 
+ll.onUnload(() => {
+    playerTime.close();
+})
+
 // 查询历史玩家
 function playerTimeUI(player) {
     const data = new Map(); // { 玩家名: 时间戳 }
