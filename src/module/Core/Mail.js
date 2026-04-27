@@ -1,4 +1,3 @@
-const playerTime = new KVDatabase("./plugins/QYServer/Data/PlayerTime");
 const playerMailDB = new KVDatabase("./plugins/QYServer/Data/PlayerMail");
 const mailConfig = new JsonConfigFile("./plugins/QYServer/Config/mail.json");
 
@@ -46,13 +45,10 @@ const data = {
 
 // 辅助函数
 function getPlayerJoinTime(pl) {
-    return (playerTime.get(pl.realName)
-        || pl.getNbt()
-            ?.getTag("DynamicProperties")
-            ?.getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
-            ?.getData("usfV2:id")
-        || Date.now()
-    );
+    return pl.getNbt()
+        ?.getTag("DynamicProperties")
+        ?.getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
+        ?.getData("usfV2:id") || Date.now();
 }
 
 function giveAnnexItems(pl, ann) {

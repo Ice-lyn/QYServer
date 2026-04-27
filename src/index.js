@@ -886,7 +886,7 @@ const opCmd = { // OP 可以用
 };
 
 function onmode(player, cmd) {
-    const command = cmd.split(" "); // 提取主命令
+    const command = func.parseArgs(cmd); // 提取主命令
     const eventReturn = !func.isNull(events.emitFirst("onModeCallback", player, command));
 
     return (() => {

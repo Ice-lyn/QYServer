@@ -1,10 +1,9 @@
 // import dts
 /// <reference path="/root/VSCode/Library/ImportAll.d.ts"/>
-
 import { config } from "../../Config/config.js";
+
 // ==== 常量声明 ==== //
 // 我不行了，直接在函数上面写变量vscode会解析错误
-
 const regex = /"([^"]*)"|(\S+)/g;
 
 const toRawPos = (Pos) => ({
