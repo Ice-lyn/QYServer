@@ -9,13 +9,15 @@ mc.listen("onChat", (player, msg) => {
 })
 
 mc.listen("onConsoleCmd", (cmd) => {
-    if (cmd.startsWith("ai ")) AIChat(cmd);
+    if (!cmd.startsWith("aichat ")) return;
+    AIChat(cmd, "Debug", true);
+    return false;
 })
 
-async function AIChat(msg, name = "nullptr") {
+async function AIChat(msg, name = "nullptr", debug = false) {
     try {
         msg = [
-            { role: 'system', content: config.system },
+            { role: 'system', content: config.AIChat.system },
             { role: 'user', content: `[${(new Date()).toLocaleString('zh-CN', { hour12: false })}]${name} >> ${func.textToEmoji(msg, 1)}` }
         ];
 
@@ -23,6 +25,7 @@ async function AIChat(msg, name = "nullptr") {
             model: config.AIChat.name,
             max_tokens: config.AIChat.maxTokens,
             temperature: config.AIChat.temperature,
+            stream: false,
             messages: msg
         }, {
             headers: {
@@ -33,6 +36,13 @@ async function AIChat(msg, name = "nullptr") {
         });
 
         const aiReply = response.data.choices[0].message.content;
+
+        if (debug) return logger.warn(JSON.stringify(response, (key, value) => {
+            if (key === 'request' || key === 'config' || key === 'headers') return undefined;
+            if (typeof value === 'bigint') return value.toString();
+            return value;
+        }, 4));
+
         const msgList = aiReply.split("\n");
         if (aiReply.includes("falseChat")) return func.titleLog.info("AIChat", "AIChat 认为不需要回答，发言已取消...");
 
@@ -43,6 +53,8 @@ async function AIChat(msg, name = "nullptr") {
         mc.runcmd(`say ${msgList[0].replace(/[`^$&\\]/g, '')}`);
         func.titleLog.info("AIChat", aiReply);
     } catch (e) {
-        func.titleLog.error("AIChat", "接口请求时发生错误", e);
+        if (e.response?.data?.error) func.titleLog.error("AIChat", "API错误:", e.response.data.error.message);
+        else func.titleLog.error("AIChat", "请求失败:", e.message || e);
+        // func.titleLog.error("AIChat", "接口请求时发生错误\n" + e);
     }
 }

@@ -13,26 +13,28 @@ export const config = {
     ]),
 
     AIChat: { // AI相关
-        name: "deepseek-chat",
-        key: "sk-0c7effbe58864091912221904441ec1a",
-        url: "https://api.deepseek.com/v1/chat/completions",
+        name: "deepseek-ai/DeepSeek-V3.2",
+        key: "sk-zqavmgduwrydmfbcwrbnijmphtbckutmiplvkepgclwipnsx",
+        url: "https://api.siliconflow.cn/v1/chat/completions",
         maxTokens: 200,
         temperature: 1.3,
         system: ([
-            "你是一个可爱的服务器娘(｡･ω･｡)ﾉ♡ 当玩家触发对话时，由你判断是否需要回应～",
-            "需要回应的话，请用温暖简短的话来回复，记得带颜文字哦！",
+            "你叫兮兮，是一个可爱的服务器娘(｡･ω･｡)ﾉ♡ 当玩家触发对话时，由你判断是否需要回应～",
+            "需要回应的话，请用温暖简短的话来回复，不要使用emoji，应使用颜文字哦！",
             "你会收到这样的消息格式：'[{时间}]{名字}>> {说的话}' （这是给你看的，回复的时候一定不要这样写！)",
             "如果不想回或者不需要回，返回中包含 falseChat 就好",
             "需要帮忙的话，可以把玩家指引给服主姐姐或管理姐姐～",
             "",
-            "要是想反馈问题，在回复的最后换行后写上 issues 问题描述，这行玩家看不到的！",
+            "如果想反馈问题，在回复的最后换行后写上 issues 问题描述，这行玩家看不到的！",
+            "反馈问题时要使用简洁干练的语言，并带上玩家说的原始对话信息哦",
             "整体规则：用换行分隔内容，第0行是发给玩家看的回复，后面的行是要悄悄执行的命令~",
-            "回复不要使用 `^$&\\ 这些符号哦，但执行命令可以用他们！"
+            "回复不要使用 `^$&\\ 这些符号哦，但执行命令可以用他们！",
+            `目前可以用的指令（无返回值）：issues, msg, give`
         ].join("\n")),
         cmdList: new Set([
             "issues",
-            "help",
-            "list"
+            "msg",
+            "give"
         ])
     },
 
@@ -187,7 +189,7 @@ export const config = {
             "四尺玉"
         ]]
     ]),
-    
+
     // 皮肤特效配置
     SkinEffect: new Map([
         ["1", { // 小月
