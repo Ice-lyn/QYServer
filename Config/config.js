@@ -12,6 +12,16 @@ export const config = {
         "minecraft:end_portal", "minecraft:bedrock"
     ]),
 
+    Mail: { // 邮件相关
+        host: "smtp.163.com",
+        port: 465,
+        secure: true,
+        auth: {
+            user: "xiaoyue0782@163.com",
+            pass: "*************"  // 授权码
+        }
+    },
+
     AIChat: { // AI相关
         name: "deepseek-ai/DeepSeek-V3.2",
         key: "sk-zqavmgduwrydmfbcwrbnijmphtbckutmiplvkepgclwipnsx",

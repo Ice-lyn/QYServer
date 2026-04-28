@@ -10,7 +10,6 @@
         "debug": "node ./src/module/Core/Mail.js"
     },
     "dependencies": {
-        "@papack/email": "^1.0.0",
         "axios": "^1.15.2",
         "nodemailer": "^8.0.7"
     }
