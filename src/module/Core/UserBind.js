@@ -8,10 +8,9 @@ ll.onUnload(() => {
     func.globalMap.delete("Core::UserBind::PlayerBind");
     PlayerBind.close();
 })
-events.on("onModeCallback", (player, cmd) => {
-    if (cmd[0] !== "setmail") return;
+
+func.addOnmodeCmd("setmail", (player) => {
     setMailUI(player);
-    return true;
 });
 
 function setMailUI(player) {
@@ -24,6 +23,7 @@ function setMailUI(player) {
     if (playerData.verifyCode
         && playerData.pendingEmail
         && Date.now() < playerData.verifyExpire
+        // && false
     ) {
         // 已有有效验证码，直接跳转到验证码输入页面
         player.tell("§e检测到进行中的绑定，请继续输入验证码");

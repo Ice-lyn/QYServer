@@ -1,3 +1,5 @@
+import * as func from "../../lib/func.js"
+
 const playerTime = new KVDatabase("./plugins/QYServer/Data/PlayerTime");
 
 mc.listen("onJoin", (pl) => {
@@ -12,6 +14,7 @@ mc.listen("onJoin", (pl) => {
 })
 
 func.addOnmodeCmd("pltime", (player) => {
+    player.tell("aaaaaaaaaaaa")
     playerTimeUI(player);
 });
 

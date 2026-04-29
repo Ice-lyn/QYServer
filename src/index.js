@@ -8,8 +8,6 @@ import * as il from "../../iListenAttentively-LseExport/lib/iListenAttentively.j
 import { config } from "../Config/config.js";
 import * as events from "./lib/events.js";
 import * as func from "./lib/func.js";
-import { on } from 'nodemailer/lib/xoauth2/index.js';
-
 logger.setTitle("Server");
 
 // 初始化变量
@@ -830,9 +828,9 @@ let pngMap = null;
 export const omExpList = [];
 const playerCmd = {// 玩家可以用
     help: (player) => player.tell(
-        "可用参数：",
-        `\n${ [...(Object.keys(playerCmd)), ...omCmdList].join(", ") }`,
-        `\n${(player.hasTag("op") || player.isOP()) ? (Object.keys(opCmd)).join(", ") : ""}`
+        "可用参数："
+        + `\n${[...Object.keys(playerCmd), ...omExpList].join(", ")}`
+        + `\n${(player.hasTag("op") || player.isOP()) ? (Object.keys(opCmd)).join(", ") : ""}`
     ),
     xpfix: (player) => xpFix(player),
     meSet: (player) => meSetUI(player),

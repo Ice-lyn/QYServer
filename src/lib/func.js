@@ -1,4 +1,4 @@
-import * as events from "../../lib/events.js";
+import * as events from "./events.js";
 import { config } from "../../Config/config.js";
 import { omExpList } from "../index.js";
 import nodemailer from "nodemailer";
@@ -62,10 +62,10 @@ export const globalMap = new Map();
  * @param {Object} callback.player - 执行命令的玩家对象
  * @param {string} callback.cmd - 执行的完整命令字符串
  */
-export function addOnmodeCmd(cmd, callback = (() => { })) {
-    omExpList.push(cmd);
+export function addOnmodeCmd(setcmd, callback = (() => { })) {
+    omExpList.push(setcmd);
     events.on("onModeCallback", (player, cmd) => {
-        if (cmd[0] !== cmd) return;
+        if (cmd[0] !== setcmd) return;
         callback(player, cmd);
         return true;
     });
