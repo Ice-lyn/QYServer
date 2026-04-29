@@ -6,8 +6,8 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
      */
     Core: [
         "JoinTime.js", // 加入时间相关
-        // "UserMigrate.js", // 帐号迁移
-        "Mail.js" // 邮件系统
+        "Mail.js", // 邮件系统
+        "UserMigrate.js" // 帐号迁移
     ],
 
     /**
@@ -19,7 +19,6 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
         "BoxUI.js", // 箱子UI
         "CloudLift.js", // 云朵电梯
         "Doll.js", // 玩偶
-        "Mail.js", // 游戏内邮件系统
         "OPmgr.js", // OP管理
         "SkinEffect.js" // 皮肤效果
     ],

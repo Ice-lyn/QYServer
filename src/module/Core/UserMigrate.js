@@ -1,4 +1,4 @@
-export const userMigrate = {
+const userMigrate = {
     mc: (oldName, newName) => {
         const oldUuld = data.name2uuid(oldName);
         const newUuld = data.name2uuid(newName);

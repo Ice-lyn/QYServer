@@ -1,9 +1,11 @@
 // import dts
 /// <reference path="/root/VSCode/Library/ImportAll.d.ts"/>
 import { config } from "../../Config/config.js";
+import nodemailer from "nodemailer";
 
 // ==== 常量声明 ==== //
 // 我不行了，直接在函数上面写变量vscode会解析错误
+const transporter = nodemailer.createTransport(config.Mail);
 const regex = /"([^"]*)"|(\S+)/g;
 
 const toRawPos = (Pos) => ({
@@ -38,6 +40,7 @@ const ansi2mc = {
     '\x1b[0m': '§r'
 };
 
+ll.onUnload(() => { transporter.close() });
 
 // ==== 函数实现 ==== //
 
@@ -384,4 +387,25 @@ export const pitchList = {
         1.887749, // F5
         2.0       // F#5
     ]
+}
+
+/**
+ * 异步发送邮件函数
+ * @param {Object} mailData - 邮件数据对象
+ * @param {Function} [callback] - 发送结果回调函数
+ * 
+ * 功能说明：
+ * - 先验证邮件传输器是否可用
+ * - 验证通过后执行邮件发送
+ * - 无论成功或失败都会调用callback回调
+ * - 默认回调为空函数
+ */
+export async function sendMail(mailData, callback = (() => { })) {
+    try {
+        await transporter.verify();
+        const info = await transporter.sendMail(mailData);
+        callback(info, true);
+    } catch (error) {
+        callback(error, false);
+    }
 }
