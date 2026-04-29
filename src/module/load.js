@@ -7,6 +7,7 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
     Core: [
         "JoinTime.js", // 加入时间相关
         "Mail.js", // 邮件系统
+        "UserBind.js", // 用户绑定
         "UserMigrate.js" // 帐号迁移
     ],
 

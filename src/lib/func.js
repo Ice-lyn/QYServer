@@ -1,11 +1,9 @@
-// import dts
-/// <reference path="/root/VSCode/Library/ImportAll.d.ts"/>
 import { config } from "../../Config/config.js";
 import nodemailer from "nodemailer";
 
 // ==== 常量声明 ==== //
 // 我不行了，直接在函数上面写变量vscode会解析错误
-const transporter = nodemailer.createTransport(config.Mail);
+const mailObj = nodemailer.createTransport(config.Mail);
 const regex = /"([^"]*)"|(\S+)/g;
 
 const toRawPos = (Pos) => ({
@@ -40,9 +38,20 @@ const ansi2mc = {
     '\x1b[0m': '§r'
 };
 
-ll.onUnload(() => { transporter.close() });
+ll.onUnload(() => { mailObj.close() });
 
 // ==== 函数实现 ==== //
+
+/**
+ * 全局数据存储Map
+ * @constant {Map} globalMap
+ * 
+ * 功能说明：
+ * - 用于在模块间共享数据
+ * - 支持任意类型的键和值
+ * - 全局唯一实例，可直接导入使用
+ */
+export const globalMap = new Map();
 
 /**
  * 命令行参数字符串解析函数
@@ -402,8 +411,8 @@ export const pitchList = {
  */
 export async function sendMail(mailData, callback = (() => { })) {
     try {
-        await transporter.verify();
-        const info = await transporter.sendMail(mailData);
+        await mailObj.verify();
+        const info = await mailObj.sendMail(mailData);
         callback(info, true);
     } catch (error) {
         callback(error, false);

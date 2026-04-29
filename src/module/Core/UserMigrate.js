@@ -44,3 +44,13 @@ const userMigrate = {
         });
     }
 }
+
+events.on("onModeCallback", (player, cmd) => {
+    if (cmd[0] !== "migrate") return;
+    migrateUI(player);
+    return true;
+});
+
+function migrateUI(player) {
+    
+}

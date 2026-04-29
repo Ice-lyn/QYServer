@@ -1,7 +1,7 @@
 const playerMailDB = new KVDatabase("./plugins/QYServer/Data/PlayerMail");
 const mailConfig = new JsonConfigFile("./plugins/QYServer/Config/mail.json");
 
-// 数据操作 
+// 数据操作
 const data = {
     getPlayer(xuid) {
         return JSON.parse(playerMailDB.get(xuid) ?? null) || { read: {}, collected: {} };
@@ -120,13 +120,16 @@ const mailManager = {
 };
 
 // 命令
-const cmd = mc.newCommand('mail', '§a查看邮件', PermType.Any);
-cmd.setCallback((_cmd, ori, out, _res) => {
-    if (!ori.player) return;
-    mailfm(ori.player);
-});
-cmd.overload([]);
-cmd.setup();
+{
+    const cmd = mc.newCommand('mail', '§a查看邮件', PermType.Any);
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return;
+        mailfm(ori.player);
+    });
+    cmd.overload([]);
+    cmd.setup();
+}
+
 
 // 界面
 function mailfm(pl) {
