@@ -1,4 +1,7 @@
+import * as events from "../../lib/events.js";
 import * as func from "../../lib/func.js";
+
+const keys = new Map();
 
 const userMigrate = {
     mc: (oldName, newName) => {
@@ -54,22 +57,110 @@ events.on("onModeCallback", (player, cmd) => {
 });
 
 function migrateUI(player) {
-    const fm = mc.newSimpleForm()
+    if (keys.has(player.xuid) && keys.get(player.xuid).expire > Date.now()) {
+        player.tell("§e检测到进行中的验证，请继续输入验证码");
+        return verifyCode(player);
+    }
+    const fm = mc.newCustomForm()
         .setTitle("迁移账户")
-        .addInput("请输入您的完整旧账户名：");
+        .addInput("请输入您的§l完整§r旧账户名：");
 
-    player.sendForm(fm, (player, id) => {
-        if (func.isNull(id)) return player.tell("输入错误，请重新输入");
-        const oldPlayer = data.name2xuid(id[0]) ?? null;
+    player.sendForm(fm, (player, res) => {
+        if (func.isNull(res)) return player.tell("输入错误，请重新输入");
+        const oldPlayer = data.name2xuid(res[0]) ?? null;
         const playerMail = JSON.parse(
-            func.globalMap
-                .get("Core::UserBind::playerKey")
-                .get(oldPlayer) ?? null
+            (func.globalMap
+                .get("Core::UserBind::PlayerBind")
+            ).get(oldPlayer) ?? null
         )?.email || null;
 
+        if (res[0] === player.realName) return player.tell("不要自己对自己迁移!")
         if (oldPlayer === null) return player.tell("旧账户不存在，请重新输入!");
         if (playerMail === null) return player.tell("旧账户没有绑定邮箱，请联系管理员手动迁移");
 
-
+        player.tell(`[Debug] 判断链通过, get mail: ${playerMail}`);
+        sendKeyMailForm(player, playerMail);
     })
+}
+
+function sendKeyMailForm(player, mail) {
+    const code = {
+        key: (Math.floor(100000 + Math.random() * 900000).toString()),
+        expire: (Date.now() + (10 * 60 * 1000))
+    };
+    const fm = mc.newSimpleForm()
+        .setTitle("发送邮件验证")
+        .setContent(
+            "§a接下来将发送一封邮件到您旧账号绑定的邮箱，请注意查收\n"
+            + "§b验证码有效期为10分钟，您可以§l退出游戏查看后再进入游戏输入"
+        )
+        .addButton("发送")
+        .addButton("取消");
+
+    player.sendForm(fm, (pl, id) => {
+        if (id !== 0) return;
+        keys.set(player.xuid, code);
+        sendVerifyCodeMail(player, mail, code);
+        verifyCode(player, code);
+    });
+}
+
+function verifyCode(player, code) {
+    const fm = mc.newCustomForm()
+        .setTitle("迁移账户")
+        .addInput("请输入您收到的验证码：");
+
+    player.sendForm(fm, (player, res) => {
+        if (func.isNull(res)) return player.tell("输入错误，请重新输入");
+        if (res[0] !== `${keys.get(player.xuid).key}`) return player.tell("验证码错误，请重新输入!");
+        else player.sendModalForm(
+            "二次确认",
+            "您真的确定要迁移用户吗？\n这将会清除您目前账户的所有内容并覆盖旧账户上的部分数据！",
+            "确定迁移", "取消迁移",
+            (player, id) => {
+                if (id === 0) return player.tell("§c已取消迁移");
+                player.tell("§a正在迁移，请稍候...");
+            }
+        )
+    })
+
+}
+
+function sendVerifyCodeMail(player, email, code) {
+    func.sendMail({
+        from: '"月月呀" <xiaoyue0782@163.com>',
+        to: email,
+        subject: "QYServer | 账户迁移验证",
+        text: ([
+            `您好！${player.realName}：`,
+            "我们收到了您的账户迁移申请。为确保是您本人操作，请使用以下验证码完成迁移验证：",
+            "",
+            `验证码：${code.key}`,
+            "有效期10分钟，请勿泄露给他人哦~",
+            "",
+            "如非您本人操作，请立即修改密码或联系客服处理。祝您使用愉快！",
+            "QYServer"
+        ].join("\n")),
+        html: ([
+            `<div>您好！${player.realName}：</div>`,
+            "<div>我们收到了您的账户迁移申请。为确保是您本人操作，请使用以下验证码完成迁移验证：</div>",
+            "<div><br /></div>",
+            `<div><b>验证码：${code.key}</b></div>`,
+            "<div>有效期10分钟，请勿泄露给他人哦~</div>",
+            "<div><br /></div>",
+            "<div>如非您本人操作，请立即修改密码或联系客服处理。祝您使用愉快！</div>",
+            "<div>QYServer</div>"
+        ].join(""))
+    }, (res, isSend) => {
+        if (!isSend) {
+            player.tell("§c验证码发送失败，请稍后再试或联系管理员。");
+            logger.warn(JSON.stringify(res, (key, value) => {
+                if (key === 'request' || key === 'config' || key === 'headers') return undefined;
+                if (typeof value === 'bigint') return value.toString();
+                return value;
+            }, 4));
+            return;
+        }
+        player.tell("§a验证码已发送至你的邮箱，请查收！");
+    });
 }

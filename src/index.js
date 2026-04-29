@@ -700,17 +700,19 @@ function msgUI(player, swi = false, oldPlayer = player.realName) {
 }
 
 // 钢琴
-function musicMenu(player, mode = 0, pitche = "note.harp") {
-    mode = [15, 21][mode];
+function musicMenu(player, modeIndex = 0, pitche = "note.harp") {
+    const mode = ([15, 21][modeIndex]);
     const fm = mc.newSimpleForm()
         .setTitle("钢琴")
         .setContent("qys:music_menu_ui");
     for (let i = 0; i < mode; i++) fm.addButton("看见我了说明你材质包坏啦！(｡･ω･｡)", "textures/blocks/noteblock");
 
-    player.sendForm(fm, (player, id) => {
-        if (func.isNull(id)) return player.closeForm();
+    player.sendForm(fm, (player, id, rea) => {
+        // if (!rea) return player.closeForm();
+        if (func.isNull(id)) return;
+
         func.enRuncmd(player, `playsound ${pitche} @a[r=50] ~~~ 5 ${func.pitchList[mode][id]} 2.5`);
-        for (let i = 0; i < 3; i++) musicMenu(player, mode, pitche);
+        for (let i = 0; i < 10; i++) musicMenu(player, modeIndex, pitche);
     })
 }
 

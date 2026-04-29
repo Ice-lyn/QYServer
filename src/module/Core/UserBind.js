@@ -1,12 +1,12 @@
 import * as events from "../../lib/events.js";
 import * as func from "../../lib/func.js";
 
-const playerKey = new KVDatabase("./plugins/QYServer/Data/PlayerBind");
+const PlayerBind = new KVDatabase("./plugins/QYServer/Data/PlayerBind");
 
-func.globalMap.set("Core::UserBind::playerKey", playerKey);
+func.globalMap.set("Core::UserBind::PlayerBind", PlayerBind);
 ll.onUnload(() => {
-    func.globalMap.delete("Core::UserBind::playerKey");
-    playerKey.close();
+    func.globalMap.delete("Core::UserBind::PlayerBind");
+    PlayerBind.close();
 })
 events.on("onModeCallback", (player, cmd) => {
     if (cmd[0] !== "setmail") return;
@@ -43,13 +43,13 @@ function setMailUI(player) {
 // ==================== 数据操作 ====================
 const playerDataMgr = {
     get: (xuid) => {
-        const raw = playerKey.get(xuid);
+        const raw = PlayerBind.get(xuid);
         if (raw) return JSON.parse(raw);
         return { email: null, verifyCode: null, verifyExpire: 0, pendingEmail: null };
     },
 
     save: (xuid, data) => {
-        playerKey.set(xuid, JSON.stringify(data));
+        PlayerBind.set(xuid, JSON.stringify(data));
     }
 }
 
@@ -60,23 +60,24 @@ function showBindEmailForm(player) {
         .addInput("请输入你要绑定的邮箱地址：", "例如：123456@qq.com")
         .addLabel(
             "§a输入后，将发送一份验证码至您的邮箱，请注意查收§r\n" +
-            "§b验证码有效期为10分钟，您可以§l退出游戏查看后再进入游戏输入§r"
+            "§b验证码有效期为5分钟，您可以§l退出游戏查看后再进入游戏输入§r"
         );
 
     player.sendForm(fm, (player, data) => {
-        if (func.isNull(data[0])) return;
+        if (func.isNull(data)) return;
         const email = data[0];
         if (!email || !email.includes('@')) {
             player.tell("§c邮箱格式不正确，请重新输入！");
             return showBindEmailForm(pl);
         }
+        player.tell("发送邮件中...")
         sendVerifyCode(player, email);
     });
 }
 
 function sendVerifyCode(player, email) {
     const xuid = player.xuid;
-    const expire = Date.now() + 10 * 60 * 1000; // 10分钟有效
+    const expire = Date.now() + 5 * 60 * 1000; // 有效期
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
     // 存储验证码和邮箱
@@ -95,7 +96,7 @@ function sendVerifyCode(player, email) {
             "感谢您选择我们的服务！为了确保您的账户安全，请查收本次绑定邮箱的验证码：",
             "",
             `验证码：${code}`,
-            "有效期10分钟，请勿泄露给他人哦~",
+            "有效期5分钟，请勿泄露给他人哦~",
             "",
             "如有任何疑问，欢迎随时联系我们。祝您使用愉快！",
             "QYServer"
@@ -105,7 +106,7 @@ function sendVerifyCode(player, email) {
             "<div>感谢您选择我们的服务！为了确保您的账户安全，请查收本次绑定邮箱的验证码：</div>",
             "<div><br /></div>",
             `<div><b>验证码：${code}</b></div>`,
-            "<div>有效期10分钟，请勿泄露给他人哦~</div>",
+            "<div>有效期5分钟，请勿泄露给他人哦~</div>",
             "<div><br /></div>",
             "<div>如有任何疑问，欢迎随时联系我们。祝您使用愉快！</div>",
             "<div>QYServer</div>"
@@ -199,7 +200,7 @@ function showMailManageUI(player) {
                 break;
             case 3:
                 isReceive ? player.removeTag("qys:mail_receive") : player.addTag("qys:mail_receive");
-                showBindEmailForm(player);
+                showMailManageUI(player);
                 break;
         }
     });
@@ -247,6 +248,5 @@ function confirmUnbind(player) {
         delete playerData.pendingEmail;
         playerDataMgr.save(pl.xuid, playerData);
         pl.tell("§a邮箱已解除绑定");
-
     });
 }
