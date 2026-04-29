@@ -1,54 +1,8 @@
 import * as events from "../../lib/events.js";
 import * as func from "../../lib/func.js";
 
+const migrateMap = new Map();
 const keys = new Map();
-
-const userMigrate = {
-    mc: (oldName, newName) => {
-        const oldUuld = data.name2uuid(oldName);
-        const newUuld = data.name2uuid(newName);
-
-        if (!oldUuld && !newUuld) return false;
-
-        // === NBT === //
-        const oldNbt = mc.getPlayerNbt(oldUuld);
-        mc.setPlayerNbt(oldUuld, mc.getPlayerNbt(newUuld));
-        mc.setPlayerNbt(newUuld, oldNbt);
-    },
-
-    iland: (oldName, newName) => { // 合并领地，上面辣个是不会合并nbt才交换的
-        if (!ll.hasExported("ILAPI_PosGetLand")) return false;
-
-        const oldXuid = data.name2xuid(oldName);
-        const newXuid = data.name2xuid(newName);
-
-        if (!oldXuid && !newXuid) return false;
-
-        // 先捕获，然后调用，性能可能更好（？
-        const iland = {
-            addTrust: ll.imports("ILAPI_AddTrust"),
-            delTrust: ll.imports("ILAPI_RemoveTrust"),
-            setOwner: ll.imports("ILAPI_SetOwner")
-        };
-
-        // 受信任的
-        ll.imports("ILAPI_GetAllTrustedLand")(oldXuid).forEach((landId) => {
-            iland.addTrust(landId, newXuid);
-            iland.delTrust(landId, oldXuid);
-        });
-
-        // 拥有领地
-        const oldLands = ll.imports("ILAPI_GetPlayerLands")(oldXuid);
-
-        ll.imports("ILAPI_GetPlayerLands")(newXuid).forEach((id) => {
-            iland.setOwner(id, oldXuid);
-        });
-
-        oldLands.forEach((id) => {
-            iland.setOwner(id, newXuid);
-        });
-    }
-}
 
 events.on("onModeCallback", (player, cmd) => {
     if (cmd[0] !== "migrate") return;
@@ -78,7 +32,7 @@ function migrateUI(player) {
         if (oldPlayer === null) return player.tell("旧账户不存在，请重新输入!");
         if (playerMail === null) return player.tell("旧账户没有绑定邮箱，请联系管理员手动迁移");
 
-        player.tell(`[Debug] 判断链通过, get mail: ${playerMail}`);
+        migrateMap.set(player.xuid, oldPlayer);
         sendKeyMailForm(player, playerMail);
     })
 }
@@ -105,26 +59,6 @@ function sendKeyMailForm(player, mail) {
     });
 }
 
-function verifyCode(player, code) {
-    const fm = mc.newCustomForm()
-        .setTitle("迁移账户")
-        .addInput("请输入您收到的验证码：");
-
-    player.sendForm(fm, (player, res) => {
-        if (func.isNull(res)) return player.tell("输入错误，请重新输入");
-        if (res[0] !== `${keys.get(player.xuid).key}`) return player.tell("验证码错误，请重新输入!");
-        else player.sendModalForm(
-            "二次确认",
-            "您真的确定要迁移用户吗？\n这将会清除您目前账户的所有内容并覆盖旧账户上的部分数据！",
-            "确定迁移", "取消迁移",
-            (player, id) => {
-                if (id === 0) return player.tell("§c已取消迁移");
-                player.tell("§a正在迁移，请稍候...");
-            }
-        )
-    })
-
-}
 
 function sendVerifyCodeMail(player, email, code) {
     func.sendMail({
@@ -164,3 +98,56 @@ function sendVerifyCodeMail(player, email, code) {
         player.tell("§a验证码已发送至你的邮箱，请查收！");
     });
 }
+
+function verifyCode(player, code) {
+    const fm = mc.newCustomForm()
+        .setTitle("迁移账户")
+        .addInput("请输入您收到的验证码：");
+
+    player.sendForm(fm, (player, res) => {
+        if (func.isNull(res)) return player.tell("输入错误，请重新输入");
+        if (res[0] !== `${keys.get(player.xuid).key}`) return player.tell("验证码错误，请重新输入!");
+        else player.sendModalForm(
+            "二次确认",
+            "您真的确定要迁移用户吗？\n这将会清除您目前账户的所有内容并覆盖旧账户上的部分数据！",
+            "确定迁移", "取消迁移",
+            (player, id) => {
+                if (id === 0) return player.tell("§c已取消迁移");
+
+                if (func.isNull(data.xuid2uuid(newXuid))
+                    || func.isNull(data.xuid2uuid(oldXuid))
+                ) return player.tell("§c迁移失败，请联系管理员手动迁移！");
+
+                player.kick("正在迁移您的账户，请在稍后重新登录！");
+                userMigrate(player.xuid, migrateMap.get(player.xuid));
+            }
+        )
+    })
+}
+
+function userMigrate(newXuid, oldXuid) {
+    // === MC === //
+    const oldNbt = mc.getPlayerNbt(oldXuid);
+    mc.setPlayerNbt(data.xuid2uuid(oldXuid), mc.getPlayerNbt(newXuid));
+    mc.setPlayerNbt(data.xuid2uuid(newXuid), oldNbt);
+
+    // === ILAND === //
+
+    // 受信任的
+    ll.imports("ILAPI_GetAllTrustedLand")(oldXuid).forEach((landId) => {
+        ll.imports("ILAPI_AddTrust")(landId, newXuid);
+        ll.imports("ILAPI_RemoveTrust")(landId, oldXuid);
+    });
+
+    // 拥有领地
+    const oldLands = ll.imports("ILAPI_GetPlayerLands")(oldXuid);
+
+    ll.imports("ILAPI_GetPlayerLands")(newXuid).forEach((id) => {
+        ll.imports("ILAPI_SetOwner")(id, oldXuid);
+    });
+
+    oldLands.forEach((id) => {
+        ll.imports("ILAPI_SetOwner")(id, newXuid);
+    });
+}
+
