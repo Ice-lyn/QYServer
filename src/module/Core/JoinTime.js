@@ -12,11 +12,10 @@ mc.listen("onJoin", (pl) => {
     )
 })
 
-events.on("onModeCallback", (player, cmd) => {
-    if (cmd[0] !== "pltime") return;
+func.addOnmodeCmd("pltime", (player) => {
     playerTimeUI(player);
-    return true;
-})
+});
+
 
 ll.onUnload(() => {
     playerTime.close();

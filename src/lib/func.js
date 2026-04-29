@@ -1,5 +1,6 @@
 import { config } from "../../Config/config.js";
 import nodemailer from "nodemailer";
+import { omExpList } from "../index.js";
 
 // ==== 常量声明 ==== //
 // 我不行了，直接在函数上面写变量vscode会解析错误
@@ -52,6 +53,22 @@ ll.onUnload(() => { mailObj.close() });
  * - 全局唯一实例，可直接导入使用
  */
 export const globalMap = new Map();
+
+/**
+ * 添加/onmode命令参数函数
+ * @param {string} cmd - 要匹配的命令字符串
+ * @param {Function} [callback] - 命令执行时的回调函数
+ * @param {Object} callback.player - 执行命令的玩家对象
+ * @param {string} callback.cmd - 执行的完整命令字符串
+ */
+export function addOnmodeCmd(cmd, callback = (() => { })) {
+    omExpList.push(cmd);
+    events.on("onModeCallback", (player, cmd) => {
+        if (cmd[0] !== cmd) return;
+        callback(player, cmd);
+        return true;
+    });
+};
 
 /**
  * 命令行参数字符串解析函数

@@ -4,10 +4,8 @@ import * as func from "../../lib/func.js";
 const migrateMap = new Map();
 const keys = new Map();
 
-events.on("onModeCallback", (player, cmd) => {
-    if (cmd[0] !== "migrate") return;
+func.addOnmodeCmd("migrate", (player) => {
     migrateUI(player);
-    return true;
 });
 
 function migrateUI(player) {
