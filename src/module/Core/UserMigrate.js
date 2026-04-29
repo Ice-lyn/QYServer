@@ -1,3 +1,5 @@
+import * as func from "../../lib/func.js";
+
 const userMigrate = {
     mc: (oldName, newName) => {
         const oldUuld = data.name2uuid(oldName);
@@ -52,5 +54,22 @@ events.on("onModeCallback", (player, cmd) => {
 });
 
 function migrateUI(player) {
-    
+    const fm = mc.newSimpleForm()
+        .setTitle("迁移账户")
+        .addInput("请输入您的完整旧账户名：");
+
+    player.sendForm(fm, (player, id) => {
+        if (func.isNull(id)) return player.tell("输入错误，请重新输入");
+        const oldPlayer = data.name2xuid(id[0]) ?? null;
+        const playerMail = JSON.parse(
+            func.globalMap
+                .get("Core::UserBind::playerKey")
+                .get(oldPlayer) ?? null
+        )?.email || null;
+
+        if (oldPlayer === null) return player.tell("旧账户不存在，请重新输入!");
+        if (playerMail === null) return player.tell("旧账户没有绑定邮箱，请联系管理员手动迁移");
+
+
+    })
 }
