@@ -1,4 +1,3 @@
-import * as events from "../../lib/events.js";
 import * as func from "../../lib/func.js";
 
 const migrateMap = new Map();
@@ -15,16 +14,16 @@ func.addOnmodeCmd("migrate", (player) => {
 
     player.sendForm(fm, (player, res) => {
         if (func.isNull(res)) return player.tell("输入错误，请重新输入");
-        const oldPlayer = data.name2xuid(res[0]) ?? null;
+        const oldPlayer = data.name2xuid(res) ?? null;
         const playerMail = JSON.parse(
             (func.globalMap
                 .get("Core::UserBind::PlayerBind")
             ).get(oldPlayer) ?? null
         )?.email || null;
 
-        if (res[0] === player.realName) return player.tell("不要自己对自己迁移!")
         if (oldPlayer === null) return player.tell("旧账户不存在，请重新输入!");
         if (playerMail === null) return player.tell("旧账户没有绑定邮箱，请联系管理员手动迁移");
+        if (res === player.realName) return player.tell("不要自己对自己迁移!");
 
         migrateMap.set(player.xuid, oldPlayer);
         sendKeyMailForm(player, playerMail);
@@ -48,8 +47,10 @@ function sendKeyMailForm(player, email) {
 
     player.sendForm(fm, (pl, id) => {
         if (id !== 0) return;
+
         keys.set(player.xuid, code);
-        verifyCode(player, code);
+        verifyCode(player);
+
         func.sendMail({
             from: '"月月呀" <xiaoyue0782@163.com>',
             to: email,
@@ -75,21 +76,19 @@ function sendKeyMailForm(player, email) {
                 "<div>QYServer</div>"
             ].join(""))
         }, (res, isSend) => {
-            if (!isSend) {
-                player.tell("§c验证码发送失败，请稍后再试或联系管理员。");
-                logger.warn(JSON.stringify(res, (key, value) => {
-                    if (key === 'request' || key === 'config' || key === 'headers') return undefined;
-                    if (typeof value === 'bigint') return value.toString();
-                    return value;
-                }, 4));
-                return;
-            }
-            player.tell("§a验证码已发送至你的邮箱，请查收！");
+            if (isSend) return player.tell("§a验证码已发送至你的邮箱，请查收！");
+
+            player.tell("§c验证码发送失败，请稍后再试或联系管理员。");
+            logger.error(JSON.stringify(res, (key, value) => {
+                if (key === 'request' || key === 'config' || key === 'headers') return undefined;
+                if (typeof value === 'bigint') return value.toString();
+                return value;
+            }, 4));
         });
     });
 }
 
-function verifyCode(player, code) {
+function verifyCode(player) {
     const fm = mc.newCustomForm()
         .setTitle("迁移账户")
         .addInput("请输入您收到的验证码：");
@@ -110,6 +109,10 @@ function verifyCode(player, code) {
 
                 player.kick("正在迁移您的账户，请在稍后重新登录！");
                 userMigrate(player.xuid, migrateMap.get(player.xuid));
+                setTimeout(() => {
+                    migrateMap.delete(player.xuid);
+                    keys.delete(player.xuid);
+                }, 1000)
             }
         )
     })

@@ -1,5 +1,4 @@
 const playerTime = new KVDatabase("./plugins/QYServer/Data/PlayerTime");
-import * as events from "../../lib/events.js";
 
 mc.listen("onJoin", (pl) => {
     if (playerTime.get(pl.realName) !== null) return;

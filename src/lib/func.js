@@ -1,6 +1,7 @@
+import * as events from "../../lib/events.js";
 import { config } from "../../Config/config.js";
-import nodemailer from "nodemailer";
 import { omExpList } from "../index.js";
+import nodemailer from "nodemailer";
 
 // ==== 常量声明 ==== //
 // 我不行了，直接在函数上面写变量vscode会解析错误
