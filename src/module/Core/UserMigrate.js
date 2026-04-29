@@ -5,10 +5,6 @@ const migrateMap = new Map();
 const keys = new Map();
 
 func.addOnmodeCmd("migrate", (player) => {
-    migrateUI(player);
-});
-
-function migrateUI(player) {
     if (keys.has(player.xuid) && keys.get(player.xuid).expire > Date.now()) {
         player.tell("§e检测到进行中的验证，请继续输入验证码");
         return verifyCode(player);
@@ -33,13 +29,14 @@ function migrateUI(player) {
         migrateMap.set(player.xuid, oldPlayer);
         sendKeyMailForm(player, playerMail);
     })
-}
+});
 
-function sendKeyMailForm(player, mail) {
+function sendKeyMailForm(player, email) {
     const code = {
         key: (Math.floor(100000 + Math.random() * 900000).toString()),
         expire: (Date.now() + (10 * 60 * 1000))
     };
+
     const fm = mc.newSimpleForm()
         .setTitle("发送邮件验证")
         .setContent(
@@ -52,48 +49,43 @@ function sendKeyMailForm(player, mail) {
     player.sendForm(fm, (pl, id) => {
         if (id !== 0) return;
         keys.set(player.xuid, code);
-        sendVerifyCodeMail(player, mail, code);
         verifyCode(player, code);
-    });
-}
-
-
-function sendVerifyCodeMail(player, email, code) {
-    func.sendMail({
-        from: '"月月呀" <xiaoyue0782@163.com>',
-        to: email,
-        subject: "QYServer | 账户迁移验证",
-        text: ([
-            `您好！${player.realName}：`,
-            "我们收到了您的账户迁移申请。为确保是您本人操作，请使用以下验证码完成迁移验证：",
-            "",
-            `验证码：${code.key}`,
-            "有效期10分钟，请勿泄露给他人哦~",
-            "",
-            "如非您本人操作，请立即修改密码或联系客服处理。祝您使用愉快！",
-            "QYServer"
-        ].join("\n")),
-        html: ([
-            `<div>您好！${player.realName}：</div>`,
-            "<div>我们收到了您的账户迁移申请。为确保是您本人操作，请使用以下验证码完成迁移验证：</div>",
-            "<div><br /></div>",
-            `<div><b>验证码：${code.key}</b></div>`,
-            "<div>有效期10分钟，请勿泄露给他人哦~</div>",
-            "<div><br /></div>",
-            "<div>如非您本人操作，请立即修改密码或联系客服处理。祝您使用愉快！</div>",
-            "<div>QYServer</div>"
-        ].join(""))
-    }, (res, isSend) => {
-        if (!isSend) {
-            player.tell("§c验证码发送失败，请稍后再试或联系管理员。");
-            logger.warn(JSON.stringify(res, (key, value) => {
-                if (key === 'request' || key === 'config' || key === 'headers') return undefined;
-                if (typeof value === 'bigint') return value.toString();
-                return value;
-            }, 4));
-            return;
-        }
-        player.tell("§a验证码已发送至你的邮箱，请查收！");
+        func.sendMail({
+            from: '"月月呀" <xiaoyue0782@163.com>',
+            to: email,
+            subject: "QYServer | 账户迁移验证",
+            text: ([
+                `您好！${player.realName}：`,
+                "我们收到了您的账户迁移申请。为确保是您本人操作，请使用以下验证码完成迁移验证：",
+                "",
+                `验证码：${code.key}`,
+                "有效期10分钟，请勿泄露给他人哦~",
+                "",
+                "如非您本人操作，请立即修改密码或联系客服处理。祝您使用愉快！",
+                "QYServer"
+            ].join("\n")),
+            html: ([
+                `<div>您好！${player.realName}：</div>`,
+                "<div>我们收到了您的账户迁移申请。为确保是您本人操作，请使用以下验证码完成迁移验证：</div>",
+                "<div><br /></div>",
+                `<div><b>验证码：${code.key}</b></div>`,
+                "<div>有效期10分钟，请勿泄露给他人哦~</div>",
+                "<div><br /></div>",
+                "<div>如非您本人操作，请立即修改密码或联系客服处理。祝您使用愉快！</div>",
+                "<div>QYServer</div>"
+            ].join(""))
+        }, (res, isSend) => {
+            if (!isSend) {
+                player.tell("§c验证码发送失败，请稍后再试或联系管理员。");
+                logger.warn(JSON.stringify(res, (key, value) => {
+                    if (key === 'request' || key === 'config' || key === 'headers') return undefined;
+                    if (typeof value === 'bigint') return value.toString();
+                    return value;
+                }, 4));
+                return;
+            }
+            player.tell("§a验证码已发送至你的邮箱，请查收！");
+        });
     });
 }
 
