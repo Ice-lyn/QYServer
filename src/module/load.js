@@ -5,6 +5,7 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
      * 底层逻辑，或者离线玩家/web什么的
      */
     Core: [
+        "AIChat.js", // AI聊天相关
         "JoinTime.js", // 加入时间相关
         "Mail.js", // 邮件系统
         "UserBind.js", // 用户绑定
@@ -31,7 +32,6 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
      */
     World: [
         "AfkTestfor.js", // 挂机检测
-        "AIChat.js", // AI聊天相关
         "AxolotlDamage.js", // 美西螈攻击
         "ScoreChanged.js", // 积分榜提示
         "ShowBiome.js", // 群系提示
