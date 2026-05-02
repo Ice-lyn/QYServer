@@ -1,24 +1,35 @@
-const plAfkData = new Map();
+const afkData = new Map();
+const posData = new Map();
 const bossBarId = 100860046;
 
 setInterval(() => {
     mc.getOnlinePlayers().forEach((pl) => {
-        // if (pl.isMoving) return resetAfk(pl); // 玩家移动
+        if (isMoving(pl)) return resetAfk(pl); // 玩家移动
         if (pl.hasTag("qys:in_afk")) return;
-        const afkTime = (plAfkData.get(pl.xuid) || 0);
-        plAfkData.set(pl.xuid, afkTime + 3);
+        const afkTime = (afkData.get(pl.xuid) || 0);
+        afkData.set(pl.xuid, afkTime + 5);
         if (afkTime >= (10 * 60) || pl.hasTag("qys:join_afk")) {
-            plAfkData.delete(pl.xuid);
+            afkData.delete(pl.xuid);
             pl.addTag("qys:in_afk");
             pl.removeTag("qys:join_afk");
             pl.setBossBar(bossBarId, "§b挂机中...", 100, 3);
             mc.runcmdEx(`execute as "${pl.realName}" run scriptevent usf:command name set [§b挂机中...§r]/name`);
         }
     })
-}, 3000)
+}, 5000)
+
+function isMoving(pl) {
+    const pos = pl.direction.pitch + pl.direction.yaw + pl.pos.x + pl.pos.y + pl.pos.z + pl.pos.dimid;
+    if (posData.get(pl.xuid) !== pos) {
+        posData.set(pl.xuid, pos);
+        return true;
+    }
+    return false;
+}
 
 function resetAfk(pl) {
-    plAfkData.delete(pl.xuid);
+    afkData.delete(pl.xuid);
+    posData.delete(pl.xuid);
     if (pl.hasTag("qys:in_afk")) {
         pl.removeTag("qys:in_afk");
         pl.removeBossBar(bossBarId);
@@ -27,7 +38,10 @@ function resetAfk(pl) {
     }
 }
 
-mc.listen("onLeft", (pl) => plAfkData.delete(pl.xuid));
+mc.listen("onLeft", (pl) => {
+    afkData.delete(pl.xuid);
+    posData.delete(pl.xuid);
+});
 mc.listen("onUseItem", resetAfk);
 mc.listen("onUseItemOn", resetAfk);
 mc.listen("onAttackEntity", resetAfk);
