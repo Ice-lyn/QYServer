@@ -1,6 +1,17 @@
 {
     "mail": [
         {
+            "id": "ann_004",
+            "title": "邮箱绑定功能上线啦 (´▽`ʃ♡ƪ)",
+            "content": "亲爱的旅人们：\n\n服务器现已新增邮箱绑定功能 ～ (｡•̀ᴗ-)✧\n绑定后，若原账号丢失，可自助迁移账号\n还能在游戏外更快收到游戏内的邮件！\n\n使用以下命令：\n\n· /om setmail —— 绑定一个邮箱\n· /om migrate —— 自助账户迁移\n\n愿你的旅途不再迷路，遇境的灯火随时为你点亮\n\n—— QYServer 管理组 (˶ᵔ ᵕ ᵔ˶)",
+            "annex": {
+                "items": [
+                    "{\"Count\":40b,\"Damage\":0s,\"Name\":\"minecraft:book\",\"WasPickedUp\":0b}"
+                ]
+            },
+            "timestamp": 1777475889520
+        },
+        {
             "id": "ann_003",
             "title": "关于Actions & Stuff材质版本说明",
             "content": "出于对向低版本客户端兼容的考虑，我们使用的Actions & Stuff将停留在1.7版本\n如果你想使用 且设备支持Actions & Stuff 1.9，可以在 [设置-全局资源] 内手动安装启用 Actions & Stuff 1.9",
