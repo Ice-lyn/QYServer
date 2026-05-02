@@ -66,7 +66,7 @@ export function addOnmodeCmd(setcmd, callback = (() => { })) {
     omExpList.push(setcmd);
     events.on("onModeCallback", (player, cmd) => {
         if (cmd[0] !== setcmd) return;
-        callback(player, cmd);
+        callback(player, cmd.slice(1));
         return true;
     });
 };
