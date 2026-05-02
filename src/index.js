@@ -562,6 +562,12 @@ mc.listen("onServerStarted", () => {
             func.titleLog.warn("QYIssues", data);
             File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}]${data}`);
             out.success("反馈已提交！");
+            func.sendMail({
+                from: '"月月呀" <xiaoyue0782@163.com>',
+                to: ["Ice_rink@qyserver.cc", "qy@qyserver.cc"],
+                subject: "QYServer | 收到反馈",
+                text: `反馈原始信息:\n${data}`
+            })
         } else {
             const fm = mc.newCustomForm()
                 .setTitle("反馈UI")

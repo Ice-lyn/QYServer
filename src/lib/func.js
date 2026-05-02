@@ -419,13 +419,15 @@ export const pitchList = {
 /**
  * 异步发送邮件函数
  * @param {Object} mailData - 邮件数据对象
+ * @param {string} mailData.from - 发件人地址
+ * @param {string|string[]} mailData.to - 收件人地址（支持数组）
+ * @param {string} mailData.subject - 邮件主题
+ * @param {string} [mailData.text] - 纯文本正文
+ * @param {string} [mailData.html] - HTML格式正文
  * @param {Function} [callback] - 发送结果回调函数
- * 
- * 功能说明：
- * - 先验证邮件传输器是否可用
- * - 验证通过后执行邮件发送
- * - 无论成功或失败都会调用callback回调
- * - 默认回调为空函数
+ * @param {Object} callback.result - 发送成功时返回的邮件信息对象
+ * @param {boolean} callback.success - 发送成功时为true，失败时为false
+ * @param {Error} callback.error - 发送失败时的错误对象（仅在失败时存在）
  */
 export async function sendMail(mailData, callback = (() => { })) {
     try {
