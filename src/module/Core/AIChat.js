@@ -49,7 +49,7 @@ const tools = [
 mc.listen("onChat", async (player, msg) => {
     if (msg[0] !== "+"
         && ["ai", "服务", "妈", "操"].some(i => msg.includes(i))
-    ) AIChat(msg, player);
+    ) AIChat(msg, player.realName);
     playerChatList.push(`[${(new Date()).toLocaleString('zh-CN', { hour12: false })}]${player.realName} >> ${msg}`);
     if (playerChatList.length > 100) playerChatList.shift();
 });

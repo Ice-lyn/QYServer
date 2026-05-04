@@ -1,5 +1,5 @@
+import { mailConfig } from "../../../Config/mail.js";
 const playerMailDB = new KVDatabase("./plugins/QYServer/Data/PlayerMail");
-const mailConfig = new JsonConfigFile("./plugins/QYServer/Config/mail.json");
 
 // 数据操作
 const data = {
@@ -12,7 +12,16 @@ const data = {
     },
 
     getAllAnnouncements() {
-        return mailConfig.get("mail") ?? [];
+        const mails = mailConfig || [];
+        return mails.map(mail => ({
+            ...mail,
+            timestamp: mail.time,
+            id: mail.id,
+            annex: {
+                items: mail.items || []
+            },
+            ignoreTime: mail.ignoreTime || false
+        }));
     },
 
     hasRead(xuid, id) {
@@ -52,7 +61,7 @@ function getPlayerJoinTime(pl) {
 }
 
 function giveAnnexItems(pl, ann) {
-    if (!ann.annex?.items) return false;
+    if (!ann.annex?.items || ann.annex.items.length === 0) return false;
     let count = 0;
     for (const snbt of ann.annex.items) {
         try {
@@ -80,13 +89,16 @@ const mailManager = {
         for (const ann of announcements) {
             const expireTime = ann.expireDays ? ann.timestamp + (ann.expireDays * 86400000) : Infinity;
             const isExpired = now > expireTime;
-            const isAfterJoin = ann.timestamp >= joinTime;
+
+            // 如果 IgnoreTime 为 true，则忽略时间检查，所有玩家都能看到
+            const isAfterJoin = ann.ignoreTime ? true : (ann.timestamp >= joinTime);
             const hasRead = data.hasRead(xuid, ann.id);
 
             // 规则：
-            // 1. 必须在玩家加入后发布
-            // 2. 已读的邮件：全部显示（包括过期的）
-            // 3. 未读的邮件：只显示未过期的
+            // 1. 如果 IgnoreTime 为 true，所有玩家都能看到（但受过期和已读状态影响）
+            // 2. IgnoreTime 为 false 时，必须在玩家加入后发布
+            // 3. 已读的邮件：全部显示（包括过期的）
+            // 4. 未读的邮件：只显示未过期的
             if (isAfterJoin && (hasRead || !isExpired)) {
                 available.push(ann);
             }
@@ -105,13 +117,15 @@ const mailManager = {
         let count = 0;
 
         for (const ann of announcements) {
-            // const expireTime = ann.expireDays ? ann.timestamp + (ann.expireDays * 86400000) : Infinity;
-            // const isExpired = now > expireTime;
-            const isAfterJoin = ann.timestamp >= joinTime;
+            const expireTime = ann.expireDays ? ann.timestamp + (ann.expireDays * 86400000) : Infinity;
+            const isExpired = now > expireTime;
+
+            // 如果 IgnoreTime 为 true，则忽略时间检查
+            const isAfterJoin = ann.ignoreTime ? true : (ann.timestamp >= joinTime);
             const hasRead = data.hasRead(xuid, ann.id);
 
-            // 未读 + 未过期 + 在玩家加入后发布
-            if (!hasRead /*&& !isExpired */ && isAfterJoin) {
+            // 未读 + 未过期 + (IgnoreTime为true 或 在玩家加入后发布)
+            if (!hasRead && !isExpired && isAfterJoin) {
                 count++;
             }
         }
@@ -173,6 +187,7 @@ function showContent(pl, index) {
     const date = new Date(ann.timestamp);
     let content = `§l发布时间§r: §7${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}§r\n`;
     if (ann.expireDays) content += `§l有效时间§r: §7${ann.expireDays}天§r\n`;
+    if (ann.ignoreTime) content += `§l§c[全局公告]§r §7不受新人限制§r\n`;
     content += "\n§l------------------------------§r\n\n";
     content += `${ann.content}`;
     fm.setContent(content);

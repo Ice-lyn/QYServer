@@ -560,7 +560,7 @@ mc.listen("onServerStarted", () => {
         if (res.text) {
             const data = `${ori?.player?.realName || ori.name} >> ${res.text}`;
             func.titleLog.warn("QYIssues", data);
-            File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}]${data}`);
+            File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}] ${data}`);
             out.success("反馈已提交！");
             func.sendMail({
                 from: '"月月呀" <xiaoyue0782@163.com>',
@@ -601,21 +601,23 @@ mc.listen("onServerStarted", () => {
 // **** 高权限命令注册 **** //
 
 mc.listen("onServerStarted", () => {
-    const loggerCmd = mc.newCommand("logger", "向控制台输出一段日志", PermType.GameMasters);
-    loggerCmd.mandatory('text', ParamType.RawText);
-    loggerCmd.mandatory('mode', ParamType.Int);
-    loggerCmd.overload(["mode", "text"]);
-    loggerCmd.setCallback((_cmd, _ori, out, res) => {
+    const cmd = mc.newCommand("logger", "向控制台输出一段日志", PermType.GameMasters);
+    cmd.mandatory('text', ParamType.RawText);
+    cmd.mandatory('mode', ParamType.Int);
+    cmd.setCallback((_cmd, _ori, out, res) => {
         const text = func.mcCode2Ansi(res.text);
         logger.setTitle("CmdLog");
-        if (res.mode === 0) logger.info(text);
-        if (res.mode === 1) logger.warn(text);
-        if (res.mode === 2) logger.error(text);
-        if (res.mode === 3) logger.debug(text);
+        switch (res.mode) { 
+            case 0: logger.info(text); break;
+            case 1: logger.warn(text); break;
+            case 2: logger.error(text); break;
+            case 3: logger.debug(text); break;
+        };
         logger.setTitle("Server");
         out.success("向控制台发送信息 >> " + text);
     });
-    loggerCmd.setup();
+    cmd.overload(["mode", "text"]);
+    cmd.setup();
 })
 
 mc.listen("onServerStarted", () => {

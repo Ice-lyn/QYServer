@@ -33,6 +33,7 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
     World: [
         "AfkTestfor.js", // 挂机检测
         "AxolotlDamage.js", // 美西螈攻击
+        "Cdk.js", // 兑换码系统
         "ScoreChanged.js", // 积分榜提示
         "ShowBiome.js", // 群系提示
         "WorldBorder.js" // 世界边境
@@ -40,9 +41,9 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
 }).flatMap(([k, v]) => v.map(i => `./${k}/${i}`));
 
 logger.setTitle("QYComponent");
-logger.warn(`${lib_list.length} 个QYServer附加组件开始加载...`);
-logger.setTitle("Server");
 
+
+logger.warn(`${lib_list.length} 个QYServer附加组件开始加载...`);
 const startTime = Date.now();
 lib_list.forEach(lib => {
     import(lib)
@@ -61,14 +62,7 @@ function checkProgress() {
     loadedCount++;
     if (loadedCount == lib_list.length) {
         const totalTime = ((Date.now() - startTime) / 1000).toFixed(3);
-        logger.setTitle("QYComponent");
         logger.warn(`${loadedCount} 个附加组件在 (${totalTime}) 秒内启动完成`);
-        logger.setTitle("Server");
     }
 }
-
-
-
-
-
-
+logger.setTitle("Server");
