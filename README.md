@@ -55,19 +55,49 @@ QYServer.zip
 │   ├── config.js           # 核心配置：AI、封禁、服务器列表、称号、轮播...
 │   ├── mail.js             # 邮件模板与附件
 │   └── BiomeName.json      # 群系数据
+│
+├── Data/                   # 【持久化数据】运行时产生的玩家数据与系统状态
+│   ├── OldData/            # 旧版数据备份（邮件、玩家时间）
+│   ├── PlayerBind/         # 玩家邮箱绑定（LevelDB 引擎）
+│   ├── PlayerMail/         # 玩家邮件阅读/领取状态（LevelDB 引擎）
+│   ├── PlayerTime/         # 玩家首次加入时间（LevelDB 引擎）
+│   ├── AIMemory.json       # AI 对话上下文记忆
+│   ├── cdk.json            # 兑换码库与使用记录
+│   └── issues.txt          # 玩家反馈问题日志
+│
 ├── src/
 │   ├── index.js            # 【核心主控 + 命令注册】
 │   ├── lib/                # 【核心库】
 │   │   ├── func.js         # 通用工具类（日志、NBT解析、概率判断...）
 │   │   └── events.js       # 自定义事件总线
+│   │
 │   └── module/             # 【功能模块】按领域分隔
-│       ├── load.js         # 模块异步加载管理器
-│       ├── Core/           # 核心系统：AI、邮箱、账户迁移
-│       ├── Game/           # 玩法系统：假箱子UI、皮肤特效、玩偶...
-│       └── World/          # 世界系统：挂机检测、世界边界、兑换码...
-├── manifest.json           # 插件声明
-└── package.json
-
+│       ├── Core/           # 核心系统
+│       │   ├── AIChat.js       # AI聊天 - 服务器娘"兮兮"
+│       │   ├── Mail.js         # 邮件系统 - 全服公告推送
+│       │   ├── UserBind.js     # 邮箱绑定 - 账户安全保障
+│       │   ├── UserMigrate.js  # 账户迁移 - XUID变更补救
+│       │   └── JoinTime.js     # 加入时间 - 玩家历史查询
+│       │
+│       ├── Game/           # 玩法系统
+│       │   ├── BoxUI.js        # 假箱子UI - 协议层交互界面
+│       │   ├── CloudLift.js    # 云朵电梯 - 立体交通系统
+│       │   ├── Doll.js         # 玩偶系统 - 互动收藏品
+│       │   ├── OPmgr.js        # OP管理 - 管理员工具
+│       │   └── SkinEffect.js   # 皮肤特效 - 装备附加效果
+│       │
+│       ├── World/          # 世界系统
+│       │   ├── AfkTestfor.js   # 挂机检测 - 防刷资源
+│       │   ├── AxolotlDamage.js # 美西螈保护 - 宠物设置
+│       │   ├── Cdk.js          # 兑换码系统 - 运营工具
+│       │   ├── ScoreChanged.js # 积分提示 - 实时反馈
+│       │   ├── ShowBiome.js    # 群系提示 - 沉浸体验
+│       │   └── WorldBorder.js  # 世界边界 - 安全围栏
+│       │
+│       └── load.js         # 模块异步加载管理器
+│
+├── manifest.json           # 插件元信息
+└── package.json            # 插件Node依赖
 ```
 
 ### 1. 自研事件总线 (`src/lib/events.js`)
@@ -96,6 +126,51 @@ QYServer.zip
 5.  **清理**：玩家关闭界面时，移除假方块并清除临时数据。
 
 整个流程全部通过二进制流 (`BinaryStream`) 在协议层完成，完全不依赖游戏内实体，性能极高。
+
+### 5. 数据持久化架构 (Data/)
+
+本项目的持久化数据分为两种存储策略：
+
+#### A. JSON 配置文件（JsonConfigFile）
+用于需要人工编辑或数据结构简单的场景。LeviLamina 提供了 JsonConfigFile API，读写性能优于纯文件操作。使用此方式的有：
+
+*   Data/AIMemory.json —— AI 对话的上下文记忆数组
+*   Data/cdk.json —— 兑换码库与使用记录
+
+#### B. 键值对数据库（KVDatabase）
+用于海量玩家数据的场景，底层使用 LevelDB 存储引擎，支持高性能读写。使用此方式的有：
+
+*   Data/PlayerTime/ —— 玩家首次加入时间（键=玩家名，值=时间戳）
+*   Data/PlayerMail/ —— 邮件已读/已领取状态（键=XUID，值=JSON对象）
+*   Data/PlayerBind/ —— 邮箱绑定与验证码缓存（键=XUID，值=JSON对象）
+
+LevelDB 的目录结构包含 .ldb 数据文件、MANIFEST 元数据、CURRENT 版本指针、以及 LOG/LOG.old 操作日志  
+这些文件均由 LeviLamina 的 KVDatabase API 自动管理，插件只需关心键值的读写  
+LevelDB 的日志和清单文件会在服务端关闭时自动回收，确保数据一致性  
+所有数据库实例在 ll.onUnload() 中统一执行 close() 操作，防止数据损坏  
+
+### 📦 模块功能速览
+
+加载器 `load.js` 将所有模块分为三个领域。下面每个模块的功能一目了然：
+
+| 领域 | 模块 | 主要职责 |
+| :--- | :--- | :--- |
+| **Core** | AIChat.js | 接入DeepSeek API，带工具调用的智能NPC；可检索知识库与聊天记录。记忆持久化至 `Data/AIMemory.json` |
+| | Mail.js | 全服公告系统，支持附件领取与过期逻辑；JSON配置驱动。状态持久化至 `Data/PlayerMail/`（LevelDB） |
+| | UserBind.js | 邮箱+验证码绑定流程；二次验证安全保障。数据持久化至 `Data/PlayerBind/`（LevelDB） |
+| | UserMigrate.js | 双邮箱验证的跨XUID自助迁移；同步领地数据到新账户 |
+| | JoinTime.js | 记录并查询玩家首次加入时间；支持模糊搜索历史玩家。数据持久化至 `Data/PlayerTime/`（LevelDB） |
+| **Game** | BoxUI.js | 协议层伪造容器UI；支持自定义点击回调的交互界面 |
+| | CloudLift.js | 识别特殊方块实现的立体电梯；支持上下20层快速传送 |
+| | Doll.js | 可购买的收藏玩偶系统；支持多种互动效果与商店集成 |
+| | OPmgr.js | 管理员专用工具集；OP剑快捷删实体、切换模式 |
+| | SkinEffect.js | 皮肤装备触发药水效果的检测系统；支持动态增减效果 |
+| **World** | AfkTestfor.js | 基于坐标+视角变化的挂机检测；自动标记并触发挂机动作 |
+| | AxolotlDamage.js | 美西螈攻击鱼类保护开关；潜行交互设置 |
+| | Cdk.js | 兑换码生成/使用/限量管理；支持命令+物品混合发放。数据持久化至 `Data/cdk.json` |
+| | ScoreChanged.js | 金币/蜡烛数值变动实时提示；正负增量可视化 |
+| | ShowBiome.js | 定时检测群系变化并显示中文名称；3秒刷新一次 |
+| | WorldBorder.js | 基于坐标的边界围栏系统；越界自动回弹安全位置 |
 
 ***
 
