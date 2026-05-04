@@ -8,8 +8,7 @@ const cdkData = new JsonConfigFile("./plugins/QYServer/Data/cdk.json");
         const cdk = res.cdk;
         const player = ori.player;
 
-        // cdk --addcdk=10
-        if (cdk.split("=")[0] === "--addcdk") return addCdk(cdk?.split("=")?.[1], 7);
+        if (cdk.split(" ")[0] === "addcdk") return addCdk(cdk.split(" ")[1]);
         if (func.isNull(player)) return out.error("找不到，怎么找也找不到！");
         if (!func.isNull(cdk)) return useCDK(player, cdk);
 
@@ -71,16 +70,17 @@ function useCDK(player, cdk) {
 }
 
 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-function addCdk(number, length = 7) {
+function addCdk(number, length = 10) {
     for (let i = 0; i < number; i++) {
         let code = '';
         for (let i = 0; i < length; i++) code += chars.charAt(
             Math.floor(Math.random() * chars.length)
         );
         cdkData.set(code, {
-            use: null,
-            cmd: [],
+            use: 0,
+            cmd: ["function tag/tag5"],
             items: []
         });
     }
+    logger.info(`成功添加 ${number} 个兑换码！`);
 }
