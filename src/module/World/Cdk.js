@@ -9,7 +9,7 @@ const cdkData = new JsonConfigFile("./plugins/QYServer/Data/cdk.json");
         const player = ori.player;
 
         // cdk --addcdk=10
-        if (cdk === "--addcdk") return addCdk(cdk?.split("=")?.[1], 7);
+        if (cdk.split("=")[0] === "--addcdk") return addCdk(cdk?.split("=")?.[1], 7);
         if (func.isNull(player)) return out.error("找不到，怎么找也找不到！");
         if (!func.isNull(cdk)) return useCDK(player, cdk);
 
@@ -71,7 +71,7 @@ function useCDK(player, cdk) {
 }
 
 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-function addCdk(number, cdkLength = 7) {
+function addCdk(number, length = 7) {
     for (let i = 0; i < number; i++) {
         let code = '';
         for (let i = 0; i < length; i++) code += chars.charAt(
