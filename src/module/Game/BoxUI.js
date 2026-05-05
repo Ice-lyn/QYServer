@@ -12,18 +12,11 @@ mc.listen("onLeft", (pl) => {
     openBoxIds.delete(pl.xuid);
 })
 
-{
-    const cmd = mc.newCommand('boxui', '打开一个箱子UI', PermType.Any);
-    cmd.optional("name", ParamType.RawText);
-    cmd.setCallback((_cmd, ori, out, res) => {
-        if (!ori.player) return out.error("script::Exception: player is not defined");
-        if (AllContainerData.has(res.name)) showFakeChest(ori.player, res.name)
-        else out.error(`script::Exception: ${res.name} is not defined`);
-    });
-    cmd.overload(["name"]);
-    cmd.setup();
-}
-
+func.addOnmodeCmd("boxui", (player, cmd) => {
+    if (cmd[0] !== "boxui-0000-0000-10010"
+        && AllContainerData.has(cmd[1])
+    ) showFakeChest(player, cmd[1])
+});
 
 addContainerData("elytraUI", {
     boxId: -30,
