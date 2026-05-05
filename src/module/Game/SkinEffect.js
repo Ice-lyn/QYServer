@@ -1,4 +1,26 @@
-import { config } from "../../../Config/config.js";
+// 皮肤特效配置
+const SkinEffect = new Map([
+    ["1", { // 小月
+        add: [[1, 1]],
+        remove: [1]
+    }],
+    ["2", { // 爱丽丝
+        add: [[29, 10], [3, 2], [10, 2]],
+        remove: [29, 3, 10]
+    }],
+    ["3", { // 猫猫
+        add: [[1, 2], [16, 1]],
+        remove: [1, 16]
+    }],
+    ["5", { // 莉莉丝
+        add: [[5, 5], [3, 5], [16, 5]],
+        remove: [5, 3, 16]
+    }],
+    ["6", { // 怕怕
+        add: [[1, 2]],
+        remove: [1]
+    }]
+])
 
 // 玩家移除效果事件
 mc.listen("onRespawn", (pl) => {
@@ -30,7 +52,7 @@ mc.listen("onSetArmor", (pl, slotNum, item) => {
  * @param {number} mode - 设置模式 (0:移除，1:添加)
  */
 function setSkinEffect(pl, skinNum, mode) {
-    const effect = config.SkinEffect.get(skinNum) || null;
+    const effect = SkinEffect.get(skinNum) || null;
     skinNum = Number(skinNum);
     if (mode) {
         switch (skinNum) {
