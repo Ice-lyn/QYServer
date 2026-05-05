@@ -315,19 +315,25 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
 
 // 关键词匹配知识库
 function AIQuery(query, data, maxResults = 10) {
-    const lowerQuery = query.toLowerCase();
-    const results = [];
+    const keywords = query.trim().toLowerCase().split(/\s+/);
+    if (keywords[0] === "all" && keywords.length === 1) return data;
+    if (keywords.length === 1 && keywords[0] === "") return ["请输入有效的搜索关键词"];
 
-    if (lowerQuery === "all") return data;
-    for (const doc of data) {
-        if (doc.toLowerCase().includes(lowerQuery)) {
-            results.push(doc);
-        }
+    // 使用 Set 去重 + 过滤 + 排序
+    const results = data
+        .filter(doc => keywords.some(kw => doc.toLowerCase().includes(kw)))
+        .sort((a, b) => {
+            // 按匹配关键词数量排序（包含更多关键词的排前面）
+            const aScore = keywords.filter(kw => a.toLowerCase().includes(kw)).length;
+            const bScore = keywords.filter(kw => b.toLowerCase().includes(kw)).length;
+            return bScore - aScore;
+        });
+
+    func.titleLog.warn("AIQuery", `${query} -> 匹配到 ${results.length} 条结果`);
+    func.titleLog.warn("AIQuery", JSON.stringify((results ?? []), null, 4));
+
+    if (results.length === 0) {
+        return ["未找到相关内容，请尝试精简关键词并重新搜索"];
     }
-
-    func.titleLog.warn("AIQuery", `${query} -> ${JSON.stringify(results ?? ["未找到相关内容，请尝试缩短关键词并重新搜索"])}`);
-
-    if (results.length === 0) return ["未找到相关内容，请尝试缩短关键词并重新搜索"];
-    if (maxResults !== -1) return results.slice(0, maxResults);
-    return results
+    return maxResults === -1 ? results : results.slice(0, maxResults);
 }
