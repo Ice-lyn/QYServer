@@ -187,7 +187,7 @@ function showContent(pl, index) {
     const date = new Date(ann.timestamp);
     let content = `§l发布时间§r: §7${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}§r\n`;
     if (ann.expireDays) content += `§l有效时间§r: §7${ann.expireDays}天§r\n`;
-    if (ann.ignoreTime) content += `§l§c[全局公告]§r §7不受新人限制§r\n`;
+    // if (ann.ignoreTime) content += `§l§c[全局公告]§r §7不受新人限制§r\n`;
     content += "\n§l------------------------------§r\n\n";
     content += `${ann.content}`;
     fm.setContent(content);

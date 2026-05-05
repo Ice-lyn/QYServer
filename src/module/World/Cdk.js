@@ -2,13 +2,12 @@ import * as func from "../../lib/func.js";
 const cdkData = new JsonConfigFile("./plugins/QYServer/Data/cdk.json");
 
 {// 注册指令
-    const cmd = mc.newCommand("cdks", "§a兑换码系统", PermType.Any);
+    const cmd = mc.newCommand("cdk", "§a兑换码系统", PermType.Any);
     cmd.optional("cdk", ParamType.RawText);
     cmd.setCallback((_cmd, ori, out, res) => {
         const cdk = res.cdk;
         const player = ori.player;
 
-        if (cdk.split(" ")[0] === "addcdk") return addCdk(cdk.split(" ")[1]);
         if (func.isNull(player)) return out.error("找不到，怎么找也找不到！");
         if (!func.isNull(cdk)) return useCDK(player, cdk);
 
@@ -19,7 +18,7 @@ const cdkData = new JsonConfigFile("./plugins/QYServer/Data/cdk.json");
 
         player.sendForm(fm, (pl, res) => {
             if (func.isNull(res)) return;
-            useCDK(player, res[0]);
+            useCDK(player, res[1]);
         });
     });
     cmd.overload(["cdk"]);
@@ -27,8 +26,9 @@ const cdkData = new JsonConfigFile("./plugins/QYServer/Data/cdk.json");
 }
 
 function useCDK(player, cdk) {
-    if (!cdkData.has(cdk)) return player.tell("该CDK不存在！");
-    let data = cdkData.get(cdk);
+    let data = cdkData.get(cdk) ?? null;
+    if (!data) return player.tell("该CDK不存在！");
+
     data = {
         use: data.use ?? 0, // 可以使用多少次
         cmd: data.cmd ?? [], // 命令列表
@@ -36,24 +36,26 @@ function useCDK(player, cdk) {
         usePlayers: data.usePlayers ?? [] // 已使用玩家列表
     };
 
-    if (data.num === -1) { // 无限次
-        if (data.usePlayers.includes(player.name)) return player.tell("你已经兑换过了！");
+    if (data.usePlayers.includes(player.name)) return player.tell("你已经兑换过了！");
+
+    log(data)
+
+    if (data.use === -1) { // 无限次
         giveCdkPacks(player, data);
-        data.usePlayers = data.usePlayers.push(player.name);
+        data.usePlayers.push(player.name);
         cdkData.set(cdk, data);
 
-    } else if (data.num === 0) { // 单次
+    } else if (data.use === 0) { // 单次
         giveCdkPacks(player, data);
         cdkData.delete(cdk);
 
-    } else if (data.num >= 1) { // 限量
-        if (data.usePlayers.includes(player.name)) return player.tell("你已经兑换过了！");
+    } else if (data.use >= 1) { // 限量
         giveCdkPacks(player, data);
 
-        data.num = data.num - 1;
-        data.usePlayers = data.usePlayers.push(player.name);
+        data.use = data.use - 1;
+        data.usePlayers.push(player.name);
 
-        if (data.num === 0) cdkData.delete(cdk);
+        if (data.use === 0) cdkData.delete(cdk);
         else cdkData.set(cdk, data);
     }
 
