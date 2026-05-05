@@ -13,9 +13,9 @@ mc.listen("onLeft", (pl) => {
 })
 
 func.addOnmodeCmd("boxui", (player, cmd) => {
-    if (cmd[0] !== "boxui-0000-0000-10010"
+    if (cmd[0] === "boxui-0000-0000-10010"
         && AllContainerData.has(cmd[1])
-    ) showFakeChest(player, cmd[1])
+    ) showFakeChest(player, cmd[1]);
 });
 
 addContainerData("elytraUI", {
