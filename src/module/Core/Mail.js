@@ -1,6 +1,17 @@
 import { mailConfig } from "../../../Config/mail.js";
 const playerMailDB = new KVDatabase("./plugins/QYServer/Data/PlayerMail");
 
+
+{ // 命令
+    const cmd = mc.newCommand('mail', '§a查看邮件', PermType.Any);
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return;
+        mailfm(ori.player);
+    });
+    cmd.overload([]);
+    cmd.setup();
+}
+
 // 数据操作
 const data = {
     getPlayer(xuid) {
@@ -133,18 +144,6 @@ const mailManager = {
     }
 };
 
-// 命令
-{
-    const cmd = mc.newCommand('mail', '§a查看邮件', PermType.Any);
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return;
-        mailfm(ori.player);
-    });
-    cmd.overload([]);
-    cmd.setup();
-}
-
-
 // 界面
 function mailfm(pl) {
     const xuid = pl.xuid;
@@ -187,7 +186,6 @@ function showContent(pl, index) {
     const date = new Date(ann.timestamp);
     let content = `§l发布时间§r: §7${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}§r\n`;
     if (ann.expireDays) content += `§l有效时间§r: §7${ann.expireDays}天§r\n`;
-    // if (ann.ignoreTime) content += `§l§c[全局公告]§r §7不受新人限制§r\n`;
     content += "\n§l------------------------------§r\n\n";
     content += `${ann.content}`;
     fm.setContent(content);
@@ -224,11 +222,9 @@ mc.listen("onJoin", (pl) => {
         const unreadCount = announcements.filter(ann => !data.hasRead(xuid, ann.id)).length;
         if (unreadCount > 0) {
             mc.runcmdEx(`execute as "${pl.realName}" run scriptevent qys:command toast 2 "§e邮件通知§r\n你有 ${unreadCount} 条未读邮件！\n可使用 /mail 指令查看邮件" textures/ui/Envelope`);
-            pl.tell(`§l§e[Mail] §r你有 ${unreadCount} 条未读邮件，输入 /mail 查看`);
+            pl.tell(`§l§e[Mail]§r 你有 ${unreadCount} 条未读邮件，输入 /mail 查看`);
         }
     }
 });
 
-ll.onUnload(() => {
-    playerMailDB.close();
-})
+ll.onUnload(() => playerMailDB.close());
