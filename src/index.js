@@ -96,7 +96,17 @@ mc.listen("onLeft", (player) => {
 
 // 玩家破坏方块完成
 mc.listen("onDestroyBlock", (player, block) => {
-    if (block.type === "minecraft:budding_amethyst" && func.probability(50)) mc.spawnItem(mc.newItem("minecraft:budding_amethyst", 1), block.pos);
+    if (block.type === "minecraft:budding_amethyst"
+        && func.probability(50)
+    ) mc.spawnItem(mc.newItem("minecraft:budding_amethyst", 1), block.pos);
+
+    if (block.hasBlockEntity()
+        && (block.type === "minecraft:trial_spawner"
+            || block.type === "minecraft:mob_spawner")
+    ) {
+        const eggType = block.getBlockEntity()?.getNbt()?.getData("EntityIdentifier");
+        if (eggType) mc.spawnItem(mc.newItem(`${eggType}_spawn_egg`, 1), block.pos);
+    }
 })
 
 // 生物骑乘
@@ -254,8 +264,9 @@ mc.listen("onPlaceBlock", (player, block) => {
 // 玩家对方块使用物品
 mc.listen("onUseItemOn", (player, item, block, side, pos) => {
     if (item.type.match("spawn_egg") && player.gameMode != 1) {
-        if (block.type === "minecraft:trial_spawner") return false
-        if (block.type === "minecraft:mob_spawner") return false
+        if (block.type === "minecraft:trial_spawner"
+            || block.type === "minecraft:mob_spawner"
+        ) return false
     }
 
     if (item.type === "minecraft:camera" && side === 1) {
@@ -591,8 +602,8 @@ mc.listen("onServerStarted", () => {
     cmd.mandatory('text', ParamType.RawText);
     cmd.setCallback((_cmd, ori, out, res) => {
         if (res.text === "-outData") return out.success(`<Type：${ori.type}|Name：${ori.name}|Pos: ${ori.pos}>`);
-        if (!ori.player) return out.error("玩家对象不存在");
-        onmode(ori.player, res.text) ?? out.error("命令对象未注册或没有执行权限");
+        if (ori.player) onmode(ori.player, res.text) ?? out.error("命令对象未注册或没有执行权限");
+        else onmodeConsole(ori, out, res.text);
     });
     cmd.overload(["text"]);
     cmd.setup();
@@ -607,7 +618,7 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_cmd, _ori, out, res) => {
         const text = func.mcCode2Ansi(res.text);
         logger.setTitle("CmdLog");
-        switch (res.mode) { 
+        switch (res.mode) {
             case 0: logger.info(text); break;
             case 1: logger.warn(text); break;
             case 2: logger.error(text); break;
@@ -865,6 +876,66 @@ const playerCmd = {// 玩家可以用
     }
 };
 
+const elytraItemList = {
+    textures: [
+        "textures/items/dye_powder_black_new.png",
+        "textures/items/dye_powder_blue_new.png",
+        "textures/items/dye_powder_light_blue.png",
+        "textures/items/dye_powder_green.png",
+        "textures/items/dye_powder_lime.png",
+        "textures/items/dye_powder_yellow.png",
+        "textures/items/dye_powder_gray.png",
+        "textures/items/dye_powder_white_new.png",
+        "textures/items/dye_powder_silver.png",
+        "textures/items/dye_powder_magenta.png",
+        "textures/items/dye_powder_purple.png",
+        "textures/items/dye_powder_pink.png",
+        "textures/items/dye_powder_orange.png",
+        "textures/items/dye_powder_brown_new.png",
+        "textures/items/dye_powder_cyan.png",
+        "textures/items/dye_powder_red.png"
+    ],
+    text: [
+        "§l§0黑色鞘翅", "§l§9蓝色鞘翅",
+        "§l§b淡蓝色鞘翅", "§l§2绿色鞘翅",
+        "§l§a黄绿色鞘翅", "§l§e黄色鞘翅",
+        "§l§7灰色鞘翅", "§l§f白色鞘翅",
+        "§l§7淡灰色鞘翅", "§l§d品红色鞘翅",
+        "§l§5紫色鞘翅", "§l§d粉红色鞘翅",
+        "§l§6橙色鞘翅", "§l§6棕色鞘翅",
+        "§l§b青色鞘翅", "§l§c红色鞘翅"
+    ]
+};
+
+const keyCmd = { // 输入密钥可以用
+    elytraShop: (player, cmd) => {
+        if (cmd[1] !== "elytra-shop-0000-10496") return;
+        player.sendSimpleForm(
+            "§l§b鞘翅商店", "购买一个你喜欢的颜色的鞘翅吧！\n§b价格：600蜡烛",
+            elytraItemList.text, elytraItemList.textures,
+            (player, id) => {
+                if (func.isNull(id)) return;
+                const elytraData = player.getAllTags()
+                    .filter(tag => tag.startsWith("qys_data:elytra:"))
+                    .reduce((acc, tag) => [...acc, ...JSON.parse((tag.length > 16 ? tag.slice(16) : "[]"))], []);
+                id = id + 1
+
+                if (elytraData.indexOf(id) !== -1) {
+                    player.tell("§a你已经拥有这个装扮了！");
+                    return keyCmd.elytraShop(player, cmd);
+
+                } else {
+                    if (player.getScore("蜡烛") <= 600) return player.tell("§c你没有足够的蜡烛！");
+                    func.enRuncmd(player, `scriptevent qys:cmd tagData add elytra [${id}]`);
+                    func.enRuncmd(player, `playsound random.orb @s`);
+                    player.removeScore("蜡烛", 600);
+                    return keyCmd.elytraShop(player, cmd);
+                }
+            }
+        )
+    }
+}
+
 const opCmd = { // OP 可以用
     tpch: (player, command) => player.runcmd(`tp @s ${command[1] * 16 + 8} ~ ${command[2] * 16 + 8}`),
     getNbt: (player) => File.writeTo("./plugins/QYServer/nbt.txt", JSON.stringify(player.getHand().getNbt().toSNBT())),
@@ -905,7 +976,17 @@ function onmode(player, cmd) {
     return (() => {
         if (eventReturn) return eventReturn
         else if (playerCmd[command[0]]) return (playerCmd[command[0]](player, command) ?? true);
+        else if (keyCmd[command[0]]) return (keyCmd[command[0]](player, command) ?? true);
         else if ((player.isOP() || player.hasTag("op")) && opCmd[command[0]]) return (opCmd[command[0]](player, command, pngMap) ?? true);
         else return null;
     })();
 }
+
+function onmodeConsole(ori, out, cmd) {
+    cmd = func.parseArgs(cmd);
+
+    events.emitFirst("onModeCallbackConsole", cmd);
+}
+
+
+
