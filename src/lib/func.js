@@ -343,6 +343,92 @@ export function timeoutJoinServer(player, ip, port, timeout, err = (pl) => pl.te
 }
 
 /**
+ * 异步发送邮件函数
+ * @param {Object} mailData - 邮件数据对象
+ * @param {string} mailData.from - 发件人地址
+ * @param {string|string[]} mailData.to - 收件人地址（支持数组）
+ * @param {string} mailData.subject - 邮件主题
+ * @param {string} [mailData.text] - 纯文本正文
+ * @param {string} [mailData.html] - HTML格式正文
+ * @param {Function} [callback] - 发送结果回调函数
+ * @param {Object} callback.result - 发送成功时返回的邮件信息对象
+ * @param {boolean} callback.success - 发送成功时为true，失败时为false
+ * @param {Error} callback.error - 发送失败时的错误对象（仅在失败时存在）
+ */
+export async function sendMail(mailData, callback = (() => { })) {
+    try {
+        await mailObj.verify();
+        const info = await mailObj.sendMail(mailData);
+        callback(info, true);
+    } catch (error) {
+        callback(error, false);
+    }
+}
+
+/**
+ * 玩家标签数据存储
+ * @param {Entity} entity - 实体对象
+ * @param {string} mode - 操作模式: add, remove, set, delete, get
+ * @param {string} name - 数据键名
+ * @param {any} data - 数据（add/remove时为数组或逗号分隔字符串，set时为JSON字符串）
+ * @returns {any} - get模式返回数据，其他模式返回是否成功
+ */
+export function tagData(entity, mode, name, data = null) {
+    const prefix = `qys_data:${name}:`;
+    const allTags = entity.getAllTags();
+    let oldTag = null, oldStr = null;
+
+    // 查找现有tag
+    for (const tag of allTags) {
+        if (tag.startsWith(prefix)) {
+            oldTag = tag;
+            oldStr = tag.slice(prefix.length);
+            break;
+        }
+    }
+
+    // get
+    if (mode === "get") return oldStr ? JSON.parse(oldStr) : null;
+
+    // delete
+    if (mode === "delete") {
+        if (oldTag) entity.removeTag(oldTag);
+        return;
+    }
+
+    // 辅助：解析数据
+    const parseData = (str) => {
+        try { return JSON.parse(str); } catch { return []; }
+    };
+
+    // add
+    if (mode === "add") {
+        const old = oldStr ? parseData(oldStr) : [];
+        const items = Array.isArray(data) ? data : String(data).split(',').map(s => s.trim()).filter(Boolean);
+        const merged = [...new Set([...old, ...items])];
+        if (oldTag) entity.removeTag(oldTag);
+        if (merged.length) entity.addTag(`${prefix}${JSON.stringify(merged)}`);
+        return;
+    }
+
+    // remove
+    if (mode === "remove" && oldStr) {
+        const old = parseData(oldStr);
+        const removes = new Set(Array.isArray(data) ? data.map(String) : String(data).split(',').map(s => s.trim().toString()));
+        const filtered = old.filter(item => !removes.has(String(item)));
+        entity.removeTag(oldTag);
+        if (filtered.length) entity.addTag(`${prefix}${JSON.stringify(filtered)}`);
+        return;
+    }
+
+    // set / reset
+    if (mode === "set" || mode === "reset") {
+        if (oldTag) entity.removeTag(oldTag);
+        if (data) entity.addTag(`${prefix}${typeof data === 'string' ? data : JSON.stringify(data)}`);
+    }
+}
+
+/**
  * 音符音高映射表（用于乐器类插件/模组）
  * @constant {Object} pitchList
  * @property {number[]} 15 - 15键音高映射数组（F#3 ~ F5，共24个半音）
@@ -414,27 +500,4 @@ export const pitchList = {
         1.887749, // F5
         2.0       // F#5
     ]
-}
-
-/**
- * 异步发送邮件函数
- * @param {Object} mailData - 邮件数据对象
- * @param {string} mailData.from - 发件人地址
- * @param {string|string[]} mailData.to - 收件人地址（支持数组）
- * @param {string} mailData.subject - 邮件主题
- * @param {string} [mailData.text] - 纯文本正文
- * @param {string} [mailData.html] - HTML格式正文
- * @param {Function} [callback] - 发送结果回调函数
- * @param {Object} callback.result - 发送成功时返回的邮件信息对象
- * @param {boolean} callback.success - 发送成功时为true，失败时为false
- * @param {Error} callback.error - 发送失败时的错误对象（仅在失败时存在）
- */
-export async function sendMail(mailData, callback = (() => { })) {
-    try {
-        await mailObj.verify();
-        const info = await mailObj.sendMail(mailData);
-        callback(info, true);
-    } catch (error) {
-        callback(error, false);
-    }
 }

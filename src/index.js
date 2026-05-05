@@ -1,5 +1,6 @@
 // import dts
 /// <reference path="/root/VSCode/Library/ImportAll.d.ts"/>
+
 import { Recipes } from '../../GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js';
 import { PAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS.js';
 import * as il from "../../iListenAttentively-LseExport/lib/iListenAttentively.js";
@@ -311,8 +312,13 @@ mc.listen("onRespawn", (player) => {
 });
 
 // 玩家交互实体
-mc.listen("onPlayerInteractEntity", (player, entity) => {
+mc.listen("onPlayerInteractEntity", async (player, entity) => {
     if (player.hasTag("qys:touch")) func.enRuncmd(entity, "function function/pat");
+
+    if (entity.type === "qys:message") {
+        entityMessageUI(player, entity);
+        return;
+    }
 
     if (entity.type.includes("qys:firework_") && !entity.hasTag("qys:firework_open")) {
         if (player.getHand().type !== "minecraft:flint_and_steel") return player.tell("需要用打火机点燃这个烟花!", 5);
@@ -320,6 +326,7 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
         entity.addEffect(24, 114514, 20, false);
         func.enRuncmd(entity, "scoreboard players random @s fireworks_time 20 30");
         func.enRuncmd(entity, "playsound custom.firework_front @a[r=13] ~~~");
+        return;
     }
 })
 
@@ -678,6 +685,27 @@ function firework(player) {
     })
 }
 
+// 打开实体评论区
+function entityMessageUI(player, entity) {
+    const msgList = func.tagData(entity, "get", "messages") || ["§7这里很安静...\n快来留下你的第1句话吧~"];
+    const fm = mc.newCustomForm()
+        .setTitle("留言")
+        .addLabel(msgList.join("\n"))
+        .addDivider()
+        .addInput("发送一段留言", "在这里写下你想留言的话吧~");
+
+    player.sendForm(fm, (player, data) => {
+        log(data); // debug
+        if (func.isNull(data)) return player.tell("表单已放弃");
+
+        func.tagData(
+            entity, "add", "messages",
+            `[${func.getChatTag(player)}]${player.realName} >> ${data[2]}`
+        );
+        entityMessageUI(player, entity);
+    });
+}
+
 // 个人信息显示
 function playerInfo(player) {
     if (!player) return "找不到玩家 >_<";
@@ -987,6 +1015,3 @@ function onmodeConsole(ori, out, cmd) {
 
     events.emitFirst("onModeCallbackConsole", cmd);
 }
-
-
-
