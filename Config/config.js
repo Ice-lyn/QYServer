@@ -22,6 +22,45 @@ export const config = {
         }
     },
 
+    // 其他类型服列表
+    serverList: [
+        { name: "§bJava 互通服", ip: "qyjavabe.s.odn.cc", port: 19132, ui: "textures/ui/controller_glyph_color", version: [844, 859, 860, 898] },
+        { name: "§a测试服", ip: "xxx.xxx.xxx.xxx", port: 34684, ui: "textures/ui/World", version: [766, 776, 786, 800, 818, 819, 827, 844] },
+        { name: "§6后室服", ip: "xxx.xxx.xxx.xxx", port: 53563, ui: "textures/ui/World", version: [766, 776, 786, 800, 818, 819, 827, 844] },
+        { name: "§9创造服", ip: "xxx.xxx.xxx.xxx", port: 33221, ui: "textures/ui/World", version: [766, 776, 786, 800, 818, 819, 827, 844] }
+    ],
+
+    // 线路节点列表
+    nodeList: [
+        { name: "宁波4电信", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" },
+        { name: "江苏三线", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" },
+        { name: "香港", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" },
+        { name: "美国", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" }
+    ],
+
+    // 云朵电梯
+    sky_block_type: "qys:sky_block",
+    sky_max_floor: 20,
+
+    // 世界边界设置
+    world_limits: {
+        minX: -160000,
+        maxX: 160000,
+        minZ: -150000,
+        maxZ: 150000
+    },
+
+    // 个人设置
+    meSetList: [
+        // { tag: "noAchievementText", name: "广播成就提示" },
+        { tag: "qys:no_sweep", name: "横扫之刃" },
+        { tag: "qys:on_ShowBiome", name: "群系提示" },
+        { tag: "qys:no_word", name: "每日一言" },
+        { tag: "qys:no_sitdown", name: "坐上楼梯" },
+        { tag: "qys:no_flyRollOver", name: "鞘翅翻滚" },
+        { tag: "qys:no_harvest", name: "自动补种" },
+    ],
+
     AIChat: { // AI相关
         name: "deepseek-v4-flash",
         key: "sk-1d3dc0f5c5a74b61bda1385342ac7087",
@@ -140,47 +179,6 @@ export const config = {
             "/give"
         ])
     },
-
-    // 其他类型服列表
-    serverList: [
-        { name: "§bJava 互通服", ip: "qyjavabe.s.odn.cc", port: 19132, ui: "textures/ui/controller_glyph_color", version: [844, 859, 860, 898] },
-        { name: "§a测试服", ip: "xxx.xxx.xxx.xxx", port: 34684, ui: "textures/ui/World", version: [766, 776, 786, 800, 818, 819, 827, 844] },
-        { name: "§6后室服", ip: "xxx.xxx.xxx.xxx", port: 53563, ui: "textures/ui/World", version: [766, 776, 786, 800, 818, 819, 827, 844] },
-        { name: "§9创造服", ip: "xxx.xxx.xxx.xxx", port: 33221, ui: "textures/ui/World", version: [766, 776, 786, 800, 818, 819, 827, 844] }
-    ],
-
-    // 线路节点列表
-    nodeList: [
-        { name: "宁波4电信", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" },
-        { name: "江苏三线", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" },
-        { name: "香港", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" },
-        { name: "美国", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" }
-    ],
-
-    // 云朵电梯
-    sky_block_type: "qys:sky_block",
-    sky_max_floor: 20,
-
-    // 世界边界设置
-    world_limits: {
-        minX: -160000,
-        maxX: 160000,
-        minZ: -150000,
-        maxZ: 150000
-    },
-
-    // 个人设置
-    meSetList: [
-        // { tag: "noAchievementText", name: "广播成就提示" },
-        { tag: "qys:no_sweep", name: "横扫之刃" },
-        { tag: "qys:on_ShowBiome", name: "群系提示" },
-        { tag: "qys:no_word", name: "每日一言" },
-        { tag: "qys:no_sitdown", name: "坐上楼梯" },
-        { tag: "qys:no_flyRollOver", name: "鞘翅翻滚" },
-        { tag: "qys:no_harvest", name: "自动补种" },
-    ],
-
-    // ==== 不算是配置，算是数据存储 ==== //
 
     // 轮播消息配置
     wordtime: 5,
