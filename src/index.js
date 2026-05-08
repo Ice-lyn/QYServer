@@ -914,22 +914,22 @@ const playerCmd = {// 玩家可以用
 
 const elytraItemList = {
     textures: [
-        "textures/items/dye_powder_black_new.png",
-        "textures/items/dye_powder_blue_new.png",
-        "textures/items/dye_powder_light_blue.png",
-        "textures/items/dye_powder_green.png",
-        "textures/items/dye_powder_lime.png",
-        "textures/items/dye_powder_yellow.png",
-        "textures/items/dye_powder_gray.png",
-        "textures/items/dye_powder_white_new.png",
-        "textures/items/dye_powder_silver.png",
-        "textures/items/dye_powder_magenta.png",
-        "textures/items/dye_powder_purple.png",
-        "textures/items/dye_powder_pink.png",
-        "textures/items/dye_powder_orange.png",
-        "textures/items/dye_powder_brown_new.png",
-        "textures/items/dye_powder_cyan.png",
-        "textures/items/dye_powder_red.png"
+        "textures/items/dye_powder_black_new",
+        "textures/items/dye_powder_blue_new",
+        "textures/items/dye_powder_light_blue",
+        "textures/items/dye_powder_green",
+        "textures/items/dye_powder_lime",
+        "textures/items/dye_powder_yellow",
+        "textures/items/dye_powder_gray",
+        "textures/items/dye_powder_white_new",
+        "textures/items/dye_powder_silver",
+        "textures/items/dye_powder_magenta",
+        "textures/items/dye_powder_purple",
+        "textures/items/dye_powder_pink",
+        "textures/items/dye_powder_orange",
+        "textures/items/dye_powder_brown_new",
+        "textures/items/dye_powder_cyan",
+        "textures/items/dye_powder_red"
     ],
     text: [
         "§l§0黑色鞘翅", "§l§9蓝色鞘翅",
