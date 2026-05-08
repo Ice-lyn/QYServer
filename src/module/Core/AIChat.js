@@ -297,7 +297,7 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
         if (aiReply.includes("falseChat") || aiReply === "") return func.titleLog.info("AIChat", "AIChat 认为不需要回答，发言已取消...");
 
         msgList.forEach(msg => {
-            if (msg[0] !== "/") mc.runcmd(`say ${msg.replace(/[`^$&\\]/g, '')}`);
+            if (msg[0] !== "/" && !debug) mc.runcmd(`say ${msg.replace(/[`^$&\\]/g, '')}`);
             else if (config.AIChat.cmdList.has(msg.split(" ")[0])) {
                 if (debug) logger.warn(msg);
                 else mc.runcmd(msg);
