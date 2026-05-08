@@ -1,3 +1,5 @@
+import { sensitive } from "./sensitive.js";
+
 export const config = {
 
     // 封禁名单
@@ -17,26 +19,26 @@ export const config = {
         port: 465, // 加密端口
         secure: true, // 加密
         auth: {
-            user: "xiaoyue0782@163.com",
-            pass: "*************"  // 授权码
+            user: sensitive.mail_auth.user,
+            pass: sensitive.mail_auth.pass
         }
     },
 
+    // 服务器切换的示例配置
+    // 如果你想要更改这个，可以按这个格式写
+    // {
+    //     name: "§bJava 互通服",       // 名称
+    //     ip: "qyjavabe.s.odn.cc",    // IP
+    //     port: 19132,                // 端口
+    //     ui: "textures/ui/controller_glyph_color",   // 图标
+    //     version: [844, 859, 860, 898]               // 支持的版本列表 (线路接电没有这个)
+    // }
+
     // 其他类型服列表
-    serverList: [
-        { name: "§bJava 互通服", ip: "qyjavabe.s.odn.cc", port: 19132, ui: "textures/ui/controller_glyph_color", version: [844, 859, 860, 898] },
-        { name: "§a测试服", ip: "xxx.xxx.xxx.xxx", port: 34684, ui: "textures/ui/World", version: [766, 776, 786, 800, 818, 819, 827, 844] },
-        { name: "§6后室服", ip: "xxx.xxx.xxx.xxx", port: 53563, ui: "textures/ui/World", version: [766, 776, 786, 800, 818, 819, 827, 844] },
-        { name: "§9创造服", ip: "xxx.xxx.xxx.xxx", port: 33221, ui: "textures/ui/World", version: [766, 776, 786, 800, 818, 819, 827, 844] }
-    ],
+    serverList: sensitive.server_list,
 
     // 线路节点列表
-    nodeList: [
-        { name: "宁波4电信", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" },
-        { name: "江苏三线", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" },
-        { name: "香港", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" },
-        { name: "美国", ip: "xxx.xxx.xxx.xxx", port: 41657, ui: "textures/ui/World" }
-    ],
+    nodeList: sensitive.node_list,
 
     // 云朵电梯
     sky_block_type: "qys:sky_block",
@@ -63,7 +65,7 @@ export const config = {
 
     AIChat: { // AI相关
         name: "deepseek-v4-flash",
-        key: "sk-1d3dc0f5c5a74b61bda1385342ac7087",
+        key: sensitive.deepseek_key,
         url: "https://api.deepseek.com/chat/completions",
         maxTokens: 5000,
         temperature: 1.3,
@@ -473,5 +475,5 @@ export const config = {
             "[#] 修复无法下载资源包问题",
             "[#] 下界高度提升 128 → 255"
         ].join("\n"))
-    }).map(([key, value]) => `§r§b# §b${key}§r\n${value}`).join('\n')
+    }).map(([key, value]) => `§r§b# §b${key}§r\n${value}`).join('\n\n\n')
 };
