@@ -75,8 +75,8 @@ mc.listen("onServerStarted", () => {
 
 // 玩家连接世界
 mc.listen("onPreJoin", () => {
-    if (is_reload) return
-    mc.runcmdEx("playsound custom.online_sound @a")
+    if (is_reload) return;
+    mc.runcmdEx("playsound custom.online_sound @a");
 })
 
 // 玩家加入事件
@@ -112,7 +112,9 @@ mc.listen("onDestroyBlock", (player, block) => {
 
 // 生物骑乘
 mc.listen("onRide", (rider, mount) => {
-    if (mount.type === "minecraft:ender_dragon" && !rider.hasTag("qys:ride_ender_dragon")) return false;
+    if (mount.type === "minecraft:ender_dragon"
+        && !rider.hasTag("qys:ride_ender_dragon")
+    ) return false;
 })
 
 // 活塞尝试推动
@@ -122,37 +124,37 @@ mc.listen("onPistonTryPush", (_pos, block) => {
 
 // 后台执行命令
 mc.listen("onConsoleCmd", (cmd) => {
-    if (cmd === "") return false
-    const args = cmd.split(" ")
-
+    if (cmd === "") return false;
+    const args = cmd.split(" ");
+        
     switch (cmd) {
         case "reload":
-            setTimeout(() => mc.runcmd("scriptevent qys:command noChat true"), 2000)
-            return
+            setTimeout(() => mc.runcmd("scriptevent qys:command noChat true"), 2000);
+            return;
         case "testfor":
-            mc.getOnlinePlayers().forEach(player => log(`${player.realName} -> ${func.enRuncmd(player, "testfor @e[r=160]").output?.split(", ")?.length}`))
-            return false
+            mc.getOnlinePlayers().forEach(player => log(`${player.realName} -> ${func.enRuncmd(player, "testfor @e[r=160]").output?.split(", ")?.length}`));
+            return false;
         case "tps":
-            logger.info(mc.runcmdEx("cleaner tps").output)
-            return false
+            logger.info(mc.runcmdEx("cleaner tps").output);
+            return false;
         case "mspt":
-            logger.info(mc.runcmdEx("cleaner mspt").output)
-            return false
+            logger.info(mc.runcmdEx("cleaner mspt").output);
+            return false;
         case "list -v":
-            mc.getOnlinePlayers().forEach(player => logger.info(PAPI.translateString("%player_realname% version %player_client_version%", player)))
-            return false
+            mc.getOnlinePlayers().forEach(player => logger.info(PAPI.translateString("%player_realname% version %player_client_version%", player)));
+            return false;
         case "list -i":
             mc.getOnlinePlayers().forEach(player => {
-                const dev = player.getDevice()
-                logger.info(func.mcCode2Ansi(`${player.realName} §a-ping §l${dev.avgPing}ms§r §b-os §l${dev.os}§r §e-ip §l${dev.ip}§r §d-clientId §l${dev.clientId}§r`))
+                const dev = player.getDevice();
+                logger.info(func.mcCode2Ansi(`${player.realName} §a-ping §l${dev.avgPing}ms§r §b-os §l${dev.os}§r §e-ip §l${dev.ip}§r §d-clientId §l${dev.clientId}§r`));
             })
-            return false
-    }
+            return false;
+    };
 
     switch (args[0]) {
         case "say":
-            ll.imports("BehaviorLog_WriteLog")("后台喊话", "Server", "服务器娘", "", "", "", "", "", "", "", `${cmd}`, false, true)
-            return
+            ll.imports("BehaviorLog_WriteLog")("后台喊话", "Server", "服务器娘", "", "", "", "", "", "", "", `${cmd}`, false, true);
+            return;
     }
 })
 
@@ -267,12 +269,12 @@ mc.listen("onUseItemOn", (player, item, block, side, pos) => {
     if (item.type.match("spawn_egg") && player.gameMode != 1) {
         if (block.type === "minecraft:trial_spawner"
             || block.type === "minecraft:mob_spawner"
-        ) return false
+        ) return false;
     }
 
     if (item.type === "minecraft:camera" && side === 1) {
-        setTimeout(() => mc.runcmdEx(`clear "${player.realName}" camera 1 1`), 100)
-        return
+        setTimeout(() => mc.runcmdEx(`clear "${player.realName}" camera 1 1`), 100);
+        return;
     }
 
     if (player.pos.dimid === 1
@@ -284,13 +286,13 @@ mc.listen("onUseItemOn", (player, item, block, side, pos) => {
 // 玩家使用物品
 mc.listen("onUseItem", (player, item) => {
     if (item.type === "qys:wing") {
-        if (player.maxHealth === 60) return player.tell("[§aTip§r] 您的光翼已达上限(" + player.maxHealth + "/60)")
-        player.setMaxHealth(player.maxHealth + 1)
-        player.tell("" + func.enRuncmd(player, "playsound random.orb @s").output)
-        return player.clearItem("qys:wing", 1)
+        if (player.maxHealth === 60) return player.tell("[§aTip§r] 您的光翼已达上限(" + player.maxHealth + "/60)");
+        player.setMaxHealth(player.maxHealth + 1);
+        player.tell("" + func.enRuncmd(player, "playsound random.orb @s").output);
+        return player.clearItem("qys:wing", 1);
     }
-    if (item.type === "qys:magic") return func.enRuncmd(player, "playsound custom.magic_use_sound @a[r=10] ~~~")
-    if (player.isSneaking && !player.getHand()?.isNull()) return xpFix(player)
+    if (item.type === "qys:magic") return func.enRuncmd(player, "playsound custom.magic_use_sound @a[r=10] ~~~");
+    if (player.isSneaking && !player.getHand()?.isNull()) return xpFix(player);
 })
 
 // 生物死亡事件
@@ -304,8 +306,8 @@ mc.listen("onMobDie", (mob, source) => {
 // 玩家重生事件
 mc.listen("onRespawn", (player) => {
     if (player.maxHealth > 20) {
-        player.setMaxHealth(player.maxHealth - 1) // 扣一颗心
-        mc.runcmdEx(`playsound custom.Injured_sound "${player.realName}"`)
+        player.setMaxHealth(player.maxHealth - 1); // 扣一颗心
+        mc.runcmdEx(`playsound custom.Injured_sound "${player.realName}"`);
     } else {
         player.setMaxHealth(20); // 心小于20时设置成20
     }
@@ -354,37 +356,26 @@ mc.listen("onUseItemOn", (player, item, block) => {
 
 // **** 循环计时器区 **** //
 mc.listen('onServerStarted', () => {
-    // if (is_reload) return
-    const ms = mc.getScoreObjective("ms")
-    let ping = 255
+    // if (is_reload) return;
+    const ms = mc.getScoreObjective("ms");
+    let ping = 255;
 
     // 玩家延迟显示
     setInterval(() => {
         mc.getOnlinePlayers().forEach((player) => {
-            if (player.hasTag("qys:in:afk")) return
-            ping = player.getDevice()?.avgPing ?? 255
-            if (ms.getScore(player) !== ping) ms.setScore(player, ping)
+            if (player.hasTag("qys:in:afk")) return;
+            ping = player.getDevice()?.avgPing ?? 255;
+            if (ms.getScore(player) !== ping) ms.setScore(player, ping);
         })
     }, 2 * 1000)
 
-    // 光环耐久扣除
-    setInterval(() => {
-        mc.getOnlinePlayers().forEach((player) => {
-            if (player.hasTag("qys:in:afk")) return
-            const item = player.getArmor().getItem(0)
-            if (!player.hasTag("tag:§r§l§d爱心§e捐§a助§b者§r")
-                && (item?.type.startsWith("qys:hoshino_") || item?.type.startsWith("qys:shiroko_"))
-            ) item.setDamage(Math.max(0, item.damage + 1)) && player.refreshItems()
-        })
-    }, 60 * 1000)
-
     // 一言
     setInterval(() => {
-        const text = config.wordList[Math.floor(Math.random() * config.wordList.length)]
+        const text = config.wordList[Math.floor(Math.random() * config.wordList.length)];
         mc.getOnlinePlayers().forEach((player) => {
-            if (!player.hasTag("qys:no_word")) player.tell(`${text}`, 5)
-        })
-    }, config.wordtime * 60 * 1000)
+            if (!player.hasTag("qys:no_word")) player.tell(`${text}`, 5);
+        });
+    }, config.wordtime * 60 * 1000);
 
     // 冲撞魔法
     setInterval(() => {
@@ -674,14 +665,15 @@ function firework(player) {
         .setTitle("发射一个烟火")
         .addLabel("在当前位置发射一个烟花\n§b烟花设计: 奈依rere\n§a(50蜡烛一次)§r")
         .addDropdown("选择类型", AllFirework)
-        .addSwitch("扩散至周围", false)
+        .addSwitch("扩散至周围", false);
+    
     player.sendForm(fm, (player, data) => {
-        if (func.isNull(data)) return player.tell("表单已放弃")
-        const money = mc.getScoreObjective("蜡烛")
-        if (!(money.getScore(player) >= 50)) return player.tell("§c蜡烛不足!§r")
-        func.enRuncmd(player, `summon armor_stand "${AllFirework[data[1]]}"`)
-        if (data[2]) func.enRuncmd(player, `spreadplayers ~~ 5 20 @e[r=2.5,type=armor_stand,name="${AllFirework[data[1]]}"]`)
-        money.reduceScore(player, 50) && func.enRuncmd(player, "playsound random.orb @s")
+        if (func.isNull(data)) return player.tell("表单已放弃");
+        const money = mc.getScoreObjective("蜡烛");
+        if (!(money.getScore(player) >= 50)) return player.tell("§c蜡烛不足!§r");
+        func.enRuncmd(player, `summon armor_stand "${AllFirework[data[1]]}"`);
+        if (data[2]) func.enRuncmd(player, `spreadplayers ~~ 5 20 @e[r=2.5,type=armor_stand,name="${AllFirework[data[1]]}"]`);
+        money.reduceScore(player, 50) && func.enRuncmd(player, "playsound random.orb @s");
     })
 }
 
@@ -811,61 +803,61 @@ function newPlayerUi(player) {
 
 // 新手指引
 function helpAnimated(player, mode = 0) {
-    player.closeForm()
+    player.closeForm();
     if (mode === -1) {
-        player.tell("找不到上一个！怎么找也找不到！>_<")
-        helpAnimated(player, 0)
-        return
+        player.tell("找不到上一个！怎么找也找不到！>_<");
+        helpAnimated(player, 0);
+        return;
     }
     switch (mode) {
         case 0:
-            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 0.75 linear pos 48 66 34 facing @e[type=armor_stand,name=回溯神坛,c=1]`)
+            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 0.75 linear pos 48 66 34 facing @e[type=armor_stand,name=回溯神坛,c=1]`);
             player.sendModalForm(
                 "回溯神坛", "当你在冒险中§b意外重生§r，便可用§6回溯神坛§r快速§l返回死亡点§r",
                 "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
-            )
-            return
+            );
+            return;
         case 1:
-            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 0.75 linear pos 51 64 33 facing 53 63 32`)
+            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 0.75 linear pos 51 64 33 facing 53 63 32`);
             player.sendModalForm(
                 "石像神龛", "可以在这里接取§6每日任务§r，完成后会获得§b丰厚奖励§r！",
                 "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
             )
-            return
+            return;
         case 2:
-            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 1.5 linear pos 19 67 -7 facing 26 65 -9`)
+            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 1.5 linear pos 19 67 -7 facing 26 65 -9`);
             player.sendModalForm(
                 "小船商店", "你可以在这里购买一些§6实用的魔法或物品§r",
                 "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
             )
-            return
+            return;
         case 3:
-            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 1.5 linear pos 46 66 17 facing 48 63 9`)
+            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 1.5 linear pos 46 66 17 facing 48 63 9`);
             player.sendModalForm(
                 "晨岛", "进入这个§6传送门§r，立刻§a开始生存§r吧！",
                 "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
             )
-            return
+            return;
         case 4:
-            mc.runcmdEx(`camera "${player.realName}" clear`)
-            mc.runcmdEx(`hud "${player.realName}" reset`)
-            player.setTitle("§a新手引导完毕§r", 2)
-            player.setTitle("§b出发吧!§e 将光传递下去！", 3)
-            meSetUI(player)
-            return
+            mc.runcmdEx(`camera "${player.realName}" clear`);
+            mc.runcmdEx(`hud "${player.realName}" reset`);
+            player.setTitle("§a新手引导完毕§r", 2);
+            player.setTitle("§b出发吧!§e 将光传递下去！", 3);
+            meSetUI(player);
+            return;
     }
 }
 
 // 个人设置
 function meSetUI(player) {
-    const fm = mc.newCustomForm().setTitle("个人设置")
-    config.meSetList.forEach(item => fm.addSwitch(item.name, !player.hasTag(item.tag)))
+    const fm = mc.newCustomForm().setTitle("个人设置");
+    config.meSetList.forEach(item => fm.addSwitch(item.name, !player.hasTag(item.tag)));
     player.sendForm(fm, (player, data) => {
-        if (func.isNull(data)) return
+        if (func.isNull(data)) return;
         config.meSetList.forEach((item, index) => {
-            data[index] ? player.removeTag(item.tag) : player.addTag(item.tag)
-            // player.tell(`${player.realName} ${data[index] ? "remove tag: " : "add tag: "}${item.tag}`)
-        })
+            data[index] ? player.removeTag(item.tag) : player.addTag(item.tag);
+            // player.tell(`${player.realName} ${data[index] ? "remove tag: " : "add tag: "}${item.tag}`);
+        });
     })
 }
 
