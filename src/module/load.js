@@ -21,6 +21,7 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
         "BoxUI.js", // 箱子UI
         "CloudLift.js", // 云朵电梯
         "Doll.js", // 玩偶
+        "EnderDragonEx.js", // 更凶猛的末影龙
         "OPmgr.js", // OP管理
         "SkinEffect.js" // 皮肤效果
     ],
