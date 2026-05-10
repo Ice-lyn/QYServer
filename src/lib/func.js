@@ -343,6 +343,15 @@ export function timeoutJoinServer(player, ip, port, timeout, err = (pl) => pl.te
 }
 
 /**
+ * 将坐标对象转换为字符串
+ * @param {Object} pos - 坐标对象
+ * @returns {string} - 格式为"x y z"的空格分隔字符串
+ */
+export function pos2str(pos) {
+    return `${pos.x} ${pos.y} ${pos.z}`;
+}
+
+/**
  * 异步发送邮件函数
  * @param {Object} mailData - 邮件数据对象
  * @param {string} mailData.from - 发件人地址
