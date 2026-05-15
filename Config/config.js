@@ -63,7 +63,24 @@ export const config = {
         { tag: "qys:no_harvest", name: "自动补种" },
     ],
 
-    AIChat: { // AI相关
+    // 方块染色
+    colorBlock: new RegExp("(" + [
+        "candel",
+        "candel_cake",
+        "carpet",
+        "concrete",
+        "concrete_powder",
+        "glazed_terracotta",
+        "shulker_box",
+        "stained_glass",
+        "stained_glass_pane",
+        "terracotta",
+        "wool"
+    ].join("|") + ")"),
+
+
+    // AI相关
+    AIChat: { 
         name: "deepseek-v4-flash",
         key: sensitive.deepseek_key,
         url: "https://api.deepseek.com/chat/completions",

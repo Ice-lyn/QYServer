@@ -266,17 +266,33 @@ mc.listen("onPlaceBlock", (player, block) => {
 
 // 玩家对方块使用物品
 mc.listen("onUseItemOn", (player, item, block, side, pos) => {
+    // 颜料给方块染色
+    // minecraft:black_dye -> minecraft:black_wool
+    if (item.type.match(/_dye$/) && player.isSneaking) {
+        let blockType = block.type.match(config.colorBlock);
+        if (!blockType) return;
+
+        blockType = `${item.type.slice(0, -4)}_${blockType[1]}`;
+        block.setNbt((block.getNbt().setString("name", blockType)));
+
+        player.clearItem(item.type, 1);
+        player.refreshItems();
+    }
+
+    // 阻止修改刷怪笼
     if (item.type.match("spawn_egg") && player.gameMode != 1) {
         if (block.type === "minecraft:trial_spawner"
             || block.type === "minecraft:mob_spawner"
         ) return false;
     }
 
+    // 放置相机时减少物品
     if (item.type === "minecraft:camera" && side === 1) {
         setTimeout(() => mc.runcmdEx(`clear "${player.realName}" camera 1 1`), 100);
         return;
     }
 
+    // 下界放水
     if (player.pos.dimid === 1
         && item.type === "minecraft:water_bucket"
         && mc.getBlock(pos)?.type === "minecraft:air"
