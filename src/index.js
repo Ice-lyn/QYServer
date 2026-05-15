@@ -330,7 +330,7 @@ mc.listen("onRespawn", (player) => {
 });
 
 // 玩家交互实体
-mc.listen("onPlayerInteractEntity", async (player, entity) => {
+mc.listen("onPlayerInteractEntity", (player, entity) => {
     if (player.hasTag("qys:touch")) func.enRuncmd(entity, "function function/pat");
 
     if (entity.type === "qys:message") {
