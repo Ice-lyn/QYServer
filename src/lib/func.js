@@ -3,7 +3,7 @@ import { config } from "../../Config/config.js";
 import { omExpList } from "../index.js";
 import nodemailer from "nodemailer";
 
-// ==== 常量声明 ==== //
+// ==== 内部常量声明 ==== //
 // 我不行了，直接在函数上面写变量vscode会解析错误
 const mailObj = nodemailer.createTransport(config.Mail);
 const regex = /"([^"]*)"|(\S+)/g;
@@ -345,10 +345,20 @@ export function timeoutJoinServer(player, ip, port, timeout, err = (pl) => pl.te
 /**
  * 将坐标对象转换为字符串
  * @param {Object} pos - 坐标对象
- * @returns {string} - 格式为"x y z"的空格分隔字符串
+ * @param {number} pos.x - X坐标
+ * @param {number} pos.y - Y坐标
+ * @param {number} pos.z - Z坐标
+ * @param {number} [pos.dimid] - 维度ID（mode=1时必需）
+ * @param {number} [mode=0] - 输出模式
+ * @returns {string} 格式化后的坐标字符串
+ * 
+ * 模式说明：
+ * - mode=0：输出 `${x} ${y} ${z}`（空格分隔）
+ * - mode=1：输出 `${x},${y},${z},${dimid}`（逗号分隔，含维度）
  */
-export function pos2str(pos) {
-    return `${pos.x} ${pos.y} ${pos.z}`;
+export function pos2str(pos, mode = 0) {
+    if (mode === 0) return `${pos.x} ${pos.y} ${pos.z}`;
+    if (mode === 1) return `${pos.x},${pos.y},${pos.z},${pos.dimid}`;
 }
 
 /**

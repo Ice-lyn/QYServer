@@ -18,6 +18,7 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
      * 单个玩家执行什么的
      */
     Game: [
+        "BlockLock.js", // 领地方块锁
         "BoxUI.js", // 箱子UI
         "CloudLift.js", // 云朵电梯
         "Doll.js", // 玩偶
