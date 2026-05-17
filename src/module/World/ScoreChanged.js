@@ -2,7 +2,7 @@ const scoreCache = new Map();
 
 mc.listen("onLeft", (pl) => scoreCache.delete(pl.xuid));
 mc.listen("onJoin", (pl) => {
-    if (pl?.inWorld) scoreCache.set(pl.xuid, {
+    scoreCache.set(pl.xuid, {
         金币: pl.getScore("金币"),
         蜡烛: pl.getScore("蜡烛")
     });
@@ -10,6 +10,7 @@ mc.listen("onJoin", (pl) => {
 
 mc.listen("onScoreChanged", (player, newScore, name) => {
     if (!(name === "蜡烛" || name === "金币")) return;
+    
     const cache = scoreCache.get(player.xuid);
     if (!cache) return;
     const delta = newScore - (cache[name] ?? 0);
