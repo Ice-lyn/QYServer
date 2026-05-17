@@ -65,8 +65,8 @@ export const config = {
 
     // 方块染色
     colorBlock: new RegExp("(" + [
-        "candel",
-        "candel_cake",
+        "candle",
+        "candle_cake",
         "carpet",
         "concrete",
         "concrete_powder",
