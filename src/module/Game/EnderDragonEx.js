@@ -7,8 +7,7 @@ let inDamage = true;
 
 // === 代办 === //
 /**
- * 修改末影龙最大生命值 1000                 ok
- * 修改末影龙伤害                           ok
+ * 修改末影龙最大生命值 300                 ok
  * 末地水晶被破坏一段时间后自动恢复            ok
  * 末影龙歇息时伤害减少                      ok
  * 末影龙使用爆炸攻击
@@ -104,7 +103,7 @@ mc.listen("onMobDie", (mob) => {
                 func.enRuncmd(player, "function tag/tag4");
                 mc.broadcast(`${player.realName} 完成了进度 §d[解放末地]§r`);
                 player.tell(
-                    "§b§d最近的未探索过的末地城在：" 
+                    "§b§d最近的未探索过的末地城在："
                     + mc.runcmdEx(`execute at "${player.realName}" run locate structure end_city true`).output
                 );
             }
