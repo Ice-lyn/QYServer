@@ -703,8 +703,7 @@ function entityMessageUI(player, entity) {
         .addInput("发送一段留言", "在这里写下你想留言的话吧~");
 
     player.sendForm(fm, (player, data) => {
-        log(data); // debug
-        if (func.isNull(data)) return player.tell("表单已放弃");
+        if (func.isNull(data)) return;
 
         func.tagData(
             entity, "add", "messages",
@@ -899,7 +898,7 @@ const playerCmd = {// 玩家可以用
             .setTitle("更新日志")
             .setContent(config.updataLog);
         
-        player.sendForm(fm);
+        player.sendForm(fm, (() => {}));
     },
 
     crash: (player) => {
