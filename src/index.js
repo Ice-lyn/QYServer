@@ -103,7 +103,7 @@ mc.listen("onDestroyBlock", (player, block) => {
 
     if (block.hasBlockEntity()
         && (block.type === "minecraft:trial_spawner"
-            || block.type === "minecraft:mob_spawner")
+        || block.type === "minecraft:mob_spawner")
     ) {
         const eggType = block.getBlockEntity()?.getNbt()?.getData("EntityIdentifier");
         if (eggType) mc.spawnItem(mc.newItem(`${eggType}_spawn_egg`, 1), block.pos);
