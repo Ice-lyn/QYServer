@@ -7,19 +7,19 @@ const AIGiveItemMap = new Map();
 const AIInteractCD = new Set();
 const playerChatList = [];
 
-// === 工具定义 ===
+// 工具定义
 const tools = [
     {
         type: "function",
         function: {
             name: "query_data",
-            description: "当用户询问服务器规则、实时数据、技术文档或需要检索特定知识时，调用此工具。",
+            description: "当用户询问服务器规则、技术文档等特定知识时，调用此工具查询相关信息",
             parameters: {
                 type: "object",
                 properties: {
                     query: {
                         type: "string",
-                        description: "用户在对话中想要搜索的关键问题",
+                        description: "要搜索的关键词",
                     }
                 },
                 required: ["query"]
@@ -30,13 +30,30 @@ const tools = [
         type: "function",
         function: {
             name: "query_chat",
-            description: "当需要检索当天历史聊天记录时，调用此工具。",
+            description: "当需要当天聊天记录时调用；以最新一条信息为起点，输入1-100的正整数",
+            parameters: {
+                type: "object",
+                properties: {
+                    query: {
+                        type: "number",
+                        description: "查询的条数",
+                    },
+                },
+                required: ["query"],
+            }
+        }
+    },
+    {
+        type: "function",
+        function: {
+            name: "query_chat_data",
+            description: "当需要检索当天聊天记录中包含关键词的记录时，调用此工具",
             parameters: {
                 type: "object",
                 properties: {
                     query: {
                         type: "string",
-                        description: "搜索的关键词",
+                        description: "要搜索的关键词",
                     },
                 },
                 required: ["query"],
@@ -45,10 +62,9 @@ const tools = [
     }
 ];
 
-
 mc.listen("onChat", async (player, msg) => {
     if (msg[0] !== "+"
-        && ["ai", "服务", "妈", "操"].some(i => msg.includes(i))
+        && ["ai", "兮兮", "服务", "妈", "操"].some(i => msg.includes(i))
     ) AIChat(msg, player.realName);
     playerChatList.push(`[${(new Date()).toLocaleString('zh-CN', { hour12: false })}]${player.realName} >> ${msg}`);
     if (playerChatList.length > 100) playerChatList.shift();
@@ -84,6 +100,9 @@ func.addOnmodeCmd("aichat", (player, cmd) => {
             break;
         case "rua":
             ruaAI(player);
+            break;
+        default: 
+            player.tell("未知参数，请使用 /om aichat give 或 /om aichat rua");
             break;
     }
 });
@@ -211,14 +230,33 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
             for (const toolCall of aiMessage.tool_calls) {
                 const funcName = toolCall.function.name;
                 const funcArgs = JSON.parse(toolCall.function.arguments);
-                let toolResult;
+                let toolResult = [];
 
-                if (funcName === "query_data") {
-                    toolResult = AIQuery(funcArgs.query, config.AIChat.knowledgeBase, -1);
+                switch (funcName) {
+                    case "query_data":
+                        toolResult = AIQuery(funcArgs.query, config.AIChat.knowledgeBase, -1);
+                        break;
+                    case "query_chat":
+                        toolResult = playerChatList.slice(-funcArgs.query);
+                        break;
+                    case "query_chat_data":
+                        toolResult = AIQuery(funcArgs.query, playerChatList, 20);
+                        break;
                 }
-                if (funcName === "query_chat") {
-                    toolResult = AIQuery(funcArgs.query, playerChatList, 20);
-                }
+
+                // query_chat("1") -> 获取到 3 条结果
+                const toolResInfo = `[Tool_Calls] ${funcName}("${funcArgs.query}") -> 获取到 ${toolResult.length} 条结果`;
+
+                func.titleLog.warn("AIQuery", toolResInfo);
+                // func.titleLog.warn("AIQuery", JSON.stringify((toolResult ?? []), null, 4));
+
+                AIMemory.set("memory", [
+                    ...(AIMemory.get("memory") ?? []),
+                    { role: 'assistant', content: toolResInfo }
+                ]);
+
+                if (toolResult.length === 0)
+                    toolResult = ["未找到相关内容，请尝试精简关键词并重新搜索"];
 
                 // 记录工具调用日志
                 processLogs.push({
@@ -285,12 +323,12 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
         const tokenCost = ((totalUsage.completion_tokens || 0) / 1000000) * 2
             + ((totalUsage.prompt_cache_miss_tokens || 0) / 1000000) * 1
             + ((totalUsage.prompt_cache_hit_tokens || 0) / 1000000) * 0.2;
-        const tokenLog = `📊 Token消耗 (预计: ${tokenCost.toFixed(6)} 元)\n`
-            + `  ├─ 输入: ${totalUsage.prompt_tokens || 0}\n`
-            + `  │  ├─ 命中: ${totalUsage.prompt_cache_hit_tokens || 0}\n`
-            + `  │  └─ 未命中: ${totalUsage.prompt_cache_miss_tokens || 0}\n`
-            + `  ├─ 输出: ${totalUsage.completion_tokens || 0}\n`
-            + `  └─ 总计: ${totalUsage.total_tokens || 0}`;
+        const tokenLog = `📊 Token消耗 (预计: ${tokenCost.toFixed(6)} 元)`
+            + `\n  ├─ 输入: ${totalUsage.prompt_tokens || 0}`
+            + `\n  │  ├─ 命中: ${totalUsage.prompt_cache_hit_tokens || 0}`
+            + `\n  │  └─ 未命中: ${totalUsage.prompt_cache_miss_tokens || 0}`
+            + `\n  ├─ 输出: ${totalUsage.completion_tokens || 0}`
+            + `\n  └─ 总计: ${totalUsage.total_tokens || 0}`;
         func.titleLog.info("AIToken", tokenLog);
 
         // 指令执行与广播
@@ -329,11 +367,6 @@ function AIQuery(query, data, maxResults = 10) {
             return bScore - aScore;
         });
 
-    func.titleLog.warn("AIQuery", `${query} -> 匹配到 ${results.length} 条结果`);
-    func.titleLog.warn("AIQuery", JSON.stringify((results ?? []), null, 4));
-
-    if (results.length === 0) {
-        return ["未找到相关内容，请尝试精简关键词并重新搜索"];
-    }
+    if (results.length === 0) return [];
     return maxResults === -1 ? results : results.slice(0, maxResults);
 }
