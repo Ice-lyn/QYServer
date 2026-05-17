@@ -76,7 +76,7 @@ export const config = {
         "stained_glass_pane",
         "terracotta",
         "wool"
-    ].join("|") + ")"),
+    ].join("|") + ")$"),
 
 
     // AI相关
