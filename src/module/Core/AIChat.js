@@ -101,7 +101,7 @@ func.addOnmodeCmd("aichat", (player, cmd) => {
         case "rua":
             ruaAI(player);
             break;
-        default: 
+        default:
             player.tell("未知参数，请使用 /om aichat give 或 /om aichat rua");
             break;
     }
@@ -169,6 +169,7 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
         };
         const processLogs = [];  // 收集思考过程和工具调用记录
 
+        const toolResInfo = [];
         for (let round = 0; round < maxToolRounds; round++) {
             let response = await axios.post(config.AIChat.url, {
                 model: config.AIChat.name,
@@ -245,15 +246,7 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
                 }
 
                 // query_chat("1") -> 获取到 3 条结果
-                const toolResInfo = `[Tool_Calls] ${funcName}("${funcArgs.query}") -> 获取到 ${toolResult.length} 条结果`;
-
-                func.titleLog.warn("AIQuery", toolResInfo);
-                // func.titleLog.warn("AIQuery", JSON.stringify((toolResult ?? []), null, 4));
-
-                AIMemory.set("memory", [
-                    ...(AIMemory.get("memory") ?? []),
-                    { role: 'assistant', content: toolResInfo }
-                ]);
+                toolResInfo.push(`[Tool_Calls] ${funcName}("${funcArgs.query}") -> 获取到 ${toolResult.length} 条结果`);
 
                 if (toolResult.length === 0)
                     toolResult = ["未找到相关内容，请尝试精简关键词并重新搜索"];
@@ -274,6 +267,13 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
                 });
             }
         }
+        toolResInfo.forEach(i => func.titleLog.warn("AIQuery", i));
+
+        AIMemory.set("memory", [
+            ...(AIMemory.get("memory") ?? []),
+            { role: 'assistant', content: toolResInfo.join("\n") }
+        ]);
+
 
         // 如果轮数耗尽仍未得到最终回答，开启深度思考总结之前的消息
         if (!finalAiMessage) {
