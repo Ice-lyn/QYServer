@@ -6,6 +6,7 @@ setInterval(() => {
     mc.getOnlinePlayers().forEach((pl) => {
         if (isMoving(pl)) return resetAfk(pl); // 玩家移动
         if (pl.hasTag("qys:in_afk")) return;
+
         const afkTime = (afkData.get(pl.xuid) || 0);
         afkData.set(pl.xuid, afkTime + 5);
         if (afkTime >= (10 * 60) || pl.hasTag("qys:join_afk")) {
@@ -19,7 +20,8 @@ setInterval(() => {
 }, 5000)
 
 function isMoving(pl) {
-    const pos = pl.direction.pitch + pl.direction.yaw + pl.pos.x + pl.pos.y + pl.pos.z + pl.pos.dimid;
+    const pos = pl.pos.x + pl.pos.y + pl.pos.z + pl.pos.dimid + pl.direction.pitch + pl.direction.yaw;
+    pl.tell("" + pos, 3)
     if (posData.get(pl.xuid) !== pos) {
         posData.set(pl.xuid, pos);
         return true;
@@ -29,7 +31,6 @@ function isMoving(pl) {
 
 function resetAfk(pl) {
     afkData.delete(pl.xuid);
-    posData.delete(pl.xuid);
     if (pl.hasTag("qys:in_afk")) {
         pl.removeTag("qys:in_afk");
         pl.removeBossBar(bossBarId);
@@ -42,6 +43,7 @@ mc.listen("onLeft", (pl) => {
     afkData.delete(pl.xuid);
     posData.delete(pl.xuid);
 });
+
 mc.listen("onUseItem", resetAfk);
 mc.listen("onUseItemOn", resetAfk);
 mc.listen("onAttackEntity", resetAfk);
