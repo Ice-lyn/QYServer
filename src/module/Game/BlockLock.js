@@ -1,5 +1,6 @@
 import * as func from "../../lib/func.js";
 
+const useCD = new Set();
 const lockData = new JsonConfigFile("./plugins/QYServer/Data/BlockLock.json");
 const lockBlock = new Set([
     "minecraft:chest", // 箱子
@@ -44,10 +45,11 @@ mc.listen("onUseItemOn", (player, item, block) => {
     if (!(player.isSneaking
         && item.type === "minecraft:clock"
         && func.LandJudgment(player, block.pos)
+        && !useCD.has(player.xuid)
     )) return;
 
     // 没上锁: 上锁
-    if (!lockData.has(func.pos2str(block.pos))
+    if (!lockData.get(func.pos2str(block.pos))
         && func.LandJudgment(player, block.pos)
     ) {
         lockData.set(func.pos2str(block.pos), player.xuid);
@@ -62,4 +64,8 @@ mc.listen("onUseItemOn", (player, item, block) => {
 
     } // 黑神话: 悟空
     // else { log("猿神，启动！") }
+
+    const xuid = player.xuid;
+    useCD.add(xuid);
+    setTimeout(() => useCD.delete(xuid), 50)
 })
