@@ -21,7 +21,6 @@ setInterval(() => {
 
 function isMoving(pl) {
     const pos = pl.pos.x + pl.pos.y + pl.pos.z + pl.pos.dimid + pl.direction.pitch + pl.direction.yaw;
-    pl.tell("" + pos, 3)
     if (posData.get(pl.xuid) !== pos) {
         posData.set(pl.xuid, pos);
         return true;
