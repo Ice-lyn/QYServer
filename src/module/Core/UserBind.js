@@ -88,7 +88,7 @@ function sendVerifyCode(player, email) {
     playerDataMgr.save(xuid, playerData);
 
     func.sendMail({
-        from: '"月月呀" <xiaoyue0782@163.com>',
+        from: '"QYBind" <admin@m.qyserver.cc>',
         to: email,
         subject: "QYServer | 邮箱绑定验证",
         text: ([
