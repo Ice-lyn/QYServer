@@ -101,6 +101,7 @@ mc.listen("onMobDie", (mob) => {
             // 称号
             if (!player.hasTag("tag:§r§l§5屠§d龙§b勇§3士§r")) {
                 func.enRuncmd(player, "function tag/tag4");
+                func.enRuncmd(player, "scriptevent qys:cmd tagData add elytra [20]")
                 mc.broadcast(`${player.realName} 完成了进度 §d[解放末地]§r`);
                 player.tell(
                     "§b§d最近的未探索过的末地城在："
