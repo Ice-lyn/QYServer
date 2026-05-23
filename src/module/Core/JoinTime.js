@@ -9,12 +9,11 @@ mc.listen("onJoin", (pl) => {
         pl.getNbt()
             ?.getTag("DynamicProperties")
             ?.getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
-            ?.getData("usfV2:id") ?? Date.now()
+            ?.getData("usfV2:id") ?? 0
     )
 })
 
 func.addOnmodeCmd("pltime", (player) => {
-    player.tell("aaaaaaaaaaaa")
     playerTimeUI(player);
 });
 
