@@ -588,10 +588,14 @@ mc.listen("onServerStarted", () => {
             File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}] ${data}`);
             out.success("反馈已提交！");
             func.sendMail({
-                from: '"月月呀" <xiaoyue0782@163.com>',
+                from: '"issues" <admin@m.qyserver.cc>',
                 to: ["Ice_rink@qyserver.cc", "qy@qyserver.cc"],
                 subject: "QYServer | 收到反馈",
                 text: `反馈原始信息:\n${data}`
+            },(info, isSend) => {
+                isSend
+                    ? func.titleLog.warn("QYEmail", "反馈邮件已发送！")
+                    : func.titleLog.warn("QYEmail", info)
             })
         } else {
             const fm = mc.newCustomForm()

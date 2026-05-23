@@ -15,7 +15,7 @@ export const config = {
     ]),
 
     Mail: { // 邮件相关
-        host: "smtp.163.com",
+        host: "smtp.resend.com",
         port: 465, // 加密端口
         secure: true, // 加密
         auth: {
