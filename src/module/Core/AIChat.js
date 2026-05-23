@@ -12,8 +12,42 @@ const tools = [
     {
         type: "function",
         function: {
+            name: "query_player_data",
+            description: "查询玩家的一些信息",
+            parameters: {
+                type: "object",
+                properties: {
+                    query: {
+                        type: "string",
+                        description: "完整玩家名称",
+                    }
+                },
+                required: ["query"]
+            }
+        }
+    },
+    {
+        type: "function",
+        function: {
             name: "query_data",
             description: "当用户询问服务器规则、技术文档等特定知识时，调用此工具查询相关信息",
+            parameters: {
+                type: "object",
+                properties: {
+                    query: {
+                        type: "string",
+                        description: "要搜索的关键词",
+                    }
+                },
+                required: ["query"]
+            }
+        }
+    },
+    {
+        type: "function",
+        function: {
+            name: "query_updata",
+            description: "可以调用此工具查询更新日志",
             parameters: {
                 type: "object",
                 properties: {
@@ -234,8 +268,23 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
                 let toolResult = [];
 
                 switch (funcName) {
+                    case "query_player_data": {
+                        const uuid = data.name2uuid(funcArgs.query);
+                        if (!uuid) return toolResult = ["无法查找玩家信息，请检查玩家名称是否正确或完整"];
+                        toolResult = [
+                            `玩家名称：${funcArgs.query}`,
+                            `加入时间：${queryPlayerTime(funcArgs.query)}`,
+                            `货币：${mc.getPlayerScore(uuid, "金币")}金币, ${mc.getPlayerScore(uuid, "蜡烛")}蜡烛`,
+                            `击杀数：${mc.getPlayerScore(uuid, "击杀数")}`,
+                            `在线时间：${mc.getPlayerScore(uuid, "time")}`
+                        ]
+                        break;
+                    }
                     case "query_data":
                         toolResult = AIQuery(funcArgs.query, config.AIChat.knowledgeBase, -1);
+                        break;
+                    case "query_updata":
+                        toolResult = AIQuery(funcArgs.query, config.updateLog.split("\n"), -1);
                         break;
                     case "query_chat":
                         toolResult = playerChatList.slice(-funcArgs.query);
@@ -369,4 +418,12 @@ function AIQuery(query, data, maxResults = 10) {
 
     if (results.length === 0) return [];
     return maxResults === -1 ? results : results.slice(0, maxResults);
+}
+
+// 查询玩家加入时间
+function queryPlayerTime(name) {
+    return mc.getPlayerNbt(data.name2uuid(name))
+        ?.getTag("DynamicProperties")
+        ?.getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
+        ?.getData("usfV2:id") ?? 0
 }
