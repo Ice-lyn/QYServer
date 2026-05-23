@@ -24,11 +24,12 @@ func.addOnmodeCmd("boxui", (player, cmd) => {
 func.addOnmodeCmd("disitem", (player, cmd) => {
     switch (cmd?.[0]) {
         case "add":
-            const item = player.getHend()
+            const item = (player.getHand()).clone();
             if (!item) return player.tell("你没有拿起物品!");
-            item.setLore(["", ...item.lore])
-            disitemMap.set(player.realName, item.toSNBT());
+            item.setLore([`§l§b${player.realName} 的展示物品`, ...item.lore]);
+            disitemMap.set(player.realName, item.getNbt().toSNBT());
             mc.broadcast(`[§aTip§r] ${player.realName} 广播了物品展示！\n可输入 /om disitem list 查看物品！`)
+            // player.tell(`[§aTip§r] ${player.realName} 广播了物品展示！\n可输入 /om disitem list 查看物品！`)
             break;
 
         case "remove":
@@ -71,7 +72,7 @@ addContainerData("itemUI", {
         const lookPlayer = lookItemMap.get(player.xuid);
         lookItemMap.delete(player.xuid);
         return [{
-            item: NBT.parseSNBT(disitemMap.get(lookPlayer)),
+            item: mc.newItem(NBT.parseSNBT(disitemMap.get(lookPlayer))),
             slot: 2,
         }];
     }
