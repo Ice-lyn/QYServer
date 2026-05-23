@@ -27,12 +27,12 @@ const getLandId = (pos) => ll.imports('ILAPI_PosGetLand')({
 
 // 打开容器GUI
 mc.listen("onOpenContainer", (player, block) => {
-    if (!lockData.get(func.pos2str(block.pos))) return;
+    if (!lockData.get(func.pos2str(block.pos, 1))) return;
 
     if (getLandId(block.pos) === -1) // 领地失效自动解锁
-        return lockData.delete(func.pos2str(block.pos));
+        return lockData.delete(func.pos2str(block.pos, 1));
 
-    const lockName = data.xuid2name(lockData.get(func.pos2str(block.pos))) || "未知玩家";
+    const lockName = data.xuid2name(lockData.get(func.pos2str(block.pos, 1))) || "未知玩家";
     player.tell(
         `此方块已被 ${lockName} 上锁, 请联系对方解锁！`
         + "\n> 如果你是上锁的玩家或领地主，可以潜行并手持钟表菜单右键方块解锁！"
@@ -48,15 +48,17 @@ mc.listen("onUseItemOn", (player, item, block) => {
         && !useCD.has(player.xuid)
     )) return;
 
+    const strPos = func.pos2str(block.pos, 1);
+
     // 没上锁: 上锁
-    if (!lockData.get(func.pos2str(block.pos))
+    if (!lockData.get(strPos)
         && func.LandJudgment(player, block.pos)
     ) {
-        lockData.set(func.pos2str(block.pos), player.xuid);
+        lockData.set(strPos, player.xuid);
         player.tell("方块上锁成功！再次操作可解锁");
 
     } // 上锁了: 解锁
-    else if (lockData.get(func.pos2str(block.pos)) === player.xuid
+    else if (lockData.get(strPos) === player.xuid
         || ll.imports('ILAPI_IsLandOwner')(getLandId(block.pos), player.xuid)
     ) {
         lockData.delete(func.pos2str(block.pos));
