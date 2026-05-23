@@ -7,20 +7,85 @@ const AllContainerData = new Map();
 const openBoxIds = new Map();
 const inBoxGui = new Map();
 
+const disitemMap = new Map();
+const lookItemMap = new Map();
+
 mc.listen("onLeft", (pl) => {
     inBoxGui.delete(pl.xuid);
     openBoxIds.delete(pl.xuid);
 })
 
 func.addOnmodeCmd("boxui", (player, cmd) => {
-    if (cmd[0] === "boxui-0000-0000-10010"
-        && AllContainerData.has(cmd[1])
-    ) showFakeChest(player, cmd[1]);
+    if (cmd.length > 0
+        && AllContainerData.has(cmd[0])
+    ) showFakeChest(player, cmd[0], cmd[1] ?? null);
 });
+
+func.addOnmodeCmd("disitem", (player, cmd) => {
+    switch (cmd?.[0]) {
+        case "add":
+            const item = player.getHend()
+            if (!item) return player.tell("你没有拿起物品!");
+            item.setLore(["", ...item.lore])
+            disitemMap.set(player.realName, item.toSNBT());
+            mc.broadcast(`[§aTip§r] ${player.realName} 广播了物品展示！\n可输入 /om disitem list 查看物品！`)
+            break;
+
+        case "remove":
+            disitemMap.delete(player.realName);
+            player.tell("物品展示广播已移除！");
+            break;
+        
+        case "list":
+            if (disitemMap.length < 1) return player.tell("目前还没有人广播物品哦...");
+            
+            const names = Array.from(disitemMap.keys());
+            const fm = mc.newSimpleForm()
+                .setTitle("物品展示广播")
+                .setContent("");
+            names.forEach((name) => fm.addButton(`${name} 广播的物品`));
+
+            player.sendForm(fm, (player, id) => {
+                if (func.isNull(id)) return;
+                lookItemMap.set(player.xuid, names[id]);
+                showFakeChest(player, "itemUI", "boxui-item-0000-10010");
+            })
+            break;
+    
+        default:
+            player.tell("参数错误! 支持的参数：add, remove, list")
+            break;
+    }
+})
+
+addContainerData("itemUI", {
+    boxId: -30,
+    title: "物品展示",
+    container: {
+        id: "Hopper",
+        type: 8,
+        block: "minecraft:hopper"
+    },
+    key: "boxui-item-0000-10010",
+    data: (player) => {
+        const lookPlayer = lookItemMap.get(player.xuid);
+        lookItemMap.delete(player.xuid);
+        return [{
+            item: NBT.parseSNBT(disitemMap.get(lookPlayer)),
+            slot: 2,
+        }];
+    }
+})
 
 addContainerData("elytraUI", {
     boxId: -30,
     title: "鞘翅设置",
+    container: {
+        id: "Chest",
+        type: 0,
+        block: "minecraft:chest"
+    },
+    key: "boxui-elytra-0000-10010",
     event: (player, slot) => {
         if (slot === 4 || slot === 13) return;
         let skinId = slot;
@@ -35,7 +100,7 @@ addContainerData("elytraUI", {
         func.enRuncmd(player, `scriptevent qys:cmd property qys:elytra_color ${skinId}`);
     },
     data: () => {
-        return new Set([
+        return [
             {
                 item: mc.newItem(NBT.parseSNBT(`{"Count":1b,"Damage":0s,"Name":"minecraft:black_dye","WasPickedUp":0b,"tag":{"RepairCost":0,"display":{"Name":"§0黑色鞘翅"},"ench":[]}}`)),
                 slot: 0
@@ -148,7 +213,7 @@ addContainerData("elytraUI", {
                 item: mc.newItem(NBT.parseSNBT(`{"Count":1b,"Damage":0s,"Name":"minecraft:phantom_membrane","WasPickedUp":0b,"tag":{"RepairCost":0,"display":{"Name":"§7幻翼鞘翅"},"ench":[]}}`)),
                 slot: 26
             }
-        ])
+        ]
     }
 })
 
@@ -161,7 +226,8 @@ Event.emplaceListener(
             || params[3] == "HotbarContainer"
             || params[1] != "Place"
         ) return;
-        AllContainerData.get(inBoxGui.get(params[0].xuid).name).event(params[0], params[4]);
+
+        AllContainerData.get(inBoxGui.get(params[0].xuid).name)?.event(params[0], params[4]);
 
         /*
         
@@ -188,9 +254,10 @@ Event.emplaceListener(
     }
 )
 
-function showFakeChest(player, name) {
+function showFakeChest(player, name, key = null) {
     if (player.gameMode === 6 || !AllContainerData.has(name)) return;
     const containerData = AllContainerData.get(name);
+    if (key != containerData?.key) return;
     openBoxIds.set(player.xuid, name);
 
     try {
@@ -198,30 +265,32 @@ function showFakeChest(player, name) {
         const chestPos = new IntPos(player.pos.x, player.pos.y + 1, player.pos.z, player.pos.dimid);
 
         // 发送方块数据包
-        // sendUpdateBlockPacket(player, chestPos, "minecraft:chest");
+        sendUpdateBlockPacket(player, chestPos, containerData.container.block);
         mc.runcmdEx( // 用sendUpdateBlockPacket发箱子块会炸，用这个先顶一下
             `jsdebug (()=>{`
             + `const packet = new BinaryStream();`
             + `packet.writeVarInt(${chestPos.x});`
             + `packet.writeUnsignedVarInt(${chestPos.y});`
             + `packet.writeVarInt(${chestPos.z});`
-            + `packet.writeUnsignedVarInt(${Minecraft.getBlockRuntimeId("minecraft:chest")});`
+            + `packet.writeUnsignedVarInt(${Minecraft.getBlockRuntimeId(containerData.container.block)});`
             + `packet.writeUnsignedVarInt(0);`
             + `packet.writeUnsignedVarInt(0);`
             + `(mc.getPlayer("${player.realName}")).sendPacket(packet.createPacket(21));`
             + `})()`
         );
 
-        // 设置箱子方块实体数据
+        // 设置方块实体数据
         const blockEntityData = new NbtCompound({
             'Findable': new NbtByte(0),
-            'id': new NbtString('Chest'),
+            'id': new NbtString(containerData.container.id),
             'isMovable': new NbtByte(1),
             'x': new NbtInt(chestPos.x),
             'y': new NbtInt(chestPos.y),
             'z': new NbtInt(chestPos.z),
             'CustomName': new NbtString(containerData.title ?? "§§")
         });
+        if (containerData.container.type === 8) // 漏斗特有字段
+            blockEntityData.setInt("TransferCooldown", 0)
 
         const packet = new BinaryStream();
         packet.writeVarInt(chestPos.x);
@@ -231,11 +300,11 @@ function showFakeChest(player, name) {
         player.sendPacket(packet.createPacket(56));
 
         setTimeout(() => {
-            sendOpenContainerPacket(player, chestPos, containerData.boxId);
+            sendOpenContainerPacket(player, chestPos, containerData.boxId, containerData.container.type);
             inBoxGui.set(player.xuid, { pos: chestPos, name: name });
             const boxData = containerData.data(player);
 
-            // 填充箱子内容 * 27槽位
+            // 填充容器内容
             for (const data of boxData) {
                 player.sendInventorySlotPacket(containerData.boxId, data.slot, data.item);
             }
@@ -249,6 +318,7 @@ function showFakeChest(player, name) {
         openBoxIds.delete(player.xuid);
     }
 }
+
 
 /**
  * 添加容器数据
