@@ -1,12 +1,9 @@
+import { config } from "../../../Config/config.js";
 import * as func from "../../lib/func.js";
 
-const useCD = new Set();
 const lockData = new JsonConfigFile("./plugins/QYServer/Data/BlockLock.json");
-const lockBlock = new Set([
-    "minecraft:chest", // 箱子
-    "minecraft:trapped_chest", // 陷阱箱
-    "minecraft:hopper" // 漏斗
-]);
+const useCD = new Set();
+
 const getLandId = (pos) => ll.imports('ILAPI_PosGetLand')({ 
     'x': pos.x,
     'y': pos.y,
@@ -35,8 +32,9 @@ mc.listen("onOpenContainer", (player, block) => {
     const lockName = data.xuid2name(lockData.get(func.pos2str(block.pos, 1))) || "未知玩家";
     player.tell(
         `此方块已被 ${lockName} 上锁, 请联系对方解锁！`
-        + "\n> 如果你是上锁的玩家或领地主，可以潜行并手持钟表菜单右键方块解锁！"
-    );
+        + "\n> §b如果你是上锁的玩家或领地主，可以潜行并手持钟表菜单右键方块解锁！",
+    5);
+    func.enRuncmd(player, "playsound mob.villager.no")
     return false;
 })
 
@@ -45,6 +43,7 @@ mc.listen("onUseItemOn", (player, item, block) => {
     if (!(player.isSneaking
         && item.type === "minecraft:clock"
         && func.LandJudgment(player, block.pos)
+        && config.lockBlock.has(block.id)
         && !useCD.has(player.xuid)
     )) return;
 
@@ -55,14 +54,16 @@ mc.listen("onUseItemOn", (player, item, block) => {
         && func.LandJudgment(player, block.pos)
     ) {
         lockData.set(strPos, player.xuid);
-        player.tell("方块上锁成功！再次操作可解锁");
+        player.tell("方块§c上锁§r成功！", 5);
+        func.enRuncmd(player, "playsound random.orb");
 
     } // 上锁了: 解锁
     else if (lockData.get(strPos) === player.xuid
         || ll.imports('ILAPI_IsLandOwner')(getLandId(block.pos), player.xuid)
     ) {
         lockData.delete(func.pos2str(block.pos));
-        player.tell("方块解锁成功！在此操作可上锁");
+        player.tell("方块§a解锁§r成功！", 5);
+        func.enRuncmd(player, "playsound random.orb");
 
     } // 黑神话: 悟空
     // else { log("猿神，启动！") }

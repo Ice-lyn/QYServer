@@ -14,6 +14,14 @@ export const config = {
         "minecraft:end_portal", "minecraft:bedrock"
     ]),
 
+    // 支持上锁的方块
+    lockBlock: new Set([
+        "minecraft:chest", // 箱子
+        "minecraft:trapped_chest", // 陷阱箱
+        "minecraft:hopper", // 漏斗
+        "minecraft:barrel" // 木桶 
+    ]),
+
     Mail: { // 邮件相关
         host: "smtp.resend.com",
         port: 465, // 加密端口
