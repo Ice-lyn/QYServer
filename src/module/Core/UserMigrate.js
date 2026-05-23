@@ -118,10 +118,15 @@ function verifyCode(player) {
     })
 }
 
+ll.exports(userMigrate, "QYServer", "userMigrate")
 function userMigrate(newXuid, oldXuid) {
+    func.titleLog.warn("QYMigrate", `开始迁移账户数据：\n${data.xuid2name(oldXuid)} -> ${data.xuid2name(newXuid)}`)
+    mc.getPlayer(`${newXuid}`)?.kick("账户迁移中, 请稍后上线...");
+    mc.getPlayer(`${oldXuid}`)?.kick("账户迁移中, 请稍后上线...")
+
     // === MC === //
-    const oldNbt = mc.getPlayerNbt(oldXuid);
-    mc.setPlayerNbt(data.xuid2uuid(oldXuid), mc.getPlayerNbt(newXuid));
+    const oldNbt = mc.getPlayerNbt(data.xuid2uuid(oldXuid));
+    mc.setPlayerNbt(data.xuid2uuid(oldXuid), mc.getPlayerNbt(data.xuid2uuid(newXuid)));
     mc.setPlayerNbt(data.xuid2uuid(newXuid), oldNbt);
 
     // === ILAND === //
@@ -142,5 +147,7 @@ function userMigrate(newXuid, oldXuid) {
     oldLands.forEach((id) => {
         ll.imports("ILAPI_SetOwner")(id, newXuid);
     });
+
+    func.titleLog.warn("QYMigrate", "账户迁移已结束...")
 }
 
