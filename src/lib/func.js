@@ -362,6 +362,33 @@ export function pos2str(pos, mode = 0) {
 }
 
 /**
+ * 聊天消息转义/反转义函数
+ * @param {string} msg - 待处理的消息字符串
+ * @param {number} [mode=0] - 处理模式
+ * @returns {string} 处理后的消息字符串
+ * 
+ * 模式说明：
+ * - mode=0（转义模式）：将特殊字符 ^ $ & [ ] 前面添加反斜杠进行转义
+ * - mode=1（反转义模式）：将已转义的 \^ \$ \& \[ \] 还原为原字符
+ */
+export function str2say(msg, mode = 0) {
+    if (mode === 0) {
+        msg = msg.replaceAll("^", "\\^")
+            .replaceAll("$", "\\$")
+            .replaceAll("&", "\\&")
+            .replaceAll("[", "\\[")
+            .replaceAll("]", "\\]");
+    } else if (mode === 1) {
+        msg = msg.replaceAll("\\^", "^")
+            .replaceAll("\\$", "$")
+            .replaceAll("\\&", "&")
+            .replaceAll("\\[", "[")
+            .replaceAll("\\]", "]");
+    }
+    return msg;
+}
+
+/**
  * 异步发送邮件函数
  * @param {Object} mailData - 邮件数据对象
  * @param {string} mailData.from - 发件人地址
