@@ -12,6 +12,23 @@ const tools = [
     {
         type: "function",
         function: {
+            name: "query_web_info",
+            description: "联网查询信息，非必要情况下不要使用！他返回很慢，单次对话中最多只能调用2次",
+            parameters: {
+                type: "object",
+                properties: {
+                    query: {
+                        type: "string",
+                        description: "关键词或信息",
+                    }
+                },
+                required: ["query"]
+            }
+        }
+    },
+    {
+        type: "function",
+        function: {
             name: "query_player_data",
             description: "查询玩家的一些信息",
             parameters: {
@@ -36,7 +53,7 @@ const tools = [
                 properties: {
                     query: {
                         type: "string",
-                        description: "要搜索的关键词",
+                        description: "要搜索的关键词;返回 all 获取所有;可使用空格分隔多个关键词",
                     }
                 },
                 required: ["query"]
@@ -53,7 +70,7 @@ const tools = [
                 properties: {
                     query: {
                         type: "string",
-                        description: "要搜索的关键词",
+                        description: "要搜索的关键词;返回 all 获取所有;可使用空格分隔多个关键词",
                     }
                 },
                 required: ["query"]
@@ -87,7 +104,7 @@ const tools = [
                 properties: {
                     query: {
                         type: "string",
-                        description: "要搜索的关键词",
+                        description: "要搜索的关键词;返回 all 获取所有;可使用空格分隔多个关键词",
                     },
                 },
                 required: ["query"],
@@ -276,7 +293,7 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
                             `加入时间：${queryPlayerTime(funcArgs.query)}`,
                             `货币：${mc.getPlayerScore(uuid, "金币")}金币, ${mc.getPlayerScore(uuid, "蜡烛")}蜡烛`,
                             `击杀数：${mc.getPlayerScore(uuid, "击杀数")}`,
-                            `在线时间：${mc.getPlayerScore(uuid, "time")}`
+                            `在线时间：${mc.getPlayerScore(uuid, "time")} 分钟`
                         ]
                         break;
                     }
@@ -292,10 +309,31 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
                     case "query_chat_data":
                         toolResult = AIQuery(funcArgs.query, playerChatList, 20);
                         break;
+                    case "query_web_info": {
+                        const res = await axios.post(config.AIChat.web_url, {
+                            query: funcArgs.query,
+                            fetch_full: false,
+                            sort: "relevance"
+                        }, {
+                            headers: {
+                                'Authorization': `Bearer ${config.AIChat.web_key}`,
+                                'Content-Type': 'application/json'
+                            },
+                            timeout: 30000
+                        });
+                        /*logger.warn(JSON.stringify(res, (key, value) => {
+                            if (key === 'request' || key === 'config' || key === 'headers') return undefined;
+                            if (typeof value === 'bigint') return value.toString();
+                            return value;
+                        }, 4));*/
+                        toolResult = res.data.results?.map(data => JSON.stringify(data)) ?? [];
+                        break;
+                    }
                 }
 
-                // query_chat("1") -> 获取到 3 条结果
                 toolResInfo.push(`[Tool_Calls] ${funcName}("${funcArgs.query}") -> 获取到 ${toolResult.length} 条结果`);
+                func.titleLog.warn("Tool_Calls", `${funcName}("${funcArgs.query}") -> 获取到 ${toolResult.length} 条结果`);
+                if (!debug) mc.runcmd("say " + func.str2say(`[Tool_Calls] 查询 “${funcArgs.query}”，获取到 ${toolResult.length} 条结果`));
 
                 if (toolResult.length === 0)
                     toolResult = ["未找到相关内容，请尝试精简关键词并重新搜索"];
@@ -316,7 +354,6 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
                 });
             }
         }
-        toolResInfo.forEach(i => func.titleLog.warn("AIQuery", i));
 
         AIMemory.set("memory", [
             ...(AIMemory.get("memory") ?? []),
@@ -371,29 +408,35 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
         // === 生成 Token 消耗日志 ===
         const tokenCost = ((totalUsage.completion_tokens || 0) / 1000000) * 2
             + ((totalUsage.prompt_cache_miss_tokens || 0) / 1000000) * 1
-            + ((totalUsage.prompt_cache_hit_tokens || 0) / 1000000) * 0.2;
-        const tokenLog = `📊 Token消耗 (预计: ${tokenCost.toFixed(6)} 元)`
+            + ((totalUsage.prompt_cache_hit_tokens || 0) / 1000000) * 0.02;
+        func.titleLog.info("AIToken", `Token消耗 (预计: ${tokenCost.toFixed(6)} 元)`
             + `\n  ├─ 输入: ${totalUsage.prompt_tokens || 0}`
             + `\n  │  ├─ 命中: ${totalUsage.prompt_cache_hit_tokens || 0}`
             + `\n  │  └─ 未命中: ${totalUsage.prompt_cache_miss_tokens || 0}`
             + `\n  ├─ 输出: ${totalUsage.completion_tokens || 0}`
-            + `\n  └─ 总计: ${totalUsage.total_tokens || 0}`;
-        func.titleLog.info("AIToken", tokenLog);
+            + `\n  └─ 总计: ${totalUsage.total_tokens || 0}`
+        );
 
         // 指令执行与广播
-        if (aiReply.includes("falseChat") || aiReply === "") return func.titleLog.info("AIChat", "AIChat 认为不需要回答，发言已取消...");
+        if (aiReply.includes("falseChat") || aiReply === "")
+            return func.titleLog.info("AIChat", "AIChat 认为不需要回答，发言已取消...");
 
-        msgList.forEach(msg => {
-            if (msg[0] !== "/" && !debug) mc.runcmd(`say ${msg.replace(/[`^$&\\]/g, '')}`);
-            else if (config.AIChat.cmdList.has(msg.split(" ")[0])) {
-                if (debug) logger.warn(msg);
-                else mc.runcmd(msg);
+        (async () => {
+            for (let i = 0; i < msgList.length; i++) {
+                const msg = msgList[i];
+                if (msg[0] !== "/" && !debug) mc.runcmd(`say ${func.str2say(msg)}`);
+                else if (config.AIChat.cmdList.has(msg.split(" ")[0])) {
+                    if (debug) logger.warn(msg);
+                    else mc.runcmd(msg);
+                }
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
-        });
+        })();
 
         func.titleLog.info("AIChat", aiReply);
     } catch (e) {
-        if (e.response?.data?.error) func.titleLog.error("AIChat", "API错误:", e.response.data.error.message);
+        if (e.response?.data?.error)
+            func.titleLog.error("AIChat", "API错误:", e.response.data.error.message);
         else func.titleLog.error("AIChat", "请求失败:", e.message || e);
     }
 }
