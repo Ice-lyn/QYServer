@@ -310,6 +310,8 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
                         toolResult = AIQuery(funcArgs.query, playerChatList, 20);
                         break;
                     case "query_web_info": {
+                        if (!debug) mc.runcmd(`say [Tool_Calls] 联网搜索 "${funcArgs.query}" 中`);
+
                         const res = await axios.post(config.AIChat.web_url, {
                             query: funcArgs.query,
                             fetch_full: false,
