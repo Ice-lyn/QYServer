@@ -49,14 +49,6 @@ mc.listen("onServerStarted", () => {
     Recipes.unregisterRecipe("minecraft:brew_awkward_slime_block"); // 渗浆药水
     Recipes.unregisterRecipe("minecraft:brew_awkward_stone"); // 虫蚀
 
-    // 注册有序工作台合成表
-    Recipes.registerShapedRecipe(// 附魔金苹果
-        "qys:enchanted_golden_apple",
-        ["AAA", "ABA", "AAA"],
-        ["minecraft:diamond_block", "minecraft:enchanted_golden_apple"],
-        "minecraft:enchanted_golden_apple", 2, "None"
-    );
-
     // 注册无序工作台合成表
     Recipes.registerShapelessRecipe("qys:santahat", [// 圣诞帽
         "minecraft:leather_helmet",
@@ -126,7 +118,7 @@ mc.listen("onPistonTryPush", (_pos, block) => {
 mc.listen("onConsoleCmd", (cmd) => {
     if (cmd === "") return false;
     const args = cmd.split(" ");
-        
+
     switch (cmd) {
         case "reload":
             setTimeout(() => mc.runcmd("scriptevent qys:command noChat true"), 2000);
@@ -592,7 +584,7 @@ mc.listen("onServerStarted", () => {
                 to: ["Ice_rink@qyserver.cc", "qy@qyserver.cc"],
                 subject: "QYServer | 收到反馈",
                 text: `反馈原始信息:\n${data}`
-            },(info, isSend) => {
+            }, (info, isSend) => {
                 isSend
                     ? func.titleLog.warn("QYEmail", "反馈邮件已发送！")
                     : func.titleLog.warn("QYEmail", info)
@@ -686,7 +678,7 @@ function firework(player) {
         .addLabel("在当前位置发射一个烟花\n§b烟花设计: 奈依rere\n§a(50蜡烛一次)§r")
         .addDropdown("选择类型", AllFirework)
         .addSwitch("扩散至周围", false);
-    
+
     player.sendForm(fm, (player, data) => {
         if (func.isNull(data)) return player.tell("表单已放弃");
         const money = mc.getScoreObjective("蜡烛");
@@ -805,66 +797,17 @@ function newPlayerUi(player) {
     mc.runcmdEx(`hud "${player.realName}" hide all`)
     player.tell("", 5)
     player.sendModalForm("欢迎", "你是第一次来到《光遇》的世界吗？", " 是", " 否", (player, id) => {
-        if (!id) {
-            mc.runcmdEx(`hud "${player.realName}" reset`);
-            mc.runcmdEx(`camera "${player.realName}" clear`);
-            return player.tell("新手引导已取消...", 5);
-        }
         mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 7.5 linear pos 36.5 67.5 33.5 rot 0 -90`);
         player.setTitle("screen.sky");
         player.setTitle("(如果你看到了这段话，就说明你材质包没下完，快去下！)", 3);
         //player.setTitle("§l光·遇",2)
         //player.setTitle("§l§b光是遇见 §a就很美好§r\n§7=== §r§l欢迎来到 §bQ§aY§eServer§r §7===",3)
-        player.tell("新手指引加载中...", 5);
-        setTimeout(() => helpAnimated(player), 5500);
-    })
-}
-
-// 新手指引
-function helpAnimated(player, mode = 0) {
-    player.closeForm();
-    if (mode === -1) {
-        player.tell("找不到上一个！怎么找也找不到！>_<");
-        helpAnimated(player, 0);
-        return;
-    }
-    switch (mode) {
-        case 0:
-            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 0.75 linear pos 48 66 34 facing @e[type=armor_stand,name=回溯神坛,c=1]`);
-            player.sendModalForm(
-                "回溯神坛", "当你在冒险中§b意外重生§r，便可用§6回溯神坛§r快速§l返回死亡点§r",
-                "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
-            );
-            return;
-        case 1:
-            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 0.75 linear pos 51 64 33 facing 53 63 32`);
-            player.sendModalForm(
-                "石像神龛", "可以在这里接取§6每日任务§r，完成后会获得§b丰厚奖励§r！",
-                "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
-            )
-            return;
-        case 2:
-            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 1.5 linear pos 19 67 -7 facing 26 65 -9`);
-            player.sendModalForm(
-                "小船商店", "你可以在这里购买一些§6实用的魔法或物品§r",
-                "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
-            )
-            return;
-        case 3:
-            mc.runcmdEx(`camera "${player.realName}" set minecraft:free ease 1.5 linear pos 46 66 17 facing 48 63 9`);
-            player.sendModalForm(
-                "晨岛", "进入这个§6传送门§r，立刻§a开始生存§r吧！",
-                "上一个", "下一个", (player, id) => helpAnimated(player, (id ? mode - 1 : mode + 1))
-            )
-            return;
-        case 4:
+        meSetUI(player);
+        setTimeout(() => {
             mc.runcmdEx(`camera "${player.realName}" clear`);
             mc.runcmdEx(`hud "${player.realName}" reset`);
-            player.setTitle("§a新手引导完毕§r", 2);
-            player.setTitle("§b出发吧!§e 将光传递下去！", 3);
-            meSetUI(player);
-            return;
-    }
+        }, 7000);
+    })
 }
 
 // 个人设置
@@ -901,8 +844,8 @@ const playerCmd = {// 玩家可以用
         const fm = mc.newSimpleForm()
             .setTitle("更新日志")
             .setContent(config.updataLog);
-        
-        player.sendForm(fm, (() => {}));
+
+        player.sendForm(fm, (() => { }));
     },
 
     crash: (player) => {
