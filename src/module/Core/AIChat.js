@@ -130,12 +130,12 @@ mc.listen("onConsoleCmd", (cmd) => {
 mc.listen("onPlayerInteractEntity", (player, entity) => {
     if (!(entity?.type === "qys:riru"
         && !AIInteractCD.has(player.xuid)
-        && AICanItem(player?.getHand()?.type)
     )) return;
 
     setTimeout(() => AIInteractCD.delete(player.xuid), 500);
 
-    if (player.isSneaking) giveItemAI(player, player.getHand());
+    const item = player.getHand();
+    if (player.isSneaking && item && AICanItem(item)) giveItemAI(player, item);
     else {
         ruaAI(player);
         func.enRuncmd(entity, "function function/pat");
