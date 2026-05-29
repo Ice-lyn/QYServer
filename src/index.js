@@ -168,7 +168,7 @@ mc.listen("onChat", (player, msg) => {
         case msg.includes("你干嘛"):
             mc.runcmdEx("execute as @a at @s run playsound custom.ikun_sound @s");
             break;
-        case player.hasTag("isCat"):
+        case player.hasTag("qys:beforeSkin_3"):
             mc.runcmdEx("execute as @a at @s run playsound mob.cat.meow @s");
             break;
         default:
@@ -340,19 +340,54 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
     }
 })
 
+const onUseItemOnCd = new Set();
+
+// 下界反应堆逻辑
+mc.listen("onUseItemOn", (player, _item, block) => {
+    if (!(!player.isSneaking
+        && !onUseItemOnCd.has(player.xuid)
+        && player.pos.dimid === 0
+        && block.type === "minecraft:netherreactor"
+    )) return;
+    onUseItemOnCd.add(player.xuid) && setTimeout(() => onUseItemOnCd.delete(player.xuid), 100);
+    mc.runcmdEx(`
+        execute positioned ${block.pos.x} ${block.pos.y} ${block.pos.z}
+            if block ~ ~-1 ~ cobblestone
+            if block ~ ~-1 ~1 cobblestone
+            if block ~ ~-1 ~-1 cobblestone
+            if block ~1 ~-1 ~ cobblestone
+            if block ~-1 ~-1 ~ cobblestone
+            if block ~1 ~-1 ~1 gold_block
+            if block ~1 ~-1 ~-1 gold_block
+            if block ~-1 ~-1 ~1 gold_block
+            if block ~-1 ~-1 ~-1 gold_block
+
+            if block ~1 ~ ~1 cobblestone
+            if block ~1 ~ ~-1 cobblestone
+            if block ~-1 ~ ~1 cobblestone
+            if block ~-1 ~ ~-1 cobblestone
+
+            if block ~ ~1 ~ cobblestone
+            if block ~1 ~1 ~ cobblestone
+            if block ~-1 ~1 ~ cobblestone
+            if block ~ ~1 ~-1 cobblestone
+            if block ~ ~1 ~1 cobblestone
+        run structure load mystructure:下界反应建筑 ~-7 ~-2 ~-7 0_degrees none block_by_block 10 false
+    `)
+})
+
 // 玩家坐在椅子上逻辑
-const onRideCD = new Set()
 mc.listen("onUseItemOn", (player, item, block) => {
     if ((!player.hasTag("qys:free_noclip") && block.type.search(/_(stairs|slab)/) === -1)
         || !item.isNull()
         || player.hasTag("qys:no_sitdown")
         || player.isSneaking
-        || onRideCD.has(player.xuid)
+        || onUseItemOnCd.has(player.xuid)
         || block?.getNbt()?.getTag("states")?.getData("upside_down_bit") // 楼梯使用
         || block?.getNbt()?.getTag("states")?.getData("minecraft:vertical_half") == "top" // 半砖使用
         || mc.getEntities(block.pos, 0.25).some(e => e.type === "qys:ride")
     ) return;
-    onRideCD.add(player.xuid) && setTimeout(() => onRideCD.delete(player.xuid), 40);
+    onUseItemOnCd.add(player.xuid) && setTimeout(() => onUseItemOnCd.delete(player.xuid), 40);
 
     const rotate = { 0: 90, 1: -90, 2: 180, 3: 0 }[block?.getNbt()?.getTag("states")?.getData("weirdo_direction")] || 0;
     mc.runcmdEx(`execute at "${player.realName}" as @e[type=qys:ride,rm=0.01,name="qys:rideing_${player.realName}"] run cleaner despawn @s`);
@@ -584,7 +619,7 @@ mc.listen("onServerStarted", () => {
                 to: ["Ice_rink@qyserver.cc", "qy@qyserver.cc"],
                 subject: "QYServer | 收到反馈",
                 text: `反馈原始信息:\n${data}`
-            }, (info, isSend) => {
+            },(info, isSend) => {
                 isSend
                     ? func.titleLog.warn("QYEmail", "反馈邮件已发送！")
                     : func.titleLog.warn("QYEmail", info)
