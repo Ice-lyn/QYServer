@@ -249,7 +249,11 @@ mc.listen("onHopperPushOut", (_pos, isMinecart, item) => {
 
 // 玩家尝试放置方块
 mc.listen("onPlaceBlock", (player, block) => {
-    if (((config.banBlock.has(block.type) || block.type.includes("minecraft:element_")) && !player.isOP())) {
+    if (!player.isOP()
+        && ((config.banBlock.has(block.type)
+        || (block.type.includes("minecraft:element_")
+        && /^\d+$/.test(str.slice(18))
+    )))) {
         player.tell("§c您需要创造模式 + 操作员权限来放置此方块§r");
         player.refreshChunks();
         return false;
@@ -285,10 +289,10 @@ mc.listen("onUseItemOn", (player, item, block, side, pos) => {
     }
 
     // 下界放水
-    if (player.pos.dimid === 1
-        && item.type === "minecraft:water_bucket"
-        && mc.getBlock(pos)?.type === "minecraft:air"
-    ) mc.setBlock(pos, "minecraft:flowing_water", 0);
+    // if (player.pos.dimid === 1
+    //     && item.type === "minecraft:water_bucket"
+    //     && mc.getBlock(pos)?.type === "minecraft:air"
+    // ) mc.setBlock(pos, "minecraft:flowing_water", 0);
 })
 
 // 玩家使用物品
