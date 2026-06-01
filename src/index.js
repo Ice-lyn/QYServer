@@ -251,9 +251,10 @@ mc.listen("onHopperPushOut", (_pos, isMinecart, item) => {
 mc.listen("onPlaceBlock", (player, block) => {
     if (!player.isOP()
         && ((config.banBlock.has(block.type)
-        || (block.type.includes("minecraft:element_")
-        && /^\d+$/.test(str.slice(18))
-    )))) {
+        || (
+            block.type.startsWith("minecraft:element_") && /^\d+$/.test(block.type.slice(18))
+        )
+    ))) {
         player.tell("§c您需要创造模式 + 操作员权限来放置此方块§r");
         player.refreshChunks();
         return false;
@@ -520,8 +521,7 @@ mc.listen('onServerStarted', () => {
         player.getHand().set(player.getOffHand());
         player.getOffHand().set(itemBak);
         player.refreshItems();
-        out.success(`§a已交换手部物品`);
-        out.success(`§a您可能需要切换快捷栏来刷新物品`);
+        player.tell("§a已交换手部物品\n您可能需要切换快捷栏来刷新物品", 3);
     });
     cmd.overload([]);
     cmd.setup();
@@ -538,8 +538,7 @@ mc.listen('onServerStarted', () => {
         player.getHand().set(player.getArmor().getItem(0));
         player.getArmor().getItem(0).set(itemBak);
         player.refreshItems();
-        out.success(`§a已交换头盔与主手物品`);
-        out.success(`§a您可能需要切换快捷栏来刷新物品`);
+        player.tell("§a已交换头盔与主手物品\n§a您可能需要切换快捷栏来刷新物品", 3);
     });
     cmd.overload([]);
     cmd.setup();
