@@ -98,7 +98,7 @@ mc.listen("onDestroyBlock", (player, block) => {
         || block.type === "minecraft:mob_spawner")
     ) {
         const eggType = block.getBlockEntity()?.getNbt()?.getData("EntityIdentifier");
-        if (eggType) mc.spawnItem(mc.newItem(`${eggType}_spawn_egg`, 1), block.pos);
+        if (eggType) mc.spawnItem(mc.newItem(`${eggType}_spawn_egg`, 1).setLore(["* 刷怪笼掉落物品"]), block.pos);
     }
 })
 
@@ -305,7 +305,11 @@ mc.listen("onUseItem", (player, item) => {
         return player.clearItem("qys:wing", 1);
     }
     if (item.type === "qys:magic") return func.enRuncmd(player, "playsound custom.magic_use_sound @a[r=10] ~~~");
-    if (player.isSneaking && !player.getHand()?.isNull()) return xpFix(player);
+    if (player.isSneaking 
+        && !item?.isNull()
+        && item.damage !== 0
+        && player.getTotalExperience() > 20
+    ) return xpFix(player);
 })
 
 // 生物死亡事件
@@ -805,21 +809,18 @@ function musicMenu(player, modeIndex = 0, pitche = "note.harp") {
 
 // 经验修补
 function xpFix(player) {
-    const item = player.getHand();
-    if (item.damage === 0) return;
+    const item = player.getHand(); // fix高版本lse出现的神奇bug
 
-    const enchants = item?.getNbt()?.getTag("tag")?.getTag("ench")?.toArray();
-    const hasMending = enchants?.some(e => e.id === 26);
-    const unbreakingLevel = enchants?.find(e => e.id === 34)?.lvl || 0;
-
-    // 有耐久附魔时概率直接修复
-    if (!hasMending) return
-    if (unbreakingLevel > 0 && Math.random() < unbreakingLevel * 0.2) {
-        item.setDamage(Math.max(0, item.damage - 10));
-    } else if (hasMending && player.reduceExperience(1)) {
-        item.setDamage(Math.max(0, item.damage - 10));
-    }
-    player.tell("经验修补中，当前物品耐久: " + (item?.maxDamage - item?.damage), 5)
+    const enchants = item.getNbt()?.getTag("tag")?.getTag("ench")?.toArray();
+    if (!enchants?.some(e => e.id === 26)) return;
+    const unbreakingLevel = enchants?.find(e => e.id === 17)?.lvl || 0;
+    
+    // 有耐久附魔时有概率不消耗经验
+    if (!(unbreakingLevel > 0 && Math.random() < unbreakingLevel * 0.2))
+        player.reduceExperience(1)
+    item.setDamage(Math.max(0, item.damage - 10));
+        
+    player.tell("经验修补中，当前物品耐久: " + (item.maxDamage - item.damage), 5)
     player.refreshItems();
 }
 
@@ -891,7 +892,7 @@ const playerCmd = {// 玩家可以用
         crashtime.forEach((sec, index) => {
             setTimeout(() => {
                 player.tell("§c祂即将降临！");
-                if (sec === 1) crash(player)
+                if (sec === 1) func.crash(player)
             }, (index + 1) * 1000);
         })
     },
@@ -955,8 +956,8 @@ const keyCmd = { // 输入密钥可以用
                 } else {
                     if (player.getScore("蜡烛") <= 600) return player.tell("§c你没有足够的蜡烛！");
                     func.enRuncmd(player, `scriptevent qys:cmd tagData add elytra [${id}]`);
+                    func.enRuncmd(player, "scoreboard players remove @s 蜡烛 600");
                     func.enRuncmd(player, `playsound random.orb @s`);
-                    player.removeScore("蜡烛", 600);
                     return keyCmd.elytraShop(player, cmd);
                 }
             }
