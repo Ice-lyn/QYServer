@@ -3,154 +3,91 @@ import * as func from "../../lib/func.js";
 import axios from "axios";
 
 const AIMemory = new JsonConfigFile("./plugins/QYServer/Data/AIMemory.json", '{"memory": []}');
-const AIGiveItemMap = new Map();
-const AIInteractCD = new Set();
-const playerChatList = [];
+const isDebug = false;
+const chatList = [];
+let tools = {};
 
-// 工具定义
-const tools = [
-    {
-        type: "function",
-        function: {
-            name: "query_web_info",
-            description: "联网查询信息，非必要情况下不要使用！他返回很慢，单次对话中最多只能调用2次",
-            parameters: {
-                type: "object",
-                properties: {
-                    query: {
-                        type: "string",
-                        description: "关键词或信息",
-                    }
-                },
-                required: ["query"]
-            }
-        }
-    },
-    {
-        type: "function",
-        function: {
-            name: "query_player_data",
-            description: "查询玩家的一些信息",
-            parameters: {
-                type: "object",
-                properties: {
-                    query: {
-                        type: "string",
-                        description: "完整玩家名称",
-                    }
-                },
-                required: ["query"]
-            }
-        }
-    },
-    {
-        type: "function",
-        function: {
-            name: "query_data",
-            description: "当用户询问服务器规则、技术文档等特定知识时，调用此工具查询相关信息",
-            parameters: {
-                type: "object",
-                properties: {
-                    query: {
-                        type: "string",
-                        description: "要搜索的关键词;返回 all 获取所有;可使用空格分隔多个关键词",
-                    }
-                },
-                required: ["query"]
-            }
-        }
-    },
-    {
-        type: "function",
-        function: {
-            name: "query_updata",
-            description: "可以调用此工具查询更新日志",
-            parameters: {
-                type: "object",
-                properties: {
-                    query: {
-                        type: "string",
-                        description: "要搜索的关键词;返回 all 获取所有;可使用空格分隔多个关键词",
-                    }
-                },
-                required: ["query"]
-            }
-        }
-    },
-    {
-        type: "function",
-        function: {
-            name: "query_chat",
-            description: "当需要当天聊天记录时调用；以最新一条信息为起点，输入1-100的正整数",
-            parameters: {
-                type: "object",
-                properties: {
-                    query: {
-                        type: "number",
-                        description: "查询的条数",
-                    },
-                },
-                required: ["query"],
-            }
-        }
-    },
-    {
-        type: "function",
-        function: {
-            name: "query_chat_data",
-            description: "当需要检索当天聊天记录中包含关键词的记录时，调用此工具",
-            parameters: {
-                type: "object",
-                properties: {
-                    query: {
-                        type: "string",
-                        description: "要搜索的关键词;返回 all 获取所有;可使用空格分隔多个关键词",
-                    },
-                },
-                required: ["query"],
-            }
-        }
-    }
+const AICanItem = [
+    "cod", // 鱼
+    "salmon", // 鱼
+    "fish", // 鱼
+    "cooked", // 烤肉
+    "apple", // 苹果
+    "carrot", // 肉
+    "cake", // 蛋糕
+    "potato", // 土豆
+    "honey", // 蜂蜜
+    "mushroom", // 蘑菇
+    "melon", // 西瓜
+    "beetroot" // 天才跟
 ];
+
+const AIGiveNum = new Map();
+const AIAction = {
+    rua: (player) => {
+        mc.broadcast(`${player.realName} rua了服务器娘一下~`);
+        ll.imports("QQChatEx", "onSendChat")(`${player.realName} rua了服务器娘一下~`);
+        AIChat(`${player.realName} rua了你一下~`, "System", true);
+    },
+
+    giveItem: (player, item) => {
+        if (item.isNull()) return player.tell("你没有拿起食物呢...");
+        if (AIGiveNum.get(player.xuid) >= 10) return player.tell("唔...不想吃了...");
+        if (!item.type.some(type => AICanItem.includes(type)))
+            return player.tell("谢谢啦 服务器娘似乎不想吃这个东西呢~");
+
+        item.setNull();
+        player.refreshItems();
+
+        mc.broadcast(`${player.realName} 投喂服务器娘${item.count}个 ${item.name}(${item.type})`);
+        ll.imports("QQChatEx", "onSendChat")(`${player.realName} 投喂服务器娘${item.count}个 ${item.name}(${item.type})`);
+        AIChat(`${player.realName} 投喂你${item.count}个 ${item.name}(${item.type})，你可以使用give指令回礼，本次是否可以回礼：${func.probability(40)}`, "System", true);
+        AIGiveNum.set(player.xuid, (AIGiveNum.get(player.xuid) || 0) + 1);
+    }
+};
+
+
+// === 触发 === //
 
 mc.listen("onChat", async (player, msg) => {
     if (msg[0] !== "+"
         && ["ai", "兮兮", "服务", "妈", "操"].some(i => msg.includes(i))
     ) AIChat(msg, player.realName);
-    playerChatList.push(`[${(new Date()).toLocaleString('zh-CN', { hour12: false })}]${player.realName} >> ${msg}`);
-    if (playerChatList.length > 100) playerChatList.shift();
+    chatList.push(`[${(new Date()).toLocaleString('zh-CN', { hour12: false })}]${player.realName} >> ${msg}`);
+    if (chatList.length > 100) chatList.shift();
 });
 
 mc.listen("onConsoleCmd", (cmd) => {
     if (!cmd.startsWith("aichat ")) return;
-    AIChat(cmd.slice(7), null, true, true);
+    AIChat(cmd.slice(7), null, false, true);
     return false;
 });
 
 mc.listen("onPlayerInteractEntity", (player, entity) => {
     if (!(entity?.type === "qys:riru"
-        && !AIInteractCD.has(player.xuid)
+        && !AICallCD.has(player.xuid)
     )) return;
 
-    setTimeout(() => AIInteractCD.delete(player.xuid), 500);
+    setTimeout(() => AICallCD.delete(player.xuid), 500);
 
     const item = player.getHand();
-    if (player.isSneaking && item && AICanItem(item)) giveItemAI(player, item);
+    if (player.isSneaking && item && item.type.some(type => AICanItem.includes(type)))
+        AIAction.giveItem(player, item);
     else {
-        ruaAI(player);
+        AIAction.rua(player);
         func.enRuncmd(entity, "function function/pat");
         func.enRuncmd(entity, "execute anchored eyes run particle minecraft:heart_particle ~~0.5~");
     }
 });
 
+const AICallCD = new Set();
 func.addOnmodeCmd("aichat", (player, cmd) => {
-    // logger.warn(JSON.stringify(cmd, null, 4));
     switch (cmd[0]) {
         case "give":
-            giveItemAI(player, player.getHand());
+            AIAction.giveItem(player, player.getHand());
             break;
         case "rua":
-            ruaAI(player);
+            AIAction.rua(player);
             break;
         default:
             player.tell("未知参数，请使用 /om aichat give 或 /om aichat rua");
@@ -158,256 +95,21 @@ func.addOnmodeCmd("aichat", (player, cmd) => {
     }
 });
 
-function ruaAI(player) {
-    mc.broadcast(`${player.realName} rua了服务器娘一下~`);
-    AIChat(`${player.realName} rua了你一下~`, "System", true);
-    ll.imports("QQChatEx", "onSendChat")(`${player.realName} rua了服务器娘一下~`);
-}
 
-function giveItemAI(player, item) {
-    if (item.isNull()) return player.tell("你没有拿起食物呢...");
-    if (AIGiveItemMap.get(player.xuid) >= 10) return player.tell("唔...不想吃了...");
-    if (!AICanItem(item.type)) return player.tell("谢谢啦 服务器娘似乎不想吃这个东西呢~");
+// === AICalls === //
+function AIChat(msg, name = null, isSystemMsg = false, noSay = false, debug = false) {
+    const timeStr = new Date().toLocaleString('zh-CN', { hour12: false });
+    if (isSystemMsg) msg = `[${name}][aichat-key-104960014] ${msg}`;
+    msg = `[${timeStr}]${name} >> ${func.textToEmoji(msg, 1)}`;
 
-    item.setNull();
-    player.refreshItems();
+    callAPI(msg, (msg, res) => {
+        if (debug) logger.warn(JSON.stringify(res, (key, value) => {
+            if (key === 'request' || key === 'config' || key === 'headers') return undefined;
+            if (typeof value === 'bigint') return value.toString();
+            return value;
+        }, 4));
 
-    mc.broadcast(`${player.realName} 投喂服务器娘${item.count}个 ${item.name}(${item.type})`);
-    AIChat(`${player.realName} 投喂你${item.count}个 ${item.name}(${item.type})，你可以使用give指令回礼，本次是否可以回礼：${func.probability(40)}`, "System", true);
-    ll.imports("QQChatEx", "onSendChat")(`${player.realName} 投喂服务器娘${item.count}个 ${item.name}(${item.type})`);
-    AIGiveItemMap.set(player.xuid, (AIGiveItemMap.get(player.xuid) || 0) + 1);
-}
-
-function AICanItem(type) {
-    return (item.type.includes("cod") // 鱼
-        || item.type.includes("salmon") // 鱼
-        || item.type.includes("fish") // 鱼
-        || item.type.includes("cooked") // 烤肉
-        || item.type.includes("apple") // 苹果
-        || item.type.includes("carrot") // 肉
-        || item.type.includes("cake") // 蛋糕
-        || item.type.includes("potato") // 土豆
-        || item.type.includes("honey") // 蜂蜜
-        || item.type.includes("mushroom") // 蘑菇
-        || item.type.includes("melon") // 西瓜
-        || item.type.includes("beetroot") // 天才跟
-    )
-}
-
-async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
-    if (systemMsg) msg = `[aichat-key-104960014]${name === null ? "" : `[${name}]`} ${msg}`;
-    else msg = `[${(new Date()).toLocaleString('zh-CN', { hour12: false })}]${name} >> ${func.textToEmoji(msg, 1)}`;
-
-    try {
-        AIMemory.set("memory", [
-            ...(AIMemory.get("memory") ?? []),
-            { role: 'user', content: msg }
-        ]);
-
-        const messages = [
-            { role: 'system', content: config.AIChat.system },
-            ...AIMemory.get("memory")
-        ];
-
-        const maxToolRounds = 5;
-        let finalAiMessage = null;
-        const totalUsage = {
-            prompt_tokens: 0,
-            completion_tokens: 0,
-            total_tokens: 0,
-            prompt_cache_hit_tokens: 0,
-            prompt_cache_miss_tokens: 0
-        };
-        const processLogs = [];  // 收集思考过程和工具调用记录
-
-        const toolResInfo = [];
-        for (let round = 0; round < maxToolRounds; round++) {
-            let response = await axios.post(config.AIChat.url, {
-                model: config.AIChat.name,
-                max_tokens: config.AIChat.maxTokens,
-                temperature: config.AIChat.temperature,
-                stream: false,
-                tools: tools,
-                tool_choice: "auto",
-                messages: messages,
-                extra_body: {
-                    thinking: {
-                        type: "disabled"
-                    }
-                },
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${config.AIChat.key}`,
-                    'Content-Type': 'application/json'
-                },
-                timeout: 30000
-            });
-
-            // 累计 token 消耗
-            if (response.data.usage) {
-                totalUsage.prompt_tokens += response.data.usage.prompt_tokens || 0;
-                totalUsage.completion_tokens += response.data.usage.completion_tokens || 0;
-                totalUsage.total_tokens += response.data.usage.total_tokens || 0;
-                totalUsage.prompt_cache_hit_tokens += response.data.usage.prompt_cache_hit_tokens || 0;
-                totalUsage.prompt_cache_miss_tokens += response.data.usage.prompt_cache_miss_tokens || 0;
-            }
-
-            let aiMessage = response.data.choices[0].message;
-
-            if (debug) {
-                try {
-                    logger.warn(JSON.stringify(response.data.choices, (key, value) => {
-                        if (key === 'request' || key === 'config' || key === 'headers') return undefined;
-                        if (typeof value === 'bigint') return value.toString();
-                        return value;
-                    }, 4));
-                } catch (e) { }
-            }
-
-            // 如果没有工具调用，本轮消息就是最终回答，退出循环
-            if (!aiMessage.tool_calls || aiMessage.tool_calls.length === 0) {
-                finalAiMessage = aiMessage;
-                break;
-            }
-
-            // 如果有 content 内容（部分模型会在工具调用前给自然语言思考），记录为思考过程
-            if (aiMessage.content && aiMessage.content.trim() !== '') {
-                processLogs.push({ type: 'assistant', content: aiMessage.content });
-            }
-
-            // 将 AI 的工具调用请求加入上下文
-            messages.push(aiMessage);
-
-            // 处理每一个工具调用
-            for (const toolCall of aiMessage.tool_calls) {
-                const funcName = toolCall.function.name;
-                const funcArgs = JSON.parse(toolCall.function.arguments);
-                let toolResult = [];
-
-                switch (funcName) {
-                    case "query_player_data": {
-                        const uuid = data.name2uuid(funcArgs.query);
-                        if (!uuid) return toolResult = ["无法查找玩家信息，请检查玩家名称是否正确或完整"];
-                        toolResult = [
-                            `玩家名称：${funcArgs.query}`,
-                            `加入时间：${queryPlayerTime(funcArgs.query)}`,
-                            `货币：${mc.getPlayerScore(uuid, "金币")}金币, ${mc.getPlayerScore(uuid, "蜡烛")}蜡烛`,
-                            `击杀数：${mc.getPlayerScore(uuid, "击杀数")}`,
-                            `在线时间：${mc.getPlayerScore(uuid, "time")} 分钟`
-                        ]
-                        break;
-                    }
-                    case "query_data":
-                        toolResult = AIQuery(funcArgs.query, config.AIChat.knowledgeBase, -1);
-                        break;
-                    case "query_updata":
-                        toolResult = AIQuery(funcArgs.query, config.updateLog.split("\n"), -1);
-                        break;
-                    case "query_chat":
-                        toolResult = playerChatList.slice(-funcArgs.query);
-                        break;
-                    case "query_chat_data":
-                        toolResult = AIQuery(funcArgs.query, playerChatList, 20);
-                        break;
-                    case "query_web_info": {
-                        if (!debug) mc.runcmd(`say [Tool_Calls] 联网搜索 "${funcArgs.query}" 中`);
-
-                        const res = await axios.post(config.AIChat.web_url, {
-                            query: funcArgs.query,
-                            fetch_full: false,
-                            sort: "relevance"
-                        }, {
-                            headers: {
-                                'Authorization': `Bearer ${config.AIChat.web_key}`,
-                                'Content-Type': 'application/json'
-                            },
-                            timeout: 30000
-                        });
-                        /*logger.warn(JSON.stringify(res, (key, value) => {
-                            if (key === 'request' || key === 'config' || key === 'headers') return undefined;
-                            if (typeof value === 'bigint') return value.toString();
-                            return value;
-                        }, 4));*/
-                        toolResult = res.data.results?.map(data => JSON.stringify(data)) ?? [];
-                        break;
-                    }
-                }
-
-                toolResInfo.push(`[Tool_Calls] ${funcName}("${funcArgs.query}") -> 获取到 ${toolResult.length} 条结果`);
-                func.titleLog.warn("Tool_Calls", `${funcName}("${funcArgs.query}") -> 获取到 ${toolResult.length} 条结果`);
-                if (!debug) mc.runcmd("say " + func.str2say(`[Tool_Calls] 查询 “${funcArgs.query}”，获取到 ${toolResult.length} 条结果`));
-
-                if (toolResult.length === 0)
-                    toolResult = ["未找到相关内容，请尝试精简关键词并重新搜索"];
-
-                // 记录工具调用日志
-                processLogs.push({
-                    type: 'tool',
-                    toolName: funcName,
-                    args: funcArgs,
-                    result: toolResult
-                });
-
-                // 把工具返回结果加入上下文
-                messages.push({
-                    role: "tool",
-                    tool_call_id: toolCall.id,
-                    content: JSON.stringify(toolResult)
-                });
-            }
-        }
-
-        AIMemory.set("memory", [
-            ...(AIMemory.get("memory") ?? []),
-            { role: 'assistant', content: toolResInfo.join("\n") }
-        ]);
-
-
-        // 如果轮数耗尽仍未得到最终回答，开启深度思考总结之前的消息
-        if (!finalAiMessage) {
-            let response = await axios.post(config.AIChat.url, {
-                model: config.AIChat.name,
-                max_tokens: config.AIChat.maxTokens,
-                temperature: config.AIChat.temperature,
-                stream: false,
-                tools: tools,
-                tool_choice: "none",
-                messages: messages,
-                // reasoning_effort: "max",
-                extra_body: {
-                    thinking: {
-                        type: "enabled"
-                    }
-                },
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${config.AIChat.key}`,
-                    'Content-Type': 'application/json'
-                },
-                timeout: 30000
-            });
-
-            if (response.data.usage) {
-                totalUsage.prompt_tokens += response.data.usage.prompt_tokens || 0;
-                totalUsage.completion_tokens += response.data.usage.completion_tokens || 0;
-                totalUsage.total_tokens += response.data.usage.total_tokens || 0;
-                totalUsage.prompt_cache_hit_tokens += response.data.usage.prompt_cache_hit_tokens || 0;
-                totalUsage.prompt_cache_miss_tokens += response.data.usage.prompt_cache_miss_tokens || 0;
-            }
-
-            finalAiMessage = response.data.choices[0].message;
-        }
-
-        const aiReply = finalAiMessage.content || '';
-        const msgList = aiReply.replace(/\n\n/g, '\n').split("\n");
-
-        // 保存 AI 回复到记忆
-        AIMemory.set("memory", [
-            ...(AIMemory.get("memory") ?? []),
-            { role: 'assistant', content: aiReply }
-        ]);
-
-        // === 生成 Token 消耗日志 ===
+        const totalUsage = res.data.usage;
         const tokenCost = ((totalUsage.completion_tokens || 0) / 1000000) * 2
             + ((totalUsage.prompt_cache_miss_tokens || 0) / 1000000) * 1
             + ((totalUsage.prompt_cache_hit_tokens || 0) / 1000000) * 0.02;
@@ -419,31 +121,314 @@ async function AIChat(msg, name = "nullptr", systemMsg = false, debug = false) {
             + `\n  └─ 总计: ${totalUsage.total_tokens || 0}`
         );
 
-        // 指令执行与广播
-        if (aiReply.includes("falseChat") || aiReply === "")
-            return func.titleLog.info("AIChat", "AIChat 认为不需要回答，发言已取消...");
-
+        const msgList = msg.replace(/\n\n/g, '\n').split("\n");
         (async () => {
             for (let i = 0; i < msgList.length; i++) {
                 const msg = msgList[i];
-                if (msg[0] !== "/" && !debug) mc.runcmd(`say ${func.str2say(msg)}`);
-                else if (config.AIChat.cmdList.has(msg.split(" ")[0])) {
-                    if (debug) logger.warn(msg);
-                    else mc.runcmd(msg);
-                }
+                if (msg[0] !== "/")
+                    noSay
+                        ? logger.info(`say ${func.str2say(msg)}`)
+                        : mc.runcmd(`say ${func.str2say(msg)}`);
+                else if (config.AIChat.cmdList.has(msg.split(" ")[0]))
+                    noSay
+                        ? logger.warn(msg)
+                        : mc.runcmd(msg);
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
         })();
+    })
+}
 
-        func.titleLog.info("AIChat", aiReply);
+async function callAPI(data, callback = (() => { }), canAddMemory = true) {
+    if (canAddMemory) addMemory('user', data);
+
+    try {
+        const sendData = {
+            model: config.AIChat.name,
+            max_tokens: config.AIChat.maxTokens,
+            temperature: config.AIChat.temperature,
+            stream: false,
+            tools: tools.definition,
+            tool_choice: 'auto',
+            messages: [
+                { role: 'system', content: config.AIChat.system },
+                ...getMemory()
+            ]
+        };
+
+        if (isDebug) logger.warn("QQ -> AI:\n" + JSON.stringify(sendData, null, 4));
+
+        const response = await axios.post(config.AIChat.url, sendData, {
+            headers: {
+                'Authorization': `Bearer ${config.AIChat.key}`,
+                'Content-Type': 'application/json'
+            },
+            timeout: 30000
+        });
+
+        if (isDebug) logger.warn("AI -> QQ:\n" + (JSON.stringify(response, (key, value) => {
+            if (key === 'request' || key === 'config' || key === 'headers') return undefined;
+            if (typeof value === 'bigint') return value.toString();
+            return value;
+        }, 4)));
+
+        const message = response.data.choices[0].message;
+
+        // 处理工具调用
+        if (message.tool_calls && message.tool_calls.length > 0) {
+            // 添加助手消息（包含工具调用）
+            addMemory('assistant', message.content || '', message.tool_calls);
+
+            // 执行所有工具调用
+            const toolResults = [];
+
+            for (const toolCall of message.tool_calls) {
+                const toolName = toolCall.function.name;
+                const toolArgs = JSON.parse(toolCall.function.arguments || '{}');
+
+                // 执行工具
+                let toolResult;
+                if (tools.calls[toolName]) {
+                    try {
+                        const argsArray = Object.values(toolArgs);
+                        toolResult = await Promise.resolve(tools.calls[toolName](...argsArray));
+                        toolResult = typeof toolResult === 'string' ? toolResult : JSON.stringify(toolResult);
+                    } catch (e) {
+                        toolResult = `工具执行错误: ${e.message}`;
+                        logger.error(`工具 ${toolName} 执行失败: ${e}`);
+                    }
+                } else {
+                    toolResult = `未知工具: ${toolName}`;
+                }
+
+                toolResults.push({
+                    role: 'tool',
+                    tool_call_id: toolCall.id,
+                    content: toolResult
+                });
+            }
+
+            // 添加工具结果到记忆
+            toolResults.forEach(result => addMemory(result.role, result.content, null, result.tool_call_id));
+
+            // 递归调用继续对话（不重复添加用户消息）
+            if (message.content) callback(message.content, response);
+            return callAPI(data, callback, false);
+        }
+
+        // 处理普通文本回复
+        if (message.content) {
+            addMemory('assistant', message.content);
+            callback(message.content, response);
+        }
     } catch (e) {
-        if (e.response?.data?.error)
-            func.titleLog.error("AIChat", "API错误:", e.response.data.error.message);
-        else func.titleLog.error("AIChat", "请求失败:", e.message || e);
+        logger.error('API 调用失败: ' + e);
+        callback(`这道题有点难呢...我们等下再来学习吧!  ${e.message}`, null);
     }
 }
 
-// === 调用工具 === //
+// === 记忆 === //
+function addMemory(role, content, tool_calls = null, tool_call_id = null) {
+    const memory = getMemory()
+    const message = { role, content };
+
+    if (tool_calls) message.tool_calls = tool_calls;
+    if (tool_call_id) message.tool_call_id = tool_call_id;
+
+    memory.push(message);
+    AIMemory.set("memory", memory);
+    return memory;
+}
+
+function getMemory() {
+    return AIMemory.get("memory") ?? [];
+}
+
+// === 工具 === //
+
+tools = ((tools) => {
+    const result = { definition: [], calls: {} };
+    for (const [name, tool] of Object.entries(tools)) {
+        const def = JSON.parse(JSON.stringify(tool.definition));
+        def.function.name = name;
+        result.definition.push(def);
+        result.calls[name] = tool.call;
+    }
+    return result;
+})({
+    "query_player_data": {
+        definition: {
+            type: "function",
+            function: {
+                name: "query_player_data",
+                description: "查询玩家的一些信息",
+                parameters: {
+                    type: "object",
+                    properties: {
+                        query: {
+                            type: "string",
+                            description: "完整玩家名称",
+                        }
+                    },
+                    required: ["query"]
+                }
+            }
+        },
+        call: (query) => {
+            const uuid = data.name2uuid(query);
+            if (!uuid) return toolResult = ["无法查找玩家信息，请检查玩家名称是否正确或完整"];
+            return [
+                `玩家名称：${query}`,
+                `加入时间：${queryPlayerTime(query)}`,
+                `货币：${mc.getPlayerScore(uuid, "金币")}金币, ${mc.getPlayerScore(uuid, "蜡烛")}蜡烛`,
+                `击杀数：${mc.getPlayerScore(uuid, "击杀数")}`,
+                `在线时间：${mc.getPlayerScore(uuid, "time")} 分钟`
+            ]
+        }
+    },
+
+    "query_web_info": {
+        definition: {
+            type: "function",
+            function: {
+                name: "query_web_info",
+                description: "联网查询信息，非必要情况下不要使用！他返回很慢",
+                parameters: {
+                    type: "object",
+                    properties: {
+                        query: {
+                            type: "string",
+                            description: "关键词或信息",
+                        }
+                    },
+                    required: ["query"]
+                }
+            }
+        },
+        call: async (query) => {
+            const res = await axios.post(config.AIChat.web_url, {
+                query: query,
+                fetch_full: false,
+                sort: "relevance"
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${config.AIChat.web_key}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000
+            });
+
+            return res.data.results?.map(data => JSON.stringify({
+                title: data.title,
+                snippet: data.snippet,
+                position: data.position,
+                score: data.score,
+                publish_time: data.publish_time
+            })) ?? [];
+        }
+    },
+
+    "query_updata": {
+        definition: {
+            type: "function",
+            function: {
+                name: "query_updata",
+                description: "可以调用此工具查询更新日志",
+                parameters: {
+                    type: "object",
+                    properties: {
+                        query: {
+                            type: "string",
+                            description: "要搜索的关键词;返回 all 获取所有;可使用空格分隔多个关键词",
+                        }
+                    },
+                    required: ["query"]
+                }
+            }
+        },
+        call: (query) => AIQuery(query, config.updateLog.split("\n"), -1)
+    },
+
+    "query_chat": {
+        definition: {
+            type: "function",
+            function: {
+                name: "query_chat",
+                description: "当需要当天聊天记录时调用；以最新一条信息为起点，输入1-100的正整数",
+                parameters: {
+                    type: "object",
+                    properties: {
+                        query: {
+                            type: "number",
+                            description: "查询的条数",
+                        },
+                    },
+                    required: ["query"],
+                }
+            }
+        },
+        call: (query) => chatList.slice(-query)
+    },
+
+    "query_chat_data": {
+        definition: {
+            type: "function",
+            function: {
+                name: "query_chat_data",
+                description: "当需要检索当天聊天记录中包含关键词的记录时，调用此工具",
+                parameters: {
+                    type: "object",
+                    properties: {
+                        query: {
+                            type: "string",
+                            description: "要搜索的关键词;返回 all 获取所有;可使用空格分隔多个关键词",
+                        },
+                    },
+                    required: ["query"],
+                }
+            }
+        },
+        call: (query) => AIQuery(query, chatList, -1)
+    },
+
+    // 知识库
+    "query_knowledge_data": {
+        definition: {
+            type: "function",
+            function: {
+                name: "query_knowledge_data",
+                description: "当用户询问特定知识时，调用此工具查询相关信息，确保关键词简洁，如空返回可再次调用",
+                parameters: {
+                    type: "object",
+                    properties: {
+                        query: {
+                            type: "string",
+                            description: "要搜索的关键词;输入 all 获取所有;可使用空格分隔多个关键词",
+                        }
+                    },
+                    required: ["query"]
+                }
+            }
+        },
+        call: async (query) => {
+            const keywords = query.trim().toLowerCase().split(/\s+/);
+            if (keywords[0] === "all" && keywords.length === 1) return config.AIChat.knowledgeBase;
+            if (keywords.length === 1 && keywords[0] === "") return ["请输入有效的搜索关键词"];
+
+            // 使用 Set 去重 + 过滤 + 排序
+            const results = config.AIChat.knowledgeBase
+                .filter(doc => keywords.some(kw => doc.toLowerCase().includes(kw)))
+                .sort((a, b) => {
+                    // 按匹配关键词数量排序（包含更多关键词的排前面）
+                    const aScore = keywords.filter(kw => a.toLowerCase().includes(kw)).length;
+                    const bScore = keywords.filter(kw => b.toLowerCase().includes(kw)).length;
+                    return bScore - aScore;
+                });
+
+            return results.length === 0 ? [] : results;
+        }
+    }
+})
 
 // 关键词匹配知识库
 function AIQuery(query, data, maxResults = 10) {
