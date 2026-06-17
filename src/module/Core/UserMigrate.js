@@ -129,7 +129,10 @@ function userMigrate(newXuid, oldXuid) {
 
     // === MC === //
     const oldNbt = mc.getPlayerNbt(data.xuid2uuid(oldXuid));
-    mc.setPlayerNbt(data.xuid2uuid(oldXuid), mc.getPlayerNbt(data.xuid2uuid(newXuid)));
+    const newNbt = mc.getPlayerNbt(data.xuid2uuid(newXuid))
+    File.writeTo(`./plugins/QYServer/Data/playerOldNbt/${data.xuid2name(oldXuid)}.nbt`, oldNbt.toSNBT(4))
+    File.writeTo(`./plugins/QYServer/Data/playerOldNbt/${data.xuid2name(newXuid)}.nbt`, newNbt.toSNBT(4))
+    mc.setPlayerNbt(data.xuid2uuid(oldXuid), newNbt);
     mc.setPlayerNbt(data.xuid2uuid(newXuid), oldNbt);
 
     // === ILAND === //
