@@ -39,6 +39,9 @@ mc.listen("onPlayerInteractEntity", (player, entity, pos) => {
             })
 
     } else { // 写入
+        if (player.getScore("蜡烛") <= 600) return player.tell("§c你没有足够的蜡烛！");
+        func.enRuncmd(player, "scoreboard players remove @s 蜡烛 600");
+        
         const tradeData = JSON.stringify({
             profession: profession,
             tradeList: entity.getNbt().getTag("Offers").toSNBT()
