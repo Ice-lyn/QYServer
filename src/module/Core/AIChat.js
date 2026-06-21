@@ -120,6 +120,7 @@ function AIChat(msg, name = null, isSystemMsg = false, noSay = false, debug = fa
             + `\n  ├─ 输出: ${totalUsage.completion_tokens || 0}`
             + `\n  └─ 总计: ${totalUsage.total_tokens || 0}`
         );
+        func.titleLog.info("AISend", msg);
 
         const msgList = msg.replace(/\n\n/g, '\n').split("\n");
         (async () => {
