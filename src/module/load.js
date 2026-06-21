@@ -24,7 +24,8 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
         "Doll.js", // 玩偶
         "EnderDragonEx.js", // 更凶猛的末影龙
         "OPmgr.js", // OP管理
-        "SkinEffect.js" // 皮肤效果
+        "SkinEffect.js", // 皮肤效果
+        "VillagerMigrate.js" // 村民交易迁移
     ],
 
     /**
