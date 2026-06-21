@@ -120,17 +120,15 @@ function AIChat(msg, name = null, isSystemMsg = false, noSay = false, debug = fa
             + `\n  ├─ 输出: ${totalUsage.completion_tokens || 0}`
             + `\n  └─ 总计: ${totalUsage.total_tokens || 0}`
         );
-        func.titleLog.info("AISend", msg);
+        // func.titleLog.info("AISend", msg);
 
         if (msg.includes("[falseChat]")) return;
         const msgList = msg.replace(/\n\n/g, '\n').split("\n");
         (async () => {
             for (let i = 0; i < msgList.length; i++) {
                 const msg = msgList[i];
-                noSay
-                    ? logger.info(`say ${func.str2say(msg)}`)
-                    : mc.runcmd(`say ${func.str2say(msg)}`);
-                
+                if (!noSay) mc.runcmd(`say ${func.str2say(msg)}`);
+                func.titleLog.info("AISend", msg);
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
         })();
@@ -272,7 +270,8 @@ tools = ((tools) => {
             }
         },
         call: async (command) => {
-            if (config.AIChat.cmdList.has(command.split(" ")[0]))
+            func.titleLog.info("AICommand", "Runcmd => " + command);
+            if (!config.AIChat.cmdList.has(command.split(" ")[0]))
                 return "指令不存在或没有执行权限";
             else
                 return await JSON.stringify(mc.runcmdEx(command));
