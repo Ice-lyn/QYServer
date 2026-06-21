@@ -103,7 +103,8 @@ export function parseArgs(input) {
  * @returns {Boolean} - 返回是否有权限
  */
 export function LandJudgment(Player, Pos) {
-    if (ll.hasExported('ILAPI_PosGetLand')) {// iLand
+    // iLand
+    if (ll.hasExported('ILAPI_PosGetLand')) {
         /** 领地ID @type {Number} */
         let LandId = ll.imports('ILAPI_PosGetLand')(toRawPos(Pos));
         if (LandId != -1 &&
@@ -113,6 +114,13 @@ export function LandJudgment(Player, Pos) {
                 || ll.imports('ILAPI_IsPlayerTrusted')(LandId, Player.xuid)// 被信任的
             )
         ) return false;
+    }
+
+    // PLand
+    if (ll.hasExported("PLand_LDAPI", "PLand_getLandAt")) {
+        /** 领地ID @type {Number} */
+        let LandId = ll.imports('PLand_LDAPI', "PLand_getLandAt")(Pos);
+        if (LandId != -1) return true;
     }
     return true;
 }
