@@ -122,18 +122,15 @@ function AIChat(msg, name = null, isSystemMsg = false, noSay = false, debug = fa
         );
         func.titleLog.info("AISend", msg);
 
+        if (msg.includes("[falseChat]")) return;
         const msgList = msg.replace(/\n\n/g, '\n').split("\n");
         (async () => {
             for (let i = 0; i < msgList.length; i++) {
                 const msg = msgList[i];
-                if (msg[0] !== "/")
-                    noSay
-                        ? logger.info(`say ${func.str2say(msg)}`)
-                        : mc.runcmd(`say ${func.str2say(msg)}`);
-                else if (config.AIChat.cmdList.has(msg.split(" ")[0]))
-                    noSay
-                        ? logger.warn(msg)
-                        : mc.runcmd(msg);
+                noSay
+                    ? logger.info(`say ${func.str2say(msg)}`)
+                    : mc.runcmd(`say ${func.str2say(msg)}`);
+                
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
         })();
@@ -157,7 +154,7 @@ async function callAPI(data, callback = (() => { }), canAddMemory = true) {
             ]
         };
 
-        if (isDebug) logger.warn("QQ -> AI:\n" + JSON.stringify(sendData, null, 4));
+        if (isDebug) logger.warn(JSON.stringify(sendData, null, 4));
 
         const response = await axios.post(config.AIChat.url, sendData, {
             headers: {
@@ -167,11 +164,11 @@ async function callAPI(data, callback = (() => { }), canAddMemory = true) {
             timeout: 30000
         });
 
-        if (isDebug) logger.warn("AI -> QQ:\n" + (JSON.stringify(response, (key, value) => {
+        if (isDebug) logger.warn(JSON.stringify(response, (key, value) => {
             if (key === 'request' || key === 'config' || key === 'headers') return undefined;
             if (typeof value === 'bigint') return value.toString();
             return value;
-        }, 4)));
+        }, 4));
 
         const message = response.data.choices[0].message;
 
@@ -257,11 +254,35 @@ tools = ((tools) => {
     }
     return result;
 })({
+    "run_mc_command": {
+        definition: {
+            type: "function",
+            function: {
+                description: "运行MC指令",
+                parameters: {
+                    type: "object",
+                    properties: {
+                        command: {
+                            type: "string",
+                            description: "完整MC指令",
+                        }
+                    },
+                    required: ["command"]
+                }
+            }
+        },
+        call: async (command) => {
+            if (config.AIChat.cmdList.has(command.split(" ")[0]))
+                return "指令不存在或没有执行权限";
+            else
+                return await JSON.stringify(mc.runcmdEx(command));
+        }
+    },
+
     "query_player_data": {
         definition: {
             type: "function",
             function: {
-                name: "query_player_data",
                 description: "查询玩家的一些信息",
                 parameters: {
                     type: "object",
@@ -292,7 +313,6 @@ tools = ((tools) => {
         definition: {
             type: "function",
             function: {
-                name: "query_web_info",
                 description: "联网查询信息，非必要情况下不要使用！他返回很慢",
                 parameters: {
                     type: "object",
@@ -333,7 +353,6 @@ tools = ((tools) => {
         definition: {
             type: "function",
             function: {
-                name: "query_updata",
                 description: "可以调用此工具查询更新日志",
                 parameters: {
                     type: "object",
@@ -354,7 +373,6 @@ tools = ((tools) => {
         definition: {
             type: "function",
             function: {
-                name: "query_chat",
                 description: "当需要当天聊天记录时调用；以最新一条信息为起点，输入1-100的正整数",
                 parameters: {
                     type: "object",
@@ -375,7 +393,6 @@ tools = ((tools) => {
         definition: {
             type: "function",
             function: {
-                name: "query_chat_data",
                 description: "当需要检索当天聊天记录中包含关键词的记录时，调用此工具",
                 parameters: {
                     type: "object",
@@ -397,7 +414,6 @@ tools = ((tools) => {
         definition: {
             type: "function",
             function: {
-                name: "query_knowledge_data",
                 description: "当用户询问特定知识时，调用此工具查询相关信息，确保关键词简洁，如空返回可再次调用",
                 parameters: {
                     type: "object",
