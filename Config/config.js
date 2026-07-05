@@ -16,12 +16,7 @@ export const config = {
     ]),
 
     // 支持上锁的方块
-    lockBlock: new Set([
-        "minecraft:chest", // 箱子
-        "minecraft:trapped_chest", // 陷阱箱
-        "minecraft:hopper", // 漏斗
-        "minecraft:barrel" // 木桶 
-    ]),
+    lockBlock: /^(?:minecraft:(?:chest|trapped_chest|hopper|barrel)|.+_door)$/,
 
     Mail: { // 邮件相关
         host: "smtp.resend.com",

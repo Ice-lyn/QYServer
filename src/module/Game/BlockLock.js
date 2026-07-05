@@ -13,7 +13,8 @@ const getLandId = (pos) => ll.imports('ILAPI_PosGetLand')({
 
 // === 大概实现逻辑 === //
 /**
- * 设计灵感来源与xiang5929机器的漏斗分类总是被小白弄坏
+ * 设计灵感来源与xiang5232机器的漏斗分类总是被小白弄坏
+ * 和Miao924总是被破门而入
  * 
  * 玩家只能在受信任的领地内使用
  * 创建者和领地主可以自由设置锁
@@ -22,8 +23,8 @@ const getLandId = (pos) => ll.imports('ILAPI_PosGetLand')({
  * 数据存储格式：pos: "上锁者的xuid"
  */
 
-// 打开容器GUI
-mc.listen("onOpenContainer", (player, block) => {
+// 右键方块 禁止打开
+mc.listen("onUseItemOn", (player, item, block) => {
     if (!lockData.get(func.pos2str(block.pos, 1))) return;
 
     if (getLandId(block.pos) === -1) // 领地失效自动解锁
@@ -39,11 +40,11 @@ mc.listen("onOpenContainer", (player, block) => {
     return false;
 })
 
-// 右键方块
+// 右键方块 上锁
 mc.listen("onUseItemOn", (player, item, block) => {
     if (!(player?.isSneaking
         && item?.type === "minecraft:clock"
-        && config.lockBlock.has(block?.type)
+        && config.lockBlock.test(block?.type)
         && func.LandJudgment(player, block.pos)
         && !useCD.has(player.xuid)
     )) return;
