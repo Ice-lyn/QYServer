@@ -121,11 +121,8 @@ function verifyCode(player) {
 ll.exports(userMigrate, "QYServer", "userMigrate")
 function userMigrate(newXuid, oldXuid) {
     func.titleLog.warn("QYMigrate", `开始迁移账户数据：\n${data.xuid2name(oldXuid)} -> ${data.xuid2name(newXuid)}`)
-    const player = mc.getPlayer(`${newXuid}`);
-    
-    if (func.isNull(player)) return func.titleLog.warn("QYMigrate", `迁移账号 ${data.xuid2name(newXuid)} 失败：目标账户不在线！`);
-    player.tell("账户迁移中...");
-    mc.getPlayer(`${oldXuid}`)?.kick("账户迁移中...")
+    mc.getPlayer(`${newXuid}`)?.tell("账户迁移中...");
+    mc.getPlayer(`${oldXuid}`)?.tell("账户迁移中...");
 
     // === MC === //
     const oldNbt = mc.getPlayerNbt(data.xuid2uuid(oldXuid));
@@ -134,6 +131,8 @@ function userMigrate(newXuid, oldXuid) {
     File.writeTo(`./plugins/QYServer/Data/playerOldNbt/${data.xuid2name(newXuid)}.nbt`, newNbt.toSNBT(4))
     mc.setPlayerNbt(data.xuid2uuid(oldXuid), newNbt);
     mc.setPlayerNbt(data.xuid2uuid(newXuid), oldNbt);
+
+    func.titleLog.warn("QYMigrate", "迁移MC存档数据成功")
 
     // === ILAND === //
 
@@ -154,7 +153,8 @@ function userMigrate(newXuid, oldXuid) {
         ll.imports("ILAPI_SetOwner")(id, newXuid);
     });
 
-    player.tell("账户迁移已结束...");
-    func.titleLog.warn("QYMigrate", "账户迁移已结束...");
+    mc.getPlayer(`${newXuid}`)?.tell("账户迁移已结束...");
+    func.titleLog.warn("QYMigrate", "迁移领地数据成功")
+    func.titleLog.warn("QYMigrate", "账户迁移已结束...")
 }
 
