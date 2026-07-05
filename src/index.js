@@ -260,7 +260,7 @@ mc.listen("onPlaceBlock", (player, block) => {
     }
 })
 
-// 玩家对方块使用物品
+// 玩家对方块使用物品 / 点击方块
 mc.listen("onUseItemOn", (player, item, block, side, pos) => {
     // 颜料给方块染色
     // minecraft:black_dye -> minecraft:black_wool
