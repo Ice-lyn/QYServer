@@ -92,7 +92,7 @@ mc.listen("onMobDie", (mob) => {
             if (func.isNull(player)) return;
 
             // 物品
-            mc.runcmdEx(`give "${player.realName}" netherite_ingot ${anking * 5}`);
+            mc.runcmdEx(`give "${player.realName}" netherite_ingot ${anking}`);
 
             // 经济奖励
             player.addScore("蜡烛", anking * 3000);
