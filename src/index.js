@@ -93,9 +93,8 @@ mc.listen("onDestroyBlock", (player, block) => {
         && func.probability(50)
     ) mc.spawnItem(mc.newItem("minecraft:budding_amethyst", 1), block.pos);
 
-    if (block.hasBlockEntity()
-        && (block.type === "minecraft:trial_spawner"
-        || block.type === "minecraft:mob_spawner")
+    if ((block.type === "minecraft:trial_spawner" || block.type === "minecraft:mob_spawner")
+        && block.hasBlockEntity()
     ) {
         const eggType = block.getBlockEntity()?.getNbt()?.getData("EntityIdentifier");
         if (eggType) mc.spawnItem(mc.newItem(`${eggType}_spawn_egg`, 1).setLore(["* 刷怪笼掉落物品"]), block.pos);
