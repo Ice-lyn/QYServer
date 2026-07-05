@@ -617,9 +617,9 @@ mc.listen("onServerStarted", () => {
     cmd.setCallback((_cmd, ori, out, res) => {
         if (!res.text && !ori.player) return out.error("请输入文本！");
         if (res.text) {
-            const data = `${ori?.player?.realName || ori.name} >> ${res.text}`;
+            const data = `[${system.getTimeStr()}] ${ori?.player?.realName || ori?.name} >> ${res?.text}`;
             func.titleLog.warn("QYIssues", data);
-            File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}] ${data}`);
+            File.writeLine("./plugins/QYServer/Data/issues.txt", data);
             out.success("反馈已提交！");
             func.sendMail({
                 from: '"issues" <admin@m.qyserver.cc>',
@@ -637,9 +637,7 @@ mc.listen("onServerStarted", () => {
                 .addInput("反馈内容");
             ori.player.sendForm(fm, (player, data) => {
                 if (!data) return;
-                logger.warn(func.delStringCode(`[反馈] ${player.realName} >> ${data}`));
-                File.writeLine("./plugins/QYServer/Data/issues.txt", `[${system.getTimeStr()}] ${player.realName} >> ${data}`);
-                out.success("§a反馈已提交！");
+                player.runcmd(`/issues ${data}`);
             })
         }
     })
