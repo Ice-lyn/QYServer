@@ -289,10 +289,11 @@ mc.listen("onUseItemOn", (player, item, block, side, pos) => {
     }
 
     // 下界放水
-    // if (player.pos.dimid === 1
-    //     && item.type === "minecraft:water_bucket"
-    //     && mc.getBlock(pos)?.type === "minecraft:air"
-    // ) mc.setBlock(pos, "minecraft:flowing_water", 0);
+    if (player.pos.dimid === 1
+        && item.type === "minecraft:water_bucket"
+        && func.LandJudgment(player, pos)
+        && mc.getBlock(pos)?.type === "minecraft:air"
+    ) mc.setBlock(pos, "minecraft:flowing_water", 0);
 })
 
 // 玩家使用物品
