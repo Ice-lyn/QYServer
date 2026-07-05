@@ -203,7 +203,7 @@ addContainerData("elytraUI", {
                 slot: 23
             },
             {
-                item: mc.newItem(NBT.parseSNBT(`{"Count":1b,"Damage":0s,"Name":"qys:wings","WasPickedUp":0b,"tag":{"RepairCost":0,"display":{"Name":"§b末影龙翅膀 Pro"},"ench":[]}}`)),
+                item: mc.newItem(NBT.parseSNBT(`{"Count":1b,"Damage":0s,"Name":"minecraft:dragon_head","WasPickedUp":0b,"tag":{"RepairCost":0,"display":{"Name":"§b末影龙翅膀 Pro"},"ench":[]}}`)),
                 slot: 24
             },
             {
