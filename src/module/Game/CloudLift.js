@@ -3,9 +3,9 @@ import { config } from "../../../Config/config.js";
 // 玩家跳跃
 mc.listen("onJump", (pl) => {
     let block = pl.getBlockStandingOn();
-    if (block.type !== config.sky_block_type) { // 修复ll 1.9.9 出现的神秘bug
+    if (block?.type !== config.sky_block_type) { // 修复ll 1.9.9 出现的神秘bug
         block = mc.getBlock(block.pos.x, block.pos.y - 2, block.pos.z, block.pos.dimid);
-        if (block.type !== config.sky_block_type) 
+        if (block?.type !== config.sky_block_type) 
             block = mc.getBlock(block.pos.x, block.pos.y - 1, block.pos.z, block.pos.dimid);
     }
     if (block?.type !== config.sky_block_type) return;
