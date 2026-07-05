@@ -1,5 +1,30 @@
 export const mailConfig = [
     {
+        id: "ann_006",
+        title: "暑假快乐",
+        expireDays: 60,
+        content: ([
+            "亲爱的旅人们：",
+            "",
+            "蝉鸣爬上树梢，阳光洒满窗台，漫长的暑假终于来啦！",
+            "在这段可以尽情撒野的日子里，遇境的灯火会一直为你亮着",
+            "不管是熬夜建城堡，还是和好友在云野闲逛，都别忘了抬头看看星光",
+            "",
+            "愿你的暑假像夏日烟火般绚烂，也像午后微风一样自在",
+            "",
+            "附件：",
+            "- 十级烟花火箭 ×32",
+            "- 附魔金苹果 ×16",
+            "- 干草块 ×64 —— 躺上去，数数云朵吧(˶ᵔ ᵕ ᵔ˶)"
+        ].join("\n")),
+        items: [
+            "{\"Count\":32b,\"Damage\":0s,\"Name\":\"minecraft:firework_rocket\",\"WasPickedUp\":0b,\"tag\":{\"Fireworks\":{\"Explosions\":[],\"Flight\":50b}}}",
+            type2snbt("enchanted_golden_apple", 16),
+            type2snbt("hay_block", 64)
+        ],
+        time: time2date("2026/7/1")
+    },
+    {
         id: "ann_005",
         title: "五一劳动节快乐！(˶ᵔ ᵕ ᵔ˶)",
         expireDays: 5,
