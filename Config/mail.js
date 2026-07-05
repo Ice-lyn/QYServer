@@ -53,7 +53,7 @@ export const mailConfig = [
         id: "ann_003",
         title: "关于Actions & Stuff材质版本说明",
         content: ([
-            "出于对向低版本客户端兼容的考虑，我们使用的Actions & Stuff将停留在1.7版本",
+            "出于对向低版本客户端兼容的考虑，我们使用的Actions & Stuff将停留在1.9.1版本",
             "如果你想使用 且 设备支持Actions & Stuff 2.0",
             "可以在 [设置-全局资源] 内手动安装启用 Actions & Stuff 2.0",
             "感谢你的理解与支持 (｡•̀ᴗ-)✧",
