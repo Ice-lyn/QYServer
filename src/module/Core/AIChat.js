@@ -110,9 +110,9 @@ function AIChat(msg, name = null, isSystemMsg = false, noSay = false, debug = fa
         }, 4));
 
         const totalUsage = res.data.usage;
-        const tokenCost = ((totalUsage.completion_tokens || 0) / 1000000) * 2
-            + ((totalUsage.prompt_cache_miss_tokens || 0) / 1000000) * 1
-            + ((totalUsage.prompt_cache_hit_tokens || 0) / 1000000) * 0.02;
+        const tokenCost = ((totalUsage.completion_tokens || 0) / 1000000) * 4
+            + ((totalUsage.prompt_cache_miss_tokens || 0) / 1000000) * 2
+            + ((totalUsage.prompt_cache_hit_tokens || 0) / 1000000) * 0.04;
         func.titleLog.info("AIToken", `Token消耗 (预计: ${tokenCost.toFixed(6)} 元)`
             + `\n  ├─ 输入: ${totalUsage.prompt_tokens || 0}`
             + `\n  │  ├─ 命中: ${totalUsage.prompt_cache_hit_tokens || 0}`
