@@ -364,7 +364,10 @@ tools = ((tools) => {
                 }
             }
         },
-        call: (query) => AIQuery(query, config.updateLog.split("\n"), -1)
+        call: async (query) => {
+            const data = await axios.get("https://www.qyserver.top/Configs/updata.json");
+            return AIQuery(query, data.data.map(i => JSON.stringify(i)), -1);
+        }
     },
 
     "query_chat": {
