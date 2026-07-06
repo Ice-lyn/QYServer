@@ -68,6 +68,7 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
         && !AICallCD.has(player.xuid)
     )) return;
 
+    AICallCD.add(player.xuid);
     setTimeout(() => AICallCD.delete(player.xuid), 1000);
 
     const item = player.getHand();
@@ -82,6 +83,12 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
 
 const AICallCD = new Set();
 func.addOnmodeCmd("aichat", (player, cmd) => {
+    if (AICallCD.has(player.xuid))
+        return player.tell("冷却中...");
+
+    AICallCD.add(player.xuid);
+    setTimeout(() => AICallCD.delete(player.xuid), 500);
+
     switch (cmd[0]) {
         case "give":
             AIAction.giveItem(player, player.getHand());
