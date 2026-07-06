@@ -68,7 +68,7 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
         && !AICallCD.has(player.xuid)
     )) return;
 
-    setTimeout(() => AICallCD.delete(player.xuid), 500);
+    setTimeout(() => AICallCD.delete(player.xuid), 1000);
 
     const item = player.getHand();
     if (player.isSneaking && item && item.type.some(type => AICanItem.includes(type)))
