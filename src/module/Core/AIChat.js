@@ -241,7 +241,6 @@ function getMemory() {
 }
 
 // === 工具 === //
-
 tools = ((tools) => {
     const result = { definition: [], calls: {} };
     for (const [name, tool] of Object.entries(tools)) {
@@ -262,7 +261,7 @@ tools = ((tools) => {
                     properties: {
                         command: {
                             type: "string",
-                            description: "完整MC指令",
+                            description: "完整MC指令, 可用：" + [...config.AIChat.cmdList].join(", "),
                         }
                     },
                     required: ["command"]
