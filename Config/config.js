@@ -3,6 +3,20 @@ import { sensitive } from "./sensitive.js";
 
 export const config = {
 
+    // 风纪委员列表
+    prefect: {
+        2535441456906455: {
+            name: "fangfubin0782",
+            email: "Ice_rink@qyserver.cc",
+            qq: 1669044502
+        },
+        2535473171169316: {
+            name: "weishao22",
+            email: "qy@qyserver.cc",
+            qq: 399844389
+        }
+    },
+
     // 封禁名单
     banName: new Set(["LetCoyote795842", "NeededSea7090", "EchoicMars7113", "a13840543290", "TMTM19859178", "CoyChain6489"]),
     banXuid: new Set([25354516476770875, 2535416654479238, 2535433918115417, 2535463156914366, 2535456172749525, 2535470967100053]),
