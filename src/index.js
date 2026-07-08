@@ -245,17 +245,17 @@ mc.listen("onHopperPushOut", (_pos, isMinecart, item) => {
 mc.listen("onPlaceBlock", (player, block) => {
     if (!player.isOP()
         && ((config.banBlock.has(block.type)
-        || (
-            block.type.startsWith("minecraft:element_") && /^\d+$/.test(block.type.slice(18))
-        )
-    ))) {
+            || (
+                block.type.startsWith("minecraft:element_") && /^\d+$/.test(block.type.slice(18))
+            )
+        ))) {
         player.tell("§c您需要创造模式 + 操作员权限来放置此方块§r");
         player.refreshChunks();
         return false;
     }
 })
 
-// 玩家对方块使用物品 / 点击方块
+// 玩家对方块使用物品
 mc.listen("onUseItemOn", (player, item, block, side, pos) => {
     // 颜料给方块染色
     // minecraft:black_dye -> minecraft:black_wool
@@ -300,7 +300,7 @@ mc.listen("onUseItem", (player, item) => {
         return player.clearItem("qys:wing", 1);
     }
     if (item.type === "qys:magic") return func.enRuncmd(player, "playsound custom.magic_use_sound @a[r=10] ~~~");
-    if (player.isSneaking 
+    if (player.isSneaking
         && !item?.isNull()
         && item.damage !== 0
         && player.getTotalExperience() > 20
@@ -610,7 +610,7 @@ mc.listen("onServerStarted", () => {
                 to: ["Ice_rink@qyserver.cc", "qy@qyserver.cc"],
                 subject: "QYServer | 收到反馈",
                 text: `反馈原始信息:\n${data}`
-            },(info, isSend) => {
+            }, (info, isSend) => {
                 isSend
                     ? func.titleLog.warn("QYEmail", "反馈邮件已发送！")
                     : func.titleLog.warn("QYEmail", info)
@@ -796,12 +796,12 @@ function xpFix(player) {
     const enchants = item.getNbt()?.getTag("tag")?.getTag("ench")?.toArray();
     if (!enchants?.some(e => e.id === 26)) return;
     const unbreakingLevel = enchants?.find(e => e.id === 17)?.lvl || 0;
-    
+
     // 有耐久附魔时有概率不消耗经验
     if (!(unbreakingLevel > 0 && Math.random() < unbreakingLevel * 0.2))
         player.reduceExperience(1)
     item.setDamage(Math.max(0, item.damage - 10));
-        
+
     player.tell("经验修补中，当前物品耐久: " + (item.maxDamage - item.damage), 5)
     player.refreshItems();
 }
