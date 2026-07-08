@@ -32,13 +32,99 @@ export const config = {
     // 支持上锁的方块
     lockBlock: /^(?:minecraft:(?:chest|trapped_chest|hopper|barrel)|.+_door)$/,
 
-    Mail: { // 邮件相关
+    // 邮件相关
+    Mail: {
         host: "smtp.resend.com",
         port: 465, // 加密端口
         secure: true, // 加密
         auth: {
             user: sensitive.mail_auth.user,
             pass: sensitive.mail_auth.pass
+        }
+    },
+
+    // 主城商店配置
+    shop: {
+        candle: { // 蜡烛商店
+            "光明魔法": {
+                money: 200,
+                cmd: ["structure load item_恢复药水 ~~~"]
+            },
+            "留言纸船": {
+                icon: "textures/items/message",
+                money: 500,
+                cmd: ["structure load item_留言小船魔法 ~~~"]
+            },
+            "缩小魔法": {
+                money: 500,
+                cmd: ["structure load item_缩小药水 ~~~"]
+            },
+
+            "乘骑魔法": {
+                money: 200,
+                cmd: ["structure load item_乘骑魔法 ~~~"]
+            },
+            "栓绳魔法": {
+                money: 300,
+                cmd: ["structure load item_拴绳魔法 ~~~"]
+            },
+            "引蝶魔法": {
+                money: 50,
+                cmd: ["structure load item_引蝶魔法 ~~~"]
+            },
+
+            "随意抚摸魔法": {
+                money: 100,
+                cmd: ["structure load item_随意抚摸魔法 ~~~"]
+            },
+            "随地而坐魔法": {
+                money: 200,
+                cmd: ["structure load item_随地而坐魔法 ~~~"]
+            },
+            "飞行帆船魔法": {
+                money: 50,
+                cmd: ["structure load item_boatFly ~~~"]
+            },
+
+            "飞行药水": {
+                money: 1000,
+                icon: "textures/items/medicine_fly",
+                cmd: ["give @s qys:medicine_fly"]
+            },
+            "急迫药水": {
+                money: 2000,
+                icon: "textures/items/medicine_fly",
+                cmd: ["structure load 商品_急迫药水 ~~~"]
+            },
+            "可疑的糖果 *16": {
+                money: 200,
+                icon: "textures/items/candy",
+                cmd: ["give @s qys:suspicious_candy 16"]
+            }
+        },
+
+        coin: { // 金币商店
+            "水晶球": {
+                money: 50,
+                icon: "textures/items/glassball",
+                cmd: [
+                    "give @s d3c:glassball"
+                ]
+            },
+            "爆竹 *32": {
+                money: 50,
+                icon: "textures/items/baozhu",
+                cmd: [
+                    "give @s qys:baozhu 32"
+                ]
+            },
+            "云朵方块 *10": {
+                money: 1000,
+                icon: "textures/blocks/sky_block",
+                cmd: [
+                    "give @s qys:sky_block 10"
+                ]
+            }
         }
     },
 
