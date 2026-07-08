@@ -37,6 +37,7 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
         "AfkTestfor.js", // 挂机检测
         "AxolotlDamage.js", // 美西螈攻击
         "Cdk.js", // 兑换码系统
+        "MainCityShop.js", // 主城商店
         "Prefect.js", // 社区风纪系统
         "ScoreChanged.js", // 积分榜提示
         "ShowBiome.js", // 群系提示
