@@ -411,8 +411,9 @@ mc.listen('onServerStarted', () => {
     setInterval(() => {
         mc.getOnlinePlayers().forEach((player) => {
             if (player.hasTag("qys:in:afk")) return;
-            ping = player.getDevice()?.avgPing ?? 255;
-            if (ms.getScore(player) !== ping) ms.setScore(player, ping);
+            ms.setScore(player,
+                (player.getDevice()?.avgPing ?? 327679280)
+            );
         })
     }, 2 * 1000)
 
@@ -425,7 +426,7 @@ mc.listen('onServerStarted', () => {
     }, config.wordtime * 60 * 1000);
 
     // 假死检查
-    setInterval(() => File.writeTo("./in_run.bin", "" + Date.now()), 5 * 60 * 1000)
+    // setInterval(() => File.writeTo("./in_run.bin", "" + Date.now()), 5 * 60 * 1000)
 })
 
 
