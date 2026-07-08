@@ -429,17 +429,6 @@ mc.listen('onServerStarted', () => {
         });
     }, config.wordtime * 60 * 1000);
 
-    // 冲撞魔法
-    setInterval(() => {
-        mc.getOnlinePlayers().forEach(player => {
-            if (!(player.hasTag("qys:can_speed") && player.isGliding)) return;
-            const speed = Math.floor(player.speed);
-            if (speed <= 10) return;
-            mc.runcmdEx(`execute as "${player.realName}" at @s run damage @e[r=3.5,rm=0.01,family=monster] ${speed} entity_attack entity @s`);
-            player.tell("speed: " + speed, 3);
-        })
-    }, 100)
-
     // 假死检查
     setInterval(() => File.writeTo("./in_run.bin", "" + Date.now()), 5 * 60 * 1000)
 })
