@@ -56,11 +56,6 @@ mc.listen("onServerStarted", () => {
         "minecraft:white_dye"
     ], "qys:santa_hat", 1, "None");
 
-    Recipes.registerShapelessRecipe("qys:nametagitem", [// 命名牌
-        "minecraft:iron_nugget",
-        "minecraft:paper"
-    ], "minecraft:name_tag", 2, "None");
-
     // 注册切石机合成表
     Recipes.registerStoneCutterRecipe("qys:amethyst", "amethyst_block", 0, "amethyst_shard", 0, 4); // 紫水晶
 })
