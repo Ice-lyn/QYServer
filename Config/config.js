@@ -111,6 +111,13 @@ export const config = {
                     "give @s d3c:glassball"
                 ]
             },
+            "叫！": {
+                money: 50,
+                icon: "textures/items/called",
+                cmd: [
+                    "give @s qys:called"
+                ]
+            },
             "爆竹 *32": {
                 money: 50,
                 icon: "textures/items/baozhu",
@@ -124,7 +131,14 @@ export const config = {
                 cmd: [
                     "give @s qys:sky_block 10"
                 ]
-            }
+            },
+            "骗子方块 *5": {
+                money: 2000,
+                icon: "textures/blocks/sky_block",
+                cmd: [
+                    "give @s qys:rickroll 10"
+                ]
+            },
         }
     },
 
