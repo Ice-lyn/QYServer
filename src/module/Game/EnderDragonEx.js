@@ -30,9 +30,9 @@ mc.listen("onMobHurt", (mob, source, damage, cause) => {
     ) return false;
     if (source?.type !== "minecraft:player") return;
 
-    // 有45%的机率摇人
+    // 有35%的机率摇人
     if (mob.health < 250 && func.probability(35)) {
-        func.enRuncmd(mob, "execute as @a[r=500] at @s run structure load 末影侍卫 ~~~");
+        func.enRuncmd(mob, "execute as @a[r=500,c=2] at @s run structure load 末影侍卫 ~~~");
     }
 
     const xuid = source.toPlayer().xuid;
@@ -98,10 +98,12 @@ mc.listen("onMobDie", (mob) => {
             player.addScore("蜡烛", anking * 3000);
             player.addScore("金币", anking * 1000);
 
+            mc.runcmdEx("setblock 0 64 0 dragon_egg")
+
             // 称号
             if (!player.hasTag("tag:§r§l§5屠§d龙§b勇§3士§r")) {
                 func.enRuncmd(player, "function tag/tag4");
-                func.enRuncmd(player, "scriptevent qys:cmd tagData add elytra [20]")
+                func.enRuncmd(player, "scriptevent qys:cmd tagData add elytra [18]")
                 mc.broadcast(`${player.realName} 完成了进度 §d[解放末地]§r`);
                 player.tell(
                     "§b§d最近的未探索过的末地城在："
