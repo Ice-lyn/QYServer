@@ -36,7 +36,7 @@ function candleShop(player) {
     player.sendSimpleForm(
         "§l§b蜡烛商店§r",
         `您当前有 §b§l${money}§r 蜡烛\n使用蜡烛兑换各种物品吧~`,
-        candleItemData.text.map(i => `${i}§r\n§e(${candleData[i].money} 蜡烛)§r`),
+        candleItemData.text.map(i => `${i}§r\n§b(${candleData[i].money} 蜡烛)§r`),
         candleItemData.icon,
         (player, id) => {
             if (func.isNull(id)) return;
@@ -46,6 +46,7 @@ function candleShop(player) {
             if (money >= itemData.money) {
                 [
                     ...itemData.cmd,
+                    `scoreboard players remove @s 蜡烛 ${itemData.money}`,
                     "playsound random.levelup @s"
                 ].forEach(cmd => func.enRuncmd(player, cmd));
             } else player.tell("§l§b蜡烛不足，无法购买");
@@ -62,7 +63,7 @@ function coinShop(player) {
     player.sendSimpleForm(
         "§l§e金币商店§r",
         `您当前有 §e§l${money}§r 金币\n使用金币兑换各种物品吧~`,
-        coinItemData.text.map(i => `${i}§r\n§e(${coinData[i].money} 蜡烛)§r`),
+        coinItemData.text.map(i => `${i}§r\n§e(${coinData[i].money} 金币)§r`),
         coinItemData.icon,
         (player, id) => {
             if (func.isNull(id)) return;
@@ -72,6 +73,7 @@ function coinShop(player) {
             if (money >= itemData.money) {
                 [
                     ...itemData.cmd,
+                    `scoreboard players remove @s 金币 ${itemData.money}`,
                     "playsound random.levelup @s"
                 ].forEach(cmd => func.enRuncmd(player, cmd));
             } else player.tell("§l§e金币不足，无法购买");
