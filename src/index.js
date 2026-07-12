@@ -117,9 +117,6 @@ mc.listen("onConsoleCmd", (cmd) => {
         case "reload":
             setTimeout(() => mc.runcmd("scriptevent qys:command noChat true"), 2000);
             return;
-        case "testfor":
-            mc.getOnlinePlayers().forEach(player => log(`${player.realName} -> ${func.enRuncmd(player, "testfor @e[r=160]").output?.split(", ")?.length}`));
-            return false;
         case "tps":
             logger.info(mc.runcmdEx("cleaner tps").output);
             return false;
@@ -132,7 +129,12 @@ mc.listen("onConsoleCmd", (cmd) => {
         case "list -i":
             mc.getOnlinePlayers().forEach(player => {
                 const dev = player.getDevice();
-                logger.info(func.mcCode2Ansi(`${player.realName} §a-ping §l${dev.avgPing}ms§r §b-os §l${dev.os}§r §e-ip §l${dev.ip}§r §d-clientId §l${dev.clientId}§r`));
+                logger.info(func.mcCode2Ansi(`${player.realName} §a-ping §l${dev.avgPing}ms§r §b-os §l${dev.os}§r §d-clientId §l${dev.clientId}§r`));
+            })
+            return false;
+        case "list -t":
+            mc.getOnlinePlayers().forEach(player => {
+                logger.info(player.realName, ": ", mc.getScoreObjective("time").getScore(player));
             })
             return false;
     };
@@ -182,13 +184,6 @@ mc.listen("onPlayerCmd", (player, cmd) => {
             return;
         case "msg":
             msgUI(player);
-            return false;
-        case "testfor":
-            player.tell("==============");
-            player.tell(`所有实体数: ${mc.runcmdEx("testfor @e").output.split(", ").length}`);
-            player.tell("玩家240格附近实体数：");
-            mc.getOnlinePlayers().forEach(player => player.tell(`${player.realName} -> ${func.enRuncmd(player, "testfor @e[r=240]").output?.split(", ")?.length}`));
-            player.tell("==============");
             return false;
     }
     switch (cmd.split(" ")[0]) {
