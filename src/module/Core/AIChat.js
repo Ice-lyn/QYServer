@@ -23,11 +23,14 @@ const AICanItem = [
 ];
 
 const AIGiveNum = new Map();
+const AIActionNum = new Map();
 const AIAction = {
     rua: (player) => {
+        if (AIActionNum.get(player.xuid) > 10) return;
         mc.broadcast(`${player.realName} rua了服务器娘一下~`);
         ll.imports("QQChatEx", "onSendChat")(`${player.realName} rua了服务器娘一下~`);
         AIChat(`${player.realName} rua了你一下~`, "System", true);
+        AIActionNum.set(player.xuid, AIActionNum.get(player.xuid) ?? 0);
     },
 
     giveItem: (player, item) => {
