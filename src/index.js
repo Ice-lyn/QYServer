@@ -814,6 +814,7 @@ function newPlayerUi(player) {
         logger.warn(`${player.realName} 首次加入服务器`)
         player.addTag("player")
     }
+    return;
     player.closeForm()
     mc.runcmdEx(`camera "${player.realName}" set minecraft:free pos -77 66 35 facing -75 0 35`)
     mc.runcmdEx(`hud "${player.realName}" hide all`)
