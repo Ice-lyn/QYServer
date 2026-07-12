@@ -98,7 +98,7 @@ function prefectAdmin(player) {
                             setTimeout(() => kickPlayerSet.delete(name), 10 * 60 * 1000);
 
                             const cmd = `kick "${name}" 你已被社区风纪踢出！\n${data[1]}`;
-                            // mc.broadcast(`社区风纪 ${player.realName} 将 ${name} 踢出10分钟: ${data[1]}`)
+                            mc.broadcast(`社区风纪 ${player.realName} 将 ${name} 踢出10分钟: ${data[1]}`)
                             func.titleLog.warn("Kick", `${player.realName} -> ${cmd}`);
                             ll.imports("BehaviorLog_WriteLog")("社区风纪-踢人", player.pos.dimid, player.realName, player.pos.x, player.pos.y, player.pos.z, "", "", "", "", cmd, false, true);
                             mc.runcmd(cmd)
@@ -121,7 +121,7 @@ function prefectAdmin(player) {
                             }, 10 * 60 * 1000);
 
                             mc.runcmd(`ability "${name}" mute true`);
-                            // mc.broadcast(`社区风纪 ${player.realName} 将 ${name} 禁言10分钟`);
+                            mc.broadcast(`社区风纪 ${player.realName} 将 ${name} 禁言10分钟`);
                             ll.imports("BehaviorLog_WriteLog")("社区风纪-禁言", player.pos.dimid, player.realName, player.pos.x, player.pos.y, player.pos.z, "", "", "", "", `禁言玩家: ${name}`, false, true);
                         }
                     )
