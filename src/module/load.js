@@ -6,7 +6,7 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
      */
     Core: [
         "AIChat.js", // AI聊天相关
-        "Cdk.js", // 兑换码系统
+        // "AIPlayer.js",
         "JoinTime.js", // 加入时间相关
         "Mail.js", // 邮件系统
         "UserBind.js", // 用户绑定
@@ -37,6 +37,7 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
     World: [
         "AfkTestfor.js", // 挂机检测
         "AxolotlDamage.js", // 美西螈攻击
+        "Cdk.js", // 兑换码系统
         "MainCityShop.js", // 主城商店
         "Prefect.js", // 社区风纪系统
         "ScoreChanged.js", // 积分榜提示
