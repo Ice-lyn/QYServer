@@ -1,3 +1,4 @@
+import { Minecraft } from '../../../../GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js';
 import * as func from "../../lib/func.js";
 
 // 白名单
@@ -13,6 +14,8 @@ const canEntitySet = new Set([
 // 生物尝试生成
 mc.listen("onMobTrySpawn", (type, pos) => {
     if (canEntitySet.has(type)) return;
+
+    if (Minecraft.getServerAverageTps() <= 9) return false;
 
     // 刷怪塔
     if (pos.y >= 64) return;
