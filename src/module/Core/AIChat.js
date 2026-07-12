@@ -78,6 +78,8 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
     if (player.isSneaking && item && item.type.some(type => AICanItem.includes(type)))
         AIAction.giveItem(player, item);
     else {
+        if (AIActionNum.get(player.xuid) > 10) return;
+        AIActionNum.set(player.xuid, AIActionNum.get(player.xuid) ?? 0);
         AIAction.rua(player);
         func.enRuncmd(entity, "function function/pat");
         func.enRuncmd(entity, "execute anchored eyes run particle minecraft:heart_particle ~~0.5~");
