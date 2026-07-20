@@ -230,11 +230,6 @@ mc.listen("onAttackEntity", (player, entity) => {
     }
 })
 
-// 漏斗传输物品
-mc.listen("onHopperPushOut", (_pos, isMinecart, item) => {
-    if (isMinecart) return;
-    if (item.type.includes("bundle")) return false;
-})
 
 // 玩家尝试放置方块
 mc.listen("onPlaceBlock", (player, block) => {
@@ -337,6 +332,95 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
         func.enRuncmd(entity, "playsound custom.firework_front @a[r=13] ~~~");
         return;
     }
+})
+
+// 漏斗传输物品
+const copyPos = new Set();
+mc.listen("onHopperPushOut", (pos, isMinecart, item) => {
+    if (isMinecart) return;
+
+    // 收纳袋防刷
+    if (item.type.includes("bundle")) return false;
+
+    // === 区块箱子防刷 === //
+    try {
+        pos = func.toIntPos(pos);
+
+        // 在区块边界
+        const relativeX = ((pos.x % 16) + 16) % 16;
+        const relativeZ = ((pos.z % 16) + 16) % 16;
+        if (!(relativeX === 0
+            || relativeX === 15
+            || relativeZ === 0
+            || relativeZ === 15
+        )) return;
+
+        // 上方是不是箱子
+        const blockType = mc.getBlock(
+            pos.x,
+            pos.y + 1,
+            pos.z,
+            pos.dimid
+        ).type ?? null;
+        if ([
+            "minecraft:chest",
+            "minecraft:trapped_chest"
+        ].indexOf(blockType) === -1) return;
+
+        // 箱子四周
+        const directions = [
+            { x: 1, z: 0 },
+            { x: 0, z: 1 },
+            { x: -1, z: 0 },
+            { x: 0, z: -1 }
+        ];
+
+        let hasChestInDifferentChunk = false;
+        for (const dir of directions) {
+            const blockType = mc.getBlock(
+                pos.x + dir.x,
+                pos.y + 1,
+                pos.z + dir.z,
+                pos.dimid
+            ).type ?? null;
+
+            if (blockType === "minecraft:chest") {
+                if (Math.floor(pos.x / 16) !== Math.floor((pos.x + dir.x) / 16)
+                    || Math.floor(pos.z / 16) !== Math.floor((pos.z + dir.z) / 16)
+                ) {
+                    hasChestInDifferentChunk = true;
+                    break;
+                }
+            }
+        }
+        if (!hasChestInDifferentChunk) return;
+
+        // 检查玩家距离
+        const chunkX = Math.floor(pos.x / 16);
+        const chunkZ = Math.floor(pos.z / 16);
+        let nearestDistance = Infinity;
+
+        for (const player of mc.getOnlinePlayers()) {
+            if (player.pos.dimid !== pos.dimid) continue;
+
+            const playerChunkX = Math.floor(player.pos.x / 16);
+            const playerChunkZ = Math.floor(player.pos.z / 16);
+
+            const dx = Math.abs(chunkX - playerChunkX);
+            const dz = Math.abs(chunkZ - playerChunkZ);
+            const chunkDistance = Math.max(dx, dz);
+
+            if (chunkDistance < nearestDistance)
+                nearestDistance = chunkDistance;
+        }
+
+        // 以上所有条件都符合，拦截输出
+        if (nearestDistance === 4) {
+            if (!copyPos.has(`${pos}`)) logger.warn(pos, " 处疑似区块刷物")
+            copyPos.add(`${pos}`)
+            return false;
+        }
+    } catch (e) { }
 })
 
 const onUseItemOnCd = new Set();
