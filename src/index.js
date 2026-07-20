@@ -288,7 +288,7 @@ mc.listen("onUseItemOn", (player, item, block, side, pos) => {
 
 // 玩家使用物品
 mc.listen("onUseItem", (player, item) => {
-    if (item.type === "qys:wing") {
+    if (item.type === "qys:sky_wing") {
         if (player.maxHealth === 60) return player.tell("[§aTip§r] 您的光翼已达上限(" + player.maxHealth + "/60)");
         player.setMaxHealth(player.maxHealth + 1);
         player.tell("" + func.enRuncmd(player, "playsound random.orb @s").output);
