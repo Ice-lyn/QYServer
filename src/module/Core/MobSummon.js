@@ -15,6 +15,7 @@ const canEntitySet = new Set([
 mc.listen("onMobTrySpawn", (type, pos) => {
     if (canEntitySet.has(type)) return;
 
+    if (Minecraft.getServerAverageTps() >= 18) return;
     if (Minecraft.getServerAverageTps() <= 9) return false;
 
     // 刷怪塔
