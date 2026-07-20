@@ -38,6 +38,34 @@ ll.onUnload(() => { mailObj.close() });
 // ==== 函数实现 ==== //
 
 /**
+ * 坐标对象类型转换函数
+ * @param {IntPos|FloatPos|Object} pos - 要转换的坐标对象/obj
+ * @returns {IntPos} 转换后的整数坐标对象
+ */
+export function toIntPos(pos) {
+    return new IntPos(
+        pos.x,
+        pos.y,
+        pos.z,
+        pos.dimid
+    );
+}
+
+/**
+ * 坐标对象类型转换函数
+ * @param {IntPos|FloatPos|Object} pos - 要转换的坐标对象/obj
+ * @returns {FloatPos} 转换后的浮点坐标对象
+ */
+export function toFloatPos(pos) {
+    return new FloatPos(
+        pos.x,
+        pos.y,
+        pos.z,
+        pos.dimid
+    );
+}
+
+/**
  * 全局数据存储Map
  * @constant {Map} globalMap
  * 
