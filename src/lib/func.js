@@ -8,13 +8,6 @@ import nodemailer from "nodemailer";
 const mailObj = nodemailer.createTransport(config.Mail);
 const regex = /"([^"]*)"|(\S+)/g;
 
-const toRawPos = (Pos) => ({
-    'x': Pos.x,
-    'y': Pos.y,
-    'z': Pos.z,
-    'dimid': Pos.dimid
-});
-
 const units = [
     { value: 86400, label: '天' },
     { value: 3600, label: '小时' },
@@ -106,7 +99,12 @@ export function LandJudgment(Player, Pos) {
     // iLand
     if (ll.hasExported('ILAPI_PosGetLand')) {
         /** 领地ID @type {Number} */
-        let LandId = ll.imports('ILAPI_PosGetLand')(toRawPos(Pos));
+        const LandId = ll.imports('ILAPI_PosGetLand')({
+            'x': Pos.x,
+            'y': Pos.y,
+            'z': Pos.z,
+            'dimid': Pos.dimid
+        });
         if (LandId != -1 &&
             !(
                 ll.imports('ILAPI_IsLandOwner')(LandId, Player.xuid)// 领地主人
