@@ -858,6 +858,26 @@ const playerCmd = {// 玩家可以用
     giveskin: (player) => mc.runcmdEx(`sendshowstoreoffer "${player.realName}" character 927cab07-ab94-44d4-8581-b2a5342b07b4`),
     rc: (player) => player.refreshChunks() ? player.tell("§a区块刷新请求已发送至客户端进行处理") : player.tell("§c无法创建请求"),
 
+    fuckcost: (player) => {
+        const item = player.getHand();
+        const cost = item.getNbt()
+            ?.getTag("tag")
+            ?.getData("RepairCost") ?? 0;
+
+        if (!cost) return player.tell("你的主手物品没有附魔惩罚哦！");
+        const nbt = item.getNbt();
+
+        item.setNbt(
+            nbt.setTag("tag",
+                nbt
+                    .getTag("tag")
+                    .removeTag("RepairCost")
+            )
+        )
+        player.refreshItems();
+        player.tell("覆膜惩罚已去除！")
+    },
+
     updata: (player) => {
         const fm = mc.newSimpleForm()
             .setTitle("更新日志")
