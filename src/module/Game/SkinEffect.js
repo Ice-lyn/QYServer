@@ -36,9 +36,9 @@ mc.listen("onRespawn", (player) => {
 
 // 皮肤装备相关
 mc.listen("onSetArmor", (player, slotNum, item) => {
-    if (!(player?.inWorld && (slotNum === 0 || slotNum === 1))) return;
+    if (!(player?.inWorld && slotNum === 0)) return;
     const beforeSkin = getBeforeSkin(player);
-  
+
     // 脱下
     if (beforeSkin) {
         if (beforeSkin === -1) {
@@ -92,7 +92,7 @@ function setBeforeSkin(player, skinNum, mode = 1) {
 function setSkinEffect(player, skinNum, mode = 1) {
     if (!skinNum) return;
     const effectData = skinEffectData[skinNum];
-  
+
     if (mode) {
         effectData?.add?.forEach(data => player.addEffect(data[0], 9999999, data[1], false));
         if (skinNum !== 8) player.addEffect(14, 9999999, 1, false);
