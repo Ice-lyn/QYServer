@@ -841,6 +841,39 @@ function meSetUI(player) {
     })
 }
 
+// 天气投票
+const voteWeatherSet = new Set();
+function voteWeather(player) {
+
+    // 发起投票
+    if (voteWeatherSet.size < 1) {
+        player.sendModalForm(
+            "天气投票",
+            "确认要发起天气切换投票吗？\n§l注意§r，是切换！如果投票时是晴天的话 完成后会变成雨天",
+            "§a确认", "§c取消",
+            (player, res) => {
+                if (!res) return;
+
+                voteWeatherSet.add(player.realName);
+                mc.broadcast(`${player.realName} 发起了天气投票，输入/om voteweather进行投票`);
+                setTimeout(() => {
+                    if (voteWeatherSet.size >= mc.getOnlinePlayers().length / 2) {
+                        mc.broadcast("投票切换成功");
+                        mc.broadcast(mc.runcmdEx("toggledownfall").success)
+                    } else mc.broadcast("投票切换失败");
+                    voteWeatherSet.clear();
+                }, 60 * 1000)
+            }
+        )
+    } else { // 进行中的投票
+        if (voteWeatherSet.has(player.realName))
+            return player.tell("你已经投过票啦！");
+
+        player.tell("投票成功！")
+        voteWeatherSet.add(player.realName);
+    }
+}
+
 // 触发一个功能项
 let pngMap = null;
 export const omExpList = [];
@@ -857,6 +890,7 @@ const playerCmd = {// 玩家可以用
     new: (player) => player.pos.dimid !== 0 ? player.tell("哪有在其他维度开新手指南啊喂！") : newPlayerUi(player),
     giveskin: (player) => mc.runcmdEx(`sendshowstoreoffer "${player.realName}" character 927cab07-ab94-44d4-8581-b2a5342b07b4`),
     rc: (player) => player.refreshChunks() ? player.tell("§a区块刷新请求已发送至客户端进行处理") : player.tell("§c无法创建请求"),
+    voteweather: (player) => voteWeather(player),
 
     fuckcost: (player) => {
         const item = player.getHand();
