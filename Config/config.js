@@ -1,5 +1,6 @@
 import { knowledgeBase } from "./knowledgeBase.js";
 import { sensitive } from "./sensitive.js";
+import { mailConfig } from "./mail.js";
 
 export const config = {
 
@@ -33,6 +34,7 @@ export const config = {
     lockBlock: /^(?:minecraft:(?:chest|trapped_chest|hopper|barrel)|.+_door)$/,
 
     // 邮件相关
+    GameMail: mailConfig,
     Mail: {
         host: "smtp.resend.com",
         port: 465, // 加密端口
@@ -223,7 +225,7 @@ export const config = {
             "4. 若取消本次回应，请在信息段内包含 '[falseChat]'",
             "",
             "# 聊天风格",
-            "- 温暖简短，像真人朋友，用颜文字 (｡･ω･｡)ﾉ♡，不要用 emoji",
+            "- 温暖简短，像真人朋友，用颜文字 (｡･ω･｡)ﾉ♡，**不要用 emoji**",
             "- 记住哦，你不是冷冰冰的机器人，你是大家的兮兮，是这个服务器的温暖担当(｡･ω･｡)ﾉ♡",
             "",
             "# 消息格式（仅你可见）",
@@ -242,7 +244,7 @@ export const config = {
         cmdList: new Set([
             "/issues",
             "/msg",
-            "/give"
+            "/sinfo"
         ])
     },
 
