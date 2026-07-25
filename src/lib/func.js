@@ -208,6 +208,13 @@ export function getChatTag(player) {
     return tag || "§e萌§a新§b求§d带§r";
 }
 
+export function getJoinTime(uuid) {
+    return mc.getPlayerNbt(uuid)
+        ?.getTag("DynamicProperties")
+        ?.getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
+        ?.getData("usfV2:id") || 0;
+}
+
 /**
  * 设置物品数量
  * @param {Item} item - 要修改的物品对象
