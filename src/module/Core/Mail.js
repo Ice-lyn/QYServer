@@ -1,230 +1,182 @@
-import { mailConfig } from "../../../Config/mail.js";
+import { config } from "../../../Config/config.js";
+import * as func from "../../lib/func.js";
+
+
 const playerMailDB = new KVDatabase("./plugins/QYServer/Data/PlayerMail");
+const mailDataMap = new Map();
 
+ll.onUnload(() => playerMailDB.close());
 
-{ // 命令
-    const cmd = mc.newCommand('mail', '§a查看邮件', PermType.Any);
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return;
-        mailfm(ori.player);
-    });
-    cmd.overload([]);
-    cmd.setup();
-}
+// 邮件数据 增删查
+const mailData = {
 
-// 数据操作
-const data = {
-    getPlayer(xuid) {
-        return JSON.parse(playerMailDB.get(xuid) ?? null) || { read: {}, collected: {} };
-    },
+    // 获取玩家邮件数据
+    getPlayer: (xuid) => JSON.parse(playerMailDB.get(xuid) ?? null) || { read: {}, collected: {} },
 
-    savePlayer(xuid, obj) {
-        return playerMailDB.set(xuid, JSON.stringify(obj));
-    },
+    // 保存玩家邮件数据
+    savePlayer: (xuid, obj) => playerMailDB.set(xuid, JSON.stringify(obj)),
 
-    getAllAnnouncements() {
-        const mails = mailConfig || [];
+    // 附件是否已领取
+    hasCollected: (xuid, id) => (mailData.getPlayer(xuid)).collected?.[id]?.includes(xuid) || false,
+
+    // 邮件是否已读
+    hasRead: (xuid, id) => (mailData.getPlayer(xuid)).read?.[id]?.includes(xuid) || false,
+
+    // 获取所有邮件
+    getAllMail: () => {
+        const mails = config.GameMail || [];
         return mails.map(mail => ({
             ...mail,
             timestamp: mail.time,
             id: mail.id,
-            annex: {
-                items: mail.items || []
-            },
+            items: mail.items || [],
             ignoreTime: mail.ignoreTime || false
         }));
     },
 
-    hasRead(xuid, id) {
-        return (this.getPlayer(xuid)).read?.[id]?.includes(xuid) || false;
-    },
-
-    addRead(xuid, id) {
-        const playerData = this.getPlayer(xuid);
+    // 添加已读邮件
+    addRead: (xuid, id) => {
+        const playerData = mailData.getPlayer(xuid);
         if (!playerData.read[id]) playerData.read[id] = [];
         if (!playerData.read[id].includes(xuid)) {
             playerData.read[id].push(xuid);
-            this.savePlayer(xuid, playerData);
+            mailData.savePlayer(xuid, playerData);
         }
     },
 
-    hasCollected(xuid, id) {
-        const playerData = this.getPlayer(xuid);
-        return playerData.collected?.[id]?.includes(xuid) || false;
-    },
-
-    addCollected(xuid, id) {
-        const playerData = this.getPlayer(xuid);
+    // 添加已领取附件的邮件
+    addCollected: (xuid, id) => {
+        const playerData = mailData.getPlayer(xuid);
         if (!playerData.collected[id]) playerData.collected[id] = [];
         if (!playerData.collected[id].includes(xuid)) {
             playerData.collected[id].push(xuid);
-            this.savePlayer(xuid, playerData);
+            mailData.savePlayer(xuid, playerData);
         }
-    }
-};
+    },
 
-// 辅助函数
-function getPlayerJoinTime(pl) {
-    return pl.getNbt()
-        ?.getTag("DynamicProperties")
-        ?.getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
-        ?.getData("usfV2:id") || Date.now();
-}
-
-function giveAnnexItems(pl, ann) {
-    if (!ann.annex?.items || ann.annex.items.length === 0) return false;
-    let count = 0;
-    for (const snbt of ann.annex.items) {
-        try {
-            const item = mc.newItem(NBT.parseSNBT(snbt));
-            if (item) {
-                pl.giveItem(item);
-                count++;
-            }
-        } catch (e) { }
-    }
-    return count > 0;
-}
-
-// 核心逻辑
-const mailManager = {
+    // 获取玩家邮件列表
     getAvailable(xuid) {
-        const pl = mc.getPlayer(xuid);
-        if (!pl) return [];
+        if (mailDataMap.has(xuid))
+            return [...mailDataMap.get(xuid)];
 
-        const announcements = data.getAllAnnouncements();
-        const joinTime = getPlayerJoinTime(pl);
-        const now = Date.now();
+        const time = Date.now();
+        const joinTime = func.getJoinTime(data.xuid2uuid(xuid));
+
         const available = [];
-
-        for (const ann of announcements) {
-            const expireTime = ann.expireDays ? ann.timestamp + (ann.expireDays * 86400000) : Infinity;
-            const isExpired = now > expireTime;
-
-            // 如果 IgnoreTime 为 true，则忽略时间检查，所有玩家都能看到
-            const isAfterJoin = ann.ignoreTime ? true : (ann.timestamp >= joinTime);
-            const hasRead = data.hasRead(xuid, ann.id);
+        mailData.getAllMail().forEach(mail => {
+            const expireTime = mail.expireDays
+                ? mail.timestamp + (mail.expireDays * 86400000)
+                : Infinity;
 
             // 规则：
             // 1. 如果 IgnoreTime 为 true，所有玩家都能看到（但受过期和已读状态影响）
             // 2. IgnoreTime 为 false 时，必须在玩家加入后发布
             // 3. 已读的邮件：全部显示（包括过期的）
             // 4. 未读的邮件：只显示未过期的
-            if (isAfterJoin && (hasRead || !isExpired)) {
-                available.push(ann);
-            }
-        }
-        return available.sort((a, b) => b.timestamp - a.timestamp);
-    },
+            if ((mail.ignoreTime || mail.timestamp >= joinTime)
+                && (mailData.hasRead(xuid, mail.id) || time <= expireTime)
+            ) available.push(mail);
+        })
 
-    // 获取未读邮件数量（只统计未过期的）
-    getUnreadCount(xuid) {
-        const announcements = data.getAllAnnouncements();
-        const pl = mc.getPlayer(xuid);
-        if (!pl) return 0;
-
-        const joinTime = getPlayerJoinTime(pl);
-        const now = Date.now();
-        let count = 0;
-
-        for (const ann of announcements) {
-            const expireTime = ann.expireDays ? ann.timestamp + (ann.expireDays * 86400000) : Infinity;
-            const isExpired = now > expireTime;
-
-            // 如果 IgnoreTime 为 true，则忽略时间检查
-            const isAfterJoin = ann.ignoreTime ? true : (ann.timestamp >= joinTime);
-            const hasRead = data.hasRead(xuid, ann.id);
-
-            // 未读 + 未过期 + (IgnoreTime为true 或 在玩家加入后发布)
-            if (!hasRead && !isExpired && isAfterJoin) {
-                count++;
-            }
-        }
-        return count;
+        const data = available.sort((a, b) => b.timestamp - a.timestamp);
+        mailDataMap.set(xuid, data);
+        return data;
     }
-};
-
-// 界面
-function mailfm(pl) {
-    const xuid = pl.xuid;
-    const announcements = mailManager.getAvailable(xuid);
-
-    if (announcements.length === 0) return pl.tell("你没有收到任何邮件哦");
-
-    const fm = mc.newSimpleForm();
-    fm.setTitle("邮件");
-    fm.setContent(`- 共收到了 ${announcements.length} 封邮件`);
-
-    for (let i = 0; i < announcements.length; ++i) {
-        const ann = announcements[i];
-        const isRead = data.hasRead(xuid, ann.id);
-        fm.addButton(
-            (isRead ? ann.title : `[§e未读§r] ${ann.title}`),
-            (ann.textures || (isRead ? "textures/ui/mail_icon.png" : "textures/ui/Envelope.png"))
-        );
-    }
-
-    pl.sendForm(fm, (pl, id) => {
-        if (id === null || id >= announcements.length) return;
-        showContent(pl, id);
-    });
 }
 
-function showContent(pl, index) {
-    const xuid = pl.xuid;
-    const announcements = mailManager.getAvailable(xuid);
-    const ann = announcements[index];
-    if (!ann) return;
+mc.listen("onLeft", (player) => mailDataMap.delete(player.xuid));
+mc.listen("onJoin", (player) => {
+    const mails = mailData.getAvailable(player.xuid)
+        .filter(ann => !mailData.hasRead(player.xuid, ann.id));
 
-    if (!data.hasRead(xuid, ann.id)) {
-        data.addRead(xuid, ann.id);
-    }
-
-    const fm = mc.newSimpleForm();
-    fm.setTitle(`§l${ann.title}`);
-
-    const date = new Date(ann.timestamp);
-    let content = `§l发布时间§r: §7${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}§r\n`;
-    if (ann.expireDays) content += `§l有效时间§r: §7${ann.expireDays}天§r\n`;
-    content += "\n§l------------------------------§r\n\n";
-    content += `${ann.content}`;
-    fm.setContent(content);
-
-    const hasAnnex = ann.annex?.items?.length > 0;
-    const isCollected = data.hasCollected(xuid, ann.id);
-
-    if (hasAnnex && !isCollected) fm.addButton("领取附件", "textures/ui/Caution.png");
-    else if (hasAnnex) fm.addButton("附件已领取", "textures/ui/check.png");
-
-    fm.addButton("返回列表", "textures/ui/icon_import.png");
-
-    pl.sendForm(fm, (pl, id2) => {
-        if (id2 === 0 && hasAnnex && !isCollected) {
-            if (giveAnnexItems(pl, ann)) {
-                data.addCollected(xuid, ann.id);
-                pl.tell("§a附件领取成功！");
-            } else {
-                pl.tell("§c附件领取失败，请联系管理员");
-            }
-            showContent(pl, index);
-        } else if (id2 === (hasAnnex ? 1 : 0)) {
-            mailfm(pl);
-        }
-    });
-}
-
-// 事件
-mc.listen("onJoin", (pl) => {
-    const xuid = pl.xuid;
-    const announcements = mailManager.getAvailable(xuid);
-
-    if (announcements.length > 0) {
-        const unreadCount = announcements.filter(ann => !data.hasRead(xuid, ann.id)).length;
-        if (unreadCount > 0) {
-            mc.runcmdEx(`execute as "${pl.realName}" run scriptevent qys:command toast 2 "§e邮件通知§r\n你有 ${unreadCount} 条未读邮件！\n可使用 /mail 指令查看邮件" textures/ui/Envelope`);
-            pl.tell(`§l§e[Mail]§r 你有 ${unreadCount} 条未读邮件，输入 /mail 查看`);
-        }
+    if (mails.length > 0) {
+        mc.runcmdEx(`execute as "${player.realName}" run scriptevent qys:command toast 2 "§e邮件通知§r\n你有 ${mails.length} 条未读邮件！\n可使用 /mail 指令查看邮件" textures/ui/Envelope`);
+        player.tell(`§l§e[Mail]§r 你有 ${mails.length} 条未读邮件，输入 /mail 查看`);
     }
 });
 
-ll.onUnload(() => playerMailDB.close());
+{ // 命令注册
+    const cmd = mc.newCommand('mail', '§a查看邮件', PermType.Any);
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (func.isNull(ori.player)) return;
+        mailMainUI(ori.player)
+    });
+    cmd.overload([]);
+    cmd.setup();
+}
+
+
+function mailMainUI(player) {
+    const mailList = mailData.getAvailable(player.xuid);
+
+    if (mailList.length === 0) return player.tell("你没有收到任何邮件哦");
+    const fm = mc.newSimpleForm()
+        .setTitle("邮件")
+        .setContent(`- 共收到了 ${mailList.length} 封邮件`);
+
+    mailList.forEach(mail => {
+        const isRead = mailData.hasRead(player.xuid, mail.id);
+
+        fm.addButton(
+            `${isRead ? "" : "[§e未读§r]"}${mail.title}`,
+            (mail.textures || (isRead ? "textures/ui/mail_icon.png" : "textures/ui/Envelope.png"))
+        );
+    })
+
+    player.sendForm(fm, (player, id) => {
+        if (func.isNull(id)) return;
+
+        if (func.isNull(mailList[id]))
+            return player.tell("邮件数据不存在!");
+        else
+            return mailInfoUI(player, mailList[id]);
+    });
+}
+
+function mailInfoUI(player, data) {
+    if (!mailData.hasRead(player.xuid, data.id))
+        mailData.addRead(player.xuid, data.id);
+
+    const hasAnnex = data?.items?.length > 0
+    const fm = mc.newSimpleForm()
+        .setTitle(`§l${data.title}§r`)
+        .setContent([
+            `§l发布时间§r: §7${(new Date(data.timestamp)).toISOString().split('T')[0]}§r`,
+            ...data.expireDays ? [`§l有效时间§r: §7${data.expireDays}天§r`] : [],
+            " ",
+            "§l------------------------------§r",
+            " ",
+            " ",
+            data.content
+        ].join("\n"));
+
+    if (hasAnnex) {
+        if (mailData.hasCollected(player.xuid, data.id))
+            fm.addButton("附件已领取", "textures/ui/check.png");
+        else
+            fm.addButton("领取附件", "textures/ui/Caution.png");
+    }
+        
+
+    fm.addButton("返回列表", "textures/ui/icon_import.png");
+
+    player.sendForm(fm, (player, id) => {
+        if (func.isNull(id)
+            || id === (hasAnnex ? 1 : 0)
+            || mailData.hasCollected(player.xuid, data.id)
+        ) return mailMainUI(player);
+
+        mailData.addCollected(player.xuid, data.id);
+        data.items.forEach(snbt => {
+            try {
+                player.giveItem(mc.newItem(NBT.parseSNBT(snbt)));
+            } catch (e) {
+                func.titleLog.warn("Mail", player, " 领取邮件时发生错误: ", e);
+            }
+        })
+
+        player.tell("§a附件领取成功！");
+        mailInfoUI(player, data);
+    })
+    
+}
