@@ -136,6 +136,11 @@ function prefectAdmin(player) {
 let votePlayer = [];
 let voteKickObj = {};
 let is_vote = false;
+const initVoteKick = () => {
+    is_vote = false;
+    votePlayer = [];
+    voteKickObj = {};
+}
 
 // 投票踢人
 function voteKick(player) {
@@ -155,6 +160,7 @@ function voteKick(player) {
             player.tell(`已对 ${name} 进行投票！\n对方当前票数：${voteKickObj[name]}`);
             votePlayer.push(player.xuid);
             if (!is_vote) {
+                is_vote = true;
                 mc.broadcast("投票踢人已开启，将在120秒后进行统计并处理");
                 setTimeout(() => {
                     const banName = Object.entries(voteKick)
@@ -168,10 +174,8 @@ function voteKick(player) {
 
                     func.addBehaviorLog(2, "投票踢出", banName, null, `${banName} 被投票踢出 \n- 参与投票的玩家:\n${votePlayer.join(", ")}`);
                     kickPlayerSet.add(name);
-                    setTimeout(() => kickPlayerSet.delete(banName), 60 * 1000)
-                    is_vote = false;
-                    votePlayer = [];
-                    voteKickObj = {};
+                    setTimeout(() => kickPlayerSet.delete(banName), 60 * 1000);
+                    initVoteKick();
                 }, 120 * 1000)
             }
         }
