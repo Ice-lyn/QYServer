@@ -1,6 +1,11 @@
 import { config } from "../../../Config/config.js";
 import * as func from "../../lib/func.js";
 
+/**
+ * TODO
+ * - 增加fm自定义
+ * - 增加更多附件
+ */
 
 const playerMailDB = new KVDatabase("./plugins/QYServer/Data/PlayerMail");
 const mailDataMap = new Map();
