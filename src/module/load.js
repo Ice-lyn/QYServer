@@ -10,6 +10,7 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
         "JoinTime.js", // 加入时间相关
         "Mail.js", // 邮件系统
         "MobSummon.js", // 实体生成
+        "Prefect.js", // 社区风纪系统
         "UserBind.js", // 用户绑定
         "UserMigrate.js" // 帐号迁移
     ],
@@ -40,7 +41,6 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
         "AxolotlDamage.js", // 美西螈攻击
         "Cdk.js", // 兑换码系统
         "MainCityShop.js", // 主城商店
-        "Prefect.js", // 社区风纪系统
         "ScoreChanged.js", // 积分榜提示
         "ShowBiome.js", // 群系提示
         "WorldBorder.js" // 世界边境
