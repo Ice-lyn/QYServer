@@ -165,6 +165,20 @@ export function getChatTag(player) {
 }
 
 /**
+ * 设置物品数量
+ * @param {Item} item - 要修改的物品对象
+ * @param {number} count - 目标数量
+ * @returns {boolean} 是否设置成功
+ * @example 设置完成后需要手动刷新
+ */
+export function setItemCount(item, count) {
+    return item.setNbt(
+        item.getNbt()
+            .setByte("Count", count)
+    )
+}
+
+/**
  * 崩溃玩家客户端
  * @param {Player} player - 目标玩家对象
  */
