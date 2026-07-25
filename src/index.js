@@ -141,7 +141,7 @@ mc.listen("onConsoleCmd", (cmd) => {
 
     switch (args[0]) {
         case "say":
-            ll.imports("BehaviorLog_WriteLog")("后台喊话", "Server", "服务器娘", "", "", "", "", "", "", "", `${cmd}`, false, true);
+            func.addBehaviorLog(2, "后台喊话", "服务器娘", null, `${cmd}`);
             return;
     }
 })
