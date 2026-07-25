@@ -33,6 +33,8 @@ const ansi2mc = {
     '\x1b[0m': '§r'
 };
 
+let BehaviorLogObj = null;
+
 ll.onUnload(() => { mailObj.close() });
 
 // ==== 函数实现 ==== //
@@ -91,6 +93,48 @@ export function addOnmodeCmd(setcmd, callback = (() => { })) {
         return true;
     });
 };
+
+/**
+ * 写入行为日志
+ * @param {number} mode - 1: 完整参数模式 | 2: 简化模式 (event, name, pos, msg)
+ * @param  {...any} data - 参数列表 (...) | (event, name, pos, msg)
+ */
+export function addBehaviorLog(mode = 0, ...data) {
+    try {
+        // 初始化（只执行一次）
+        if (BehaviorLogObj === null) {
+            BehaviorLogObj = ll.imports("BehaviorLog_WriteLog");
+            if (!BehaviorLogObj) {
+                // 备选方案：模拟日志输出
+                BehaviorLogObj = (event, dim, doer, dx, dy, dz, target, tx, ty, tz, notes, logToConsole, logToFile) => {
+                    logger.info(`[BehaviorLog] ${event} | ${doer} @ ${dim}(${Math.round(dx)},${Math.round(dy)},${Math.round(dz)}) | ${notes || ''}`);
+                };
+            }
+        }
+
+        if (mode === 1) {
+            // 完整参数模式：直接传递所有参数
+            // data = [event, dim, doer, dx, dy, dz, target, tx, ty, tz, notes, logToConsole, logToFile]
+            return BehaviorLogObj(...data);
+        }
+
+        if (mode === 2) {
+            const [event, name, pos, msg] = data;
+            return BehaviorLogObj(
+                event,                  // 事件名称
+                pos.dimid ?? "",        // 维度
+                name,                   // 操作者
+                pos.x, pos.y, pos.z,    // 坐标
+                "", "", "", "",         // 目标相关字段（留空）
+                msg ?? "",              // 备注信息
+                false,                  // 是否输出到控制台（由BehaviorLog配置控制）
+                true                    // 是否写入文件
+            );
+        }
+    } catch (e) {
+        logger.warn(`[BehaviorLog] 写入失败: mode=${mode}`, ...data, "\n", e);
+    }
+}
 
 /**
  * 命令行参数字符串解析函数
