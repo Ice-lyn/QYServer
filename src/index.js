@@ -156,7 +156,6 @@ mc.listen("onConsoleCmd", (cmd) => {
 
 // 玩家发送聊天信息
 mc.listen("onChat", (player, msg) => {
-    const dim = { 0: "§b主世界§r", 1: "§c下界§r", 2: "§d末地§r" }[player.pos.dimid] || "§9未知§r";
     const tag = func.getChatTag(player);
     const ms = player.getDevice()?.avgPing > 100 ? `[§c${player.getDevice().avgPing}§rms§r]` : "";
 
@@ -164,7 +163,7 @@ mc.listen("onChat", (player, msg) => {
     func.titleLog.info("Chat", `<${player.realName}> ${msg}`);
     if (msg[0] === "+") return;
     msg = func.textToEmoji(msg);
-    mc.broadcast(`[${tag}][${dim}]${ms}${player.realName} >> ${msg}`, 1);
+    mc.broadcast(`[${tag}][${func.dimidStr[player.pos.dimid] || "§9未知§r"}]${ms}${player.realName} >> ${msg}`, 1);
     switch (true) {
         case msg.toLowerCase().includes("ciallo"):
             mc.runcmdEx("execute as @a at @s run playsound custom.ciallo_sound @s");
