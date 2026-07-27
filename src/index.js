@@ -108,6 +108,14 @@ mc.listen("onPistonTryPush", (_pos, block) => {
     if (block.type.includes("shulker_box")) return false;
 })
 
+// 活塞推动
+mc.listen("onPistonPush", (_pos, block) => {
+    if (block.type === "minecraft:end_rod")
+        return mc.runcmdEx(
+            `execute in ${func.pos2str[block.pos.dimid]} positioned ${func.pos2str(block.pos)} run damage @e[r=1.25,family=mob] 1 ram_attack`
+        );
+})
+
 // 后台执行命令
 mc.listen("onConsoleCmd", (cmd) => {
     if (cmd === "") return false;

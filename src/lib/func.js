@@ -33,11 +33,32 @@ const ansi2mc = {
     '\x1b[0m': '§r'
 };
 
+export const dimidStr = {
+    0: "§b主世界§r",
+    1: "§c下界§r",
+    2: "§d末地§r"
+}
+
 let BehaviorLogObj = null;
 
 ll.onUnload(() => { mailObj.close() });
 
 // ==== 函数实现 ==== //
+
+/**
+ * 将坐标对象转换为字符串
+ * @param {IntPos|FloatPos|Object} pos - 坐标对象
+ * @param {number} [mode=0] - 输出模式
+ * @returns {string} 格式化后的坐标字符串
+ * 
+ * 模式说明：
+ * - mode=0：输出 `${x} ${y} ${z}`（空格分隔）
+ * - mode=1：输出 `${x},${y},${z},${dimid}`（逗号分隔，含维度）
+ */
+export function pos2str(pos, mode = 0) {
+    if (mode === 0) return `${pos.x} ${pos.y} ${pos.z}`;
+    if (mode === 1) return `${pos.x},${pos.y},${pos.z},${pos.dimid}`;
+}
 
 /**
  * 坐标对象类型转换函数
@@ -439,25 +460,6 @@ export function timeoutJoinServer(player, ip, port, timeout, err = (pl) => pl.te
             if (sec === 1) player.transServer(`${ip}`, Number(port)) || err(player)
         }, (index + 1) * 1000)
     })
-}
-
-/**
- * 将坐标对象转换为字符串
- * @param {Object} pos - 坐标对象
- * @param {number} pos.x - X坐标
- * @param {number} pos.y - Y坐标
- * @param {number} pos.z - Z坐标
- * @param {number} [pos.dimid] - 维度ID（mode=1时必需）
- * @param {number} [mode=0] - 输出模式
- * @returns {string} 格式化后的坐标字符串
- * 
- * 模式说明：
- * - mode=0：输出 `${x} ${y} ${z}`（空格分隔）
- * - mode=1：输出 `${x},${y},${z},${dimid}`（逗号分隔，含维度）
- */
-export function pos2str(pos, mode = 0) {
-    if (mode === 0) return `${pos.x} ${pos.y} ${pos.z}`;
-    if (mode === 1) return `${pos.x},${pos.y},${pos.z},${pos.dimid}`;
 }
 
 /**
