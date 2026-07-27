@@ -1,3 +1,4 @@
 Config/sensitive.js
-Data
-src.bak
+Data/
+src.bak/
+*/node_modules/
