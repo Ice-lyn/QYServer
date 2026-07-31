@@ -112,7 +112,7 @@ mc.listen("onPistonTryPush", (_pos, block) => {
 mc.listen("onPistonPush", (_pos, block) => {
     if (block.type === "minecraft:end_rod")
         return mc.runcmdEx(
-            `execute in ${func.pos2str[block.pos.dimid]} positioned ${func.pos2str(block.pos)} run damage @e[r=1.25,family=mob] 1 ram_attack`
+            `execute in ${["overworld", "nether", "the_end"][block.pos.dimid]} positioned ${func.pos2str(block.pos)} run damage @e[r=1.25,family=mob] 1 fly_into_wall`
         );
 })
 
@@ -294,7 +294,7 @@ mc.listen("onUseItem", (player, item) => {
         if (player.maxHealth === 60) return player.tell("[§aTip§r] 您的光翼已达上限(" + player.maxHealth + "/60)");
         player.setMaxHealth(player.maxHealth + 1);
         player.tell("" + func.enRuncmd(player, "playsound random.orb @s").output);
-        return player.clearItem("qys:wing", 1);
+        return player.clearItem("qys:sky_wing", 1);
     }
     if (item.type === "qys:magic") return func.enRuncmd(player, "playsound custom.magic_use_sound @a[r=10] ~~~");
     if (player.isSneaking
