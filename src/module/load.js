@@ -11,6 +11,7 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
         "Mail.js", // 邮件系统
         "MobSummon.js", // 实体生成
         "Prefect.js", // 社区风纪系统
+        "UniteBan.js", // 云黑
         "UserBind.js", // 用户绑定
         "UserMigrate.js" // 帐号迁移
     ],
