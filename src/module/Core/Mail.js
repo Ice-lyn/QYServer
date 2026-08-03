@@ -29,14 +29,18 @@ const mailData = {
 
     // 获取所有邮件
     getAllMail: () => {
-        const mails = config.GameMail || [];
-        return mails.map(mail => ({
-            ...mail,
-            timestamp: mail.time,
-            id: mail.id,
-            items: mail.items || [],
-            ignoreTime: mail.ignoreTime || false
-        }));
+        return (mailList || [])
+            .filter(({id}) => id !== undefined)
+            .map(mail => ({
+                id: mail.id, // id
+                title: mail.title, // 标题
+                days: mail.days ?? false, // 有效期
+
+                items: mail.items || [], // 附件
+
+                time: mail.time, // 发布时间
+                ignoreTime: mail.ignoreTime || false, // 忽略加入时间
+            }))
     },
 
     // 添加已读邮件
