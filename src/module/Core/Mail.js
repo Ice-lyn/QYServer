@@ -150,7 +150,7 @@ function mailInfoUI(player, data) {
     if (!mailData.hasRead(player.xuid, data.id))
         mailData.addRead(player.xuid, data.id);
 
-    const hasAnnex = data?.items?.length > 0
+    const hasAnnex = data?.items?.length > 0;
     const fm = mc.newSimpleForm()
         .setTitle(`§l${data.title}§r`)
         .setContent([
@@ -169,7 +169,6 @@ function mailInfoUI(player, data) {
         else
             fm.addButton("领取附件", "textures/ui/Caution.png");
     }
-        
 
     fm.addButton("返回列表", "textures/ui/icon_import.png");
 
@@ -191,5 +190,4 @@ function mailInfoUI(player, data) {
         player.tell("§a附件领取成功！");
         mailInfoUI(player, data);
     })
-    
 }
