@@ -41,6 +41,8 @@ const mailData = {
 
     // 添加已读邮件
     addRead: (xuid, id) => {
+        if (mailDataMap.has(xuid))
+            mailDataMap.delete(xuid);
         const playerData = mailData.getPlayer(xuid);
         if (!playerData.read[id]) playerData.read[id] = [];
         if (!playerData.read[id].includes(xuid)) {
@@ -51,6 +53,8 @@ const mailData = {
 
     // 添加已领取附件的邮件
     addCollected: (xuid, id) => {
+        if (mailDataMap.has(xuid))
+            mailDataMap.delete(xuid);
         const playerData = mailData.getPlayer(xuid);
         if (!playerData.collected[id]) playerData.collected[id] = [];
         if (!playerData.collected[id].includes(xuid)) {
