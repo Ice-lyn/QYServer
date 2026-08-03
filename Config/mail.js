@@ -1,8 +1,8 @@
-export const mailConfig = [
+export const mailList = [
     {
         id: "ann_006",
         title: "暑假快乐",
-        expireDays: 60,
+        days: 60,
         content: ([
             "亲爱的旅人们：",
             "",
@@ -27,7 +27,7 @@ export const mailConfig = [
     {
         id: "ann_005",
         title: "五一劳动节快乐！(˶ᵔ ᵕ ᵔ˶)",
-        expireDays: 5,
+        days: 5,
         content: ([
             "亲爱的旅人们：",
             "",
@@ -76,6 +76,7 @@ export const mailConfig = [
     },
     {
         id: "ann_003",
+        ignoreTime: true,
         title: "关于Actions & Stuff材质版本说明",
         content: ([
             "出于对向低版本客户端兼容的考虑，我们使用的Actions & Stuff将停留在1.9.1版本",
@@ -85,13 +86,12 @@ export const mailConfig = [
             "",
             "—— QYServer"
         ].join("\n")),
-        ignoreTime: true,
         time: time2date("2026/2/20")
     },
     {
         id: "ann_002",
         title: "除夕共守岁，心火暖云城",
-        expireDays: 30,
+        days: 30,
         content: ([
             "炉火在遇境燃起，云野大厅挂上了红灯笼。",
             "今夜除夕，烟花将点亮每一片夜空——无论是你用方块搭建的小屋，还是我们并肩飞过的晨岛。",
