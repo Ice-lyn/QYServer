@@ -1,5 +1,5 @@
 import { knowledgeBase } from "./knowledgeBase.js";
-import { sensitive } from "./sensitive.js";
+import { env } from "./env.js";
 
 export const config = {
     // 风纪委员列表
@@ -37,8 +37,8 @@ export const config = {
         port: 465, // 加密端口
         secure: true, // 加密
         auth: {
-            user: sensitive.mail_auth.user,
-            pass: sensitive.mail_auth.pass
+            user: env.mail_auth.user,
+            pass: env.mail_auth.pass
         }
     },
 
@@ -152,10 +152,10 @@ export const config = {
     // }
 
     // 其他类型服列表
-    serverList: sensitive.server_list,
+    serverList: env.server_list ?? [],
 
     // 线路节点列表
-    nodeList: sensitive.node_list,
+    nodeList: env.node_list ?? [],
 
     // 云朵电梯
     sky_block_type: "qys:sky_block",
@@ -199,14 +199,14 @@ export const config = {
     // AI相关
     AIChat: {
         name: "deepseek-v4-flash",
-        key: sensitive.deepseek_key,
+        key: env.deepseek_key,
         url: "https://api.deepseek.com/chat/completions",
         maxTokens: 5000,
         temperature: 1.3,
 
         // 联网搜索相关
         web_url: "https://uapis.cn/api/v1/search/aggregate",
-        web_key: sensitive.web_key,
+        web_key: env.web_key,
 
         system: ([
             "你叫兮兮，一个可爱的服务器娘 (｡･ω･｡)ﾉ♡，负责陪玩家聊天和提供帮助",
