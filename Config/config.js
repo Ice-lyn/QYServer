@@ -1,9 +1,7 @@
 import { knowledgeBase } from "./knowledgeBase.js";
 import { sensitive } from "./sensitive.js";
-import { mailConfig } from "./mail.js";
 
 export const config = {
-
     // 风纪委员列表
     prefect: {
         2535441456906455: {
@@ -34,7 +32,6 @@ export const config = {
     lockBlock: /^(?:minecraft:(?:chest|trapped_chest|hopper|barrel)|.+_door)$/,
 
     // 邮件相关
-    GameMail: mailConfig,
     Mail: {
         host: "smtp.resend.com",
         port: 465, // 加密端口
