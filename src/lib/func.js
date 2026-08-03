@@ -140,10 +140,11 @@ export function addBehaviorLog(mode = 0, ...data) {
         }
 
         if (mode === 2) {
-            const [event, name, pos, msg] = data;
+            let [event, name, pos, msg] = data;
+            if (isNull(pos)) pos = { x: 0, y: 0, z: 0, dimid: "" };
             return BehaviorLogObj(
                 event,                  // 事件名称
-                pos.dimid ?? "",        // 维度
+                pos.dimid,        // 维度
                 name,                   // 操作者
                 pos.x, pos.y, pos.z,    // 坐标
                 "", "", "", "",         // 目标相关字段（留空）
@@ -153,7 +154,8 @@ export function addBehaviorLog(mode = 0, ...data) {
             );
         }
     } catch (e) {
-        logger.warn(`[BehaviorLog] 写入失败: mode=${mode}`, ...data, "\n", e);
+        logger.warn(`[BehaviorLog] 写入失败: mode=${mode}`, ...data, "\n", e.toString());
+        return false;
     }
 }
 
