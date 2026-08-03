@@ -141,16 +141,6 @@ export const config = {
         }
     },
 
-    // 服务器切换的示例配置
-    // 如果你想要更改这个，可以按这个格式写
-    // {
-    //     name: "§bJava 互通服",       // 名称
-    //     ip: "qyjavabe.s.odn.cc",    // IP
-    //     port: 19132,                // 端口
-    //     ui: "textures/ui/controller_glyph_color",   // 图标
-    //     version: [844, 859, 860, 898]               // 支持的版本列表 (线路接电没有这个)
-    // }
-
     // 其他类型服列表
     serverList: env.server_list ?? [],
 
@@ -545,3 +535,4 @@ export const config = {
         ].join("\n"))
     }).map(([key, value]) => `§r§b# §b${key}§r\n${value}`).join('\n\n\n')
 };
+export default config;
