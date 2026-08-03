@@ -1,4 +1,4 @@
-import { config } from "../../../Config/config.js";
+import { mailList } from "../../../Config/mail.js";
 import * as func from "../../lib/func.js";
 
 /**
@@ -77,8 +77,8 @@ const mailData = {
 
         const available = [];
         mailData.getAllMail().forEach(mail => {
-            const expireTime = mail.expireDays
-                ? mail.timestamp + (mail.expireDays * 86400000)
+            const expireTime = mail.days
+                ? mail.time + (mail.days * 86400000)
                 : Infinity;
 
             // 规则：
@@ -86,12 +86,12 @@ const mailData = {
             // 2. IgnoreTime 为 false 时，必须在玩家加入后发布
             // 3. 已读的邮件：全部显示（包括过期的）
             // 4. 未读的邮件：只显示未过期的
-            if ((mail.ignoreTime || mail.timestamp >= joinTime)
+            if ((mail.ignoreTime || mail.time >= joinTime)
                 && (mailData.hasRead(xuid, mail.id) || time <= expireTime)
             ) available.push(mail);
         })
 
-        const data = available.sort((a, b) => b.timestamp - a.timestamp);
+        const data = available.sort((a, b) => b.time - a.time);
         mailDataMap.set(xuid, data);
         return data;
     }
@@ -100,7 +100,7 @@ const mailData = {
 mc.listen("onLeft", (player) => mailDataMap.delete(player.xuid));
 mc.listen("onJoin", (player) => {
     const mails = mailData.getAvailable(player.xuid)
-        .filter(ann => !mailData.hasRead(player.xuid, ann.id));
+        .filter(mail => !mailData.hasRead(player.xuid, mail.id));
 
     if (mails.length > 0) {
         mc.runcmdEx(`execute as "${player.realName}" run scriptevent qys:command toast 2 "§e邮件通知§r\n你有 ${mails.length} 条未读邮件！\n可使用 /mail 指令查看邮件" textures/ui/Envelope`);
@@ -154,8 +154,8 @@ function mailInfoUI(player, data) {
     const fm = mc.newSimpleForm()
         .setTitle(`§l${data.title}§r`)
         .setContent([
-            `§l发布时间§r: §7${(new Date(data.timestamp)).toISOString().split('T')[0]}§r`,
-            ...data.expireDays ? [`§l有效时间§r: §7${data.expireDays}天§r`] : [],
+            `§l发布时间§r: §7${(new Date(data.time)).toISOString().split('T')[0]}§r`,
+            ...data.days ? [`§l有效时间§r: §7${data.days}天§r`] : [],
             " ",
             "§l------------------------------§r",
             " ",
