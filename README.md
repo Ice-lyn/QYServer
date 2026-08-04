@@ -63,6 +63,7 @@ QYServer.zip
 │   ├── PlayerMail/         # 玩家邮件阅读/领取状态（LevelDB 引擎）
 │   ├── PlayerTime/         # 玩家首次加入时间（LevelDB 引擎）
 │   ├── AIMemory.json       # AI 对话上下文记忆
+│   ├── BlockLock.json      # 领地方块锁数据
 │   ├── cdk.json            # 兑换码库与使用记录
 │   └── issues.txt          # 玩家反馈问题日志
 │
@@ -75,22 +76,29 @@ QYServer.zip
 │   └── module/             # 【功能模块】按领域分隔
 │       ├── Core/           # 核心系统
 │       │   ├── AIChat.js       # AI聊天 - 服务器娘"兮兮"
+│       │   ├── JoinTime.js     # 加入时间 - 玩家历史查询
 │       │   ├── Mail.js         # 邮件系统 - 全服公告推送
+│       │   ├── MobSummon.js    # 实体生成控制 - 防刷怪
+│       │   ├── Prefect.js      # 风纪系统 - 社区风纪委员
+│       │   ├── UniteBan.js     # 云黑检测 - 公共封禁名单
 │       │   ├── UserBind.js     # 邮箱绑定 - 账户安全保障
-│       │   ├── UserMigrate.js  # 账户迁移 - XUID变更补救
-│       │   └── JoinTime.js     # 加入时间 - 玩家历史查询
+│       │   └── UserMigrate.js  # 账户迁移 - XUID变更补救
 │       │
 │       ├── Game/           # 玩法系统
+│       │   ├── BlockLock.js    # 领地方块锁 - 防破坏
 │       │   ├── BoxUI.js        # 假箱子UI - 协议层交互界面
 │       │   ├── CloudLift.js    # 云朵电梯 - 立体交通系统
 │       │   ├── Doll.js         # 玩偶系统 - 互动收藏品
+│       │   ├── EnderDragonEx.js # 强化末影龙 - Boss战
 │       │   ├── OPmgr.js        # OP管理 - 管理员工具
-│       │   └── SkinEffect.js   # 皮肤特效 - 装备附加效果
+│       │   ├── SkinEffect.js   # 皮肤特效 - 装备附加效果
+│       │   └── VillagerMigrate.js # 村民交易迁移
 │       │
 │       ├── World/          # 世界系统
 │       │   ├── AfkTestfor.js   # 挂机检测 - 防刷资源
 │       │   ├── AxolotlDamage.js # 美西螈保护 - 宠物设置
 │       │   ├── Cdk.js          # 兑换码系统 - 运营工具
+│       │   ├── MainCityShop.js # 主城商店 - 蜡烛/金币消费
 │       │   ├── ScoreChanged.js # 积分提示 - 实时反馈
 │       │   ├── ShowBiome.js    # 群系提示 - 沉浸体验
 │       │   └── WorldBorder.js  # 世界边界 - 安全围栏
@@ -157,19 +165,26 @@ LevelDB 的日志和清单文件会在服务端关闭时自动回收，确保数
 
 | 领域 | 模块 | 主要职责 |
 | :--- | :--- | :--- |
-| **Core** | AIChat.js | 接入DeepSeek API，带工具调用的智能NPC；可检索知识库与聊天记录；支持投喂/rua互动与上下文物。记忆持久化至 `Data/AIMemory.json` |
+| **Core** | AIChat.js | 接入DeepSeek API，带7种工具调用的智能NPC；可查玩家数据/聊天记录/知识库/更新日志/联网搜索/白名单指令；支持投喂/rua互动。记忆持久化至 `Data/AIMemory.json` |
+| | JoinTime.js | 记录并查询玩家首次加入时间；支持模糊搜索历史玩家。数据持久化至 `Data/PlayerTime/`（LevelDB） |
 | | Mail.js | 全服公告系统，支持附件领取与过期逻辑；JSON配置驱动。状态持久化至 `Data/PlayerMail/`（LevelDB） |
+| | MobSummon.js | 实体生成控制；低TPS自动抑制刷怪、防空刷，`testfor`后台诊断命令 |
+| | Prefect.js | 社区风纪系统；风纪委员举报/踢出/禁言，名单配置驱动（`Config/config.js`） |
+| | UniteBan.js | 接入公共云黑API；加入时校验XUID/客户端ID/IP，命中即踢出封禁 |
 | | UserBind.js | 邮箱+验证码绑定流程；二次验证安全保障。数据持久化至 `Data/PlayerBind/`（LevelDB） |
 | | UserMigrate.js | 双邮箱验证的跨XUID自助迁移；同步领地数据到新账户 |
-| | JoinTime.js | 记录并查询玩家首次加入时间；支持模糊搜索历史玩家。数据持久化至 `Data/PlayerTime/`（LevelDB） |
-| **Game** | BoxUI.js | 协议层伪造容器UI；支持自定义点击回调的交互界面（如鞘翅皮肤商店） |
+| **Game** | BlockLock.js | 领地方块锁；受信任领地内上锁，领地失效自动解锁。数据持久化至 `Data/BlockLock.json` |
+| | BoxUI.js | 协议层伪造容器UI；支持自定义点击回调的交互界面（如鞘翅皮肤商店） |
 | | CloudLift.js | 识别特殊方块实现的立体电梯；支持上下20层快速传送 |
 | | Doll.js | 可购买的收藏玩偶系统；支持多种互动效果与商店集成 |
+| | EnderDragonEx.js | 强化末影龙Boss战；提升血量、召唤小弟、按伤害占比分配奖励 |
 | | OPmgr.js | 管理员专用工具集；OP剑快捷删实体、切换模式 |
 | | SkinEffect.js | 皮肤装备触发药水效果的检测系统；支持动态增减效果 |
+| | VillagerMigrate.js | 村民交易迁移；手持书本可导出/覆盖交易列表 |
 | **World** | AfkTestfor.js | 基于坐标+视角变化的挂机检测；自动标记并触发挂机动作 |
 | | AxolotlDamage.js | 美西螈攻击鱼类保护开关；潜行交互设置 |
 | | Cdk.js | 兑换码生成/使用/限量管理；支持命令+物品混合发放。数据持久化至 `Data/cdk.json` |
+| | MainCityShop.js | 主城商店；蜡烛/金币双货币商品兑换，配置驱动（`Config/config.js`） |
 | | ScoreChanged.js | 金币/蜡烛数值变动实时提示；正负增量可视化 |
 | | ShowBiome.js | 定时检测群系变化并显示中文名称；3秒刷新一次 |
 | | WorldBorder.js | 基于坐标的边界围栏系统；越界自动回弹安全位置 |
@@ -199,11 +214,51 @@ LevelDB 的日志和清单文件会在服务端关闭时自动回收，确保数
 
 ### 🎀 “兮兮” AI 聊天 (`Core/AIChat.js`)
 服务器娘“兮兮”已经成长为具备复杂推理能力的智能体：
-*   **模型升级**：核心模型已从 `DeepSeek 3.2` 升级为 `deepseek-v4-flash`，响应速度更快，逻辑更清晰。
-*   **工具调用**：AI 不仅能闲聊，还能通过 `query_data` 检索**内置的庞大数据集**（涵盖所有规则、指令、功能）来回答问题。新增的 `query_chat` 工具使她能够回顾当天的聊天记录，真正形成“记忆”。
+*   **模型升级**：核心模型已升级为 `deepseek-v4-flash`，响应速度更快，逻辑更清晰。
+*   **七种工具调用**：AI 不仅能闲聊，还能按需调用工具来真正“做事”：
+    *   `query_knowledge_data` —— 检索**内置知识库**（涵盖所有规则、指令、功能）来回答规则问题；
+    *   `query_chat` / `query_chat_data` —— 回顾当天聊天记录、按关键词检索，形成短期“记忆”；
+    *   `query_player_data` —— 查询玩家信息（加入时间、金币/蜡烛、击杀数、在线时长）；
+    *   `query_web_info` —— 联网搜索实时信息；
+    *   `query_updata` —— 查询服务器更新日志；
+    *   `run_mc_command` —— 在**白名单**内执行 `/give`、`/issues`、`/msg`、`/sinfo` 等指令。
 *   **互动玩法**：玩家可以投喂食物或 `rua` 服务器娘，AI 会根据情况撒娇或回礼。
 *   **记忆管理**：通过 `AIMemory.json` 保存上下文，避免“失忆”。系统会自动裁剪过长记忆。
-*   **安全输出**：AI 回复后，代码会自动解析 `/give`、`/issues` 等命令并执行，同时过滤掉敏感字符和 emoji。所有回复会同时广播到游戏和QQ群。
+*   **安全输出**：所有指令执行均受限白名单，回复同时过滤敏感字符与 emoji，并广播到游戏和QQ群。
+
+***
+
+### 🛡️ 社区风纪 & 云黑 (`Core/Prefect.js` & `Core/UniteBan.js`)
+双保险的社区秩序维护体系：
+*   **风纪委员**（`Prefect.js`）：从 `Config/config.js` 读取风纪委员名单，实现举报、踢人、禁言等管理动作（权限分层在规划中）。
+*   **云黑检测**（`UniteBan.js`）：玩家加入时向公共云黑 API 上报 XUID / 客户端 ID / IP 进行校验，命中即踢出并广播封禁原因，实现跨服联防。
+
+### 🔒 领地方块锁 (`Game/BlockLock.js`)
+针对漏斗分类被小白弄坏、门口总被破门而入等痛点设计：
+*   玩家只能在**受信任的领地内**对容器/门类方块上锁（数据存 `Data/BlockLock.json`）。
+*   领地主与创建者可自由解锁；领地失效时方块自动解锁。
+*   非授权玩家右键会被拦截并提示，还贴心附带解谜提示（潜行+手持钟表右键解锁）。
+
+### 🐉 强化末影龙 (`Game/EnderDragonEx.js`)
+让末地Boss战更有史诗感：
+*   末影龙生命值提升至 300，歇息时减伤，免疫爆炸伤害（仅玩家可造成伤害）。
+*   低血量有概率召唤“末影侍卫”小弟；水晶被破坏会反噬破坏者。
+*   击杀奖励按**伤害占比**分配，末影龙击杀玩家会回复血量。
+
+### 🏪 主城商店 (`World/MainCityShop.js`)
+配置驱动的双货币商店系统（蜡烛 / 金币）：
+*   商品列表完全由 `Config/config.js` 的 `shop` 字段定义，支持自定义图标与命令发放。
+*   包含“光明魔法”“飞行药水”“云朵方块”等十余种特色商品，交互使用假箱子 UI 完成。
+
+### 🧑‍🌾 村民交易迁移 (`Game/VillagerMigrate.js`)
+村民交易“存档/搬运”工具：
+*   潜行手持写有交易 NBT 的书本右键村民，可把当前村民的交易列表导出到书本。
+*   再次右键可覆盖目标村民交易，或从书本恢复交易列表，方便迁移/备份村民交易。
+
+### 🧟 实体生成控制 (`Core/MobSummon.js`)
+面向高在线环境的性能守护：
+*   服务器 TPS 低于阈值时自动抑制自然刷怪，20 格内无玩家的“空刷怪塔”区域不刷怪。
+*   提供 `testfor` 系列后台命令，方便排查全服实体类型与数量。
 
 ***
 
