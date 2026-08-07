@@ -1,5 +1,5 @@
 // import dts
-/// <reference path="/root/VSCode/Library/ImportAll.d.ts"/>
+/// <reference path="/root/Library/lse/index.d.ts" />
 
 import { Recipes } from '../../GMLIB-LegacyRemoteCallApi/lib/GMLIB_API-JS.js';
 import { PAPI } from '../../GMLIB-LegacyRemoteCallApi/lib/BEPlaceholderAPI-JS.js';

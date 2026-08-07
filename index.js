@@ -1,5 +1,5 @@
 // import dts
-/// <reference path="/root/VSCode/Library/ImportAll.d.ts"/>
+/// <reference path="/root/Library/lse/index.d.ts" />
 import * as func from "./src/lib/func.js";
 import "./src/module/load.js";
 import "./src/index.js";
