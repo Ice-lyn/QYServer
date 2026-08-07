@@ -55,18 +55,19 @@ mc.listen("onUseItemOn", (player, item, block) => {
     if (!lockData.get(strPos)
         && func.LandJudgment(player, block.pos)
     ) {
-        lockData.set(strPos, player.xuid);
-        player.tell("方块§c上锁§r成功！", 5);
-        func.enRuncmd(player, "playsound random.orb");
+        if (lockData.set(strPos, player.xuid)) {
+            player.tell("方块§c上锁§r成功！", 5);
+            func.enRuncmd(player, "playsound random.orb");
+        } else player.tell("方块§c上锁§r失败...", 5)
 
     } // 上锁了: 解锁
     else if (lockData.get(strPos) === player.xuid
         || ll.imports('ILAPI_IsLandOwner')(getLandId(block.pos), player.xuid)
     ) {
-        lockData.delete(strPos);
-        player.tell("方块§a解锁§r成功！", 5);
-        func.enRuncmd(player, "playsound random.orb");
-
+        if (lockData.delete(strPos)) {
+            player.tell("方块§a解锁§r成功！", 5);
+            func.enRuncmd(player, "playsound random.orb");
+        } else player.tell("方块§a解锁§r失败...")
     } // 黑神话: 悟空
     // else { log("猿神，启动！") }
 
