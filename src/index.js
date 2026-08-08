@@ -11,7 +11,7 @@ import * as func from "./lib/func.js";
 logger.setTitle("Server");
 
 // 初始化变量
-let is_reload = (mc.getOnlinePlayers().length != 0);
+let is_reload = (mc.getOnlinePlayers().length !== 0);
 
 PAPI.registerPlayerPlaceholder(func.getChatTag, "QYServer", "player_chatTag"); // 注册PAPI
 mc.listen("onEndermanTakeBlock", () => false); // 防搬方块
@@ -68,7 +68,7 @@ mc.listen("onPreJoin", () => {
 
 // 玩家加入事件
 mc.listen("onJoin", (player) => {
-    if (!player || !player.inWorld) return;
+    if (!player?.inWorld) return;
     if (config.banName.has(player.realName)
         || config.banXuid.has(player.xuid)
         || config.banClient.has(player.getDevice().clientId)
