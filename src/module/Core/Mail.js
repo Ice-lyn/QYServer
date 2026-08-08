@@ -34,6 +34,7 @@ const mailData = {
             .map(mail => ({
                 id: mail.id, // id
                 title: mail.title, // 标题
+                content: mail.content, // 内容
                 days: mail.days ?? false, // 有效期
 
                 items: mail.items || [], // 附件
