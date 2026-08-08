@@ -1,5 +1,27 @@
 export const mailList = [
     {
+        id: "ann_007",
+        title: "维护补偿 — 感谢您的耐心等待",
+        days: 3,
+        content: ([
+            "亲爱的旅人们：",
+            "",
+            "服务器已于今日完成维护升级，遇境的灯火重新点亮",
+            "感谢各位在维护期间的耐心等待与理解，每一次停机都是为了更稳定的云端之旅。",
+            "",
+            "我们为所有受到影响的旅人准备了一份补偿心意，请查收附件～",
+            "",
+            "愿风指引你的方向，愿星光永远照亮你的旅途 (˶ᵔ ᵕ ᵔ˶)"
+        ].join("\n")),
+        items: [
+            type2snbt("qys:candle_white", 64),
+            type2snbt("qys:sky_wing", 32),
+            type2snbt("qys:flower_wreath_helmet", 1),
+            "{\"Count\":32b,\"Damage\":0s,\"Name\":\"minecraft:firework_rocket\",\"WasPickedUp\":0b,\"tag\":{\"Fireworks\":{\"Explosions\":[],\"Flight\":50b}}}"
+        ],
+        time: time2date("2026/7/23")
+    },
+    {
         id: "ann_006",
         title: "暑假快乐",
         days: 60,
