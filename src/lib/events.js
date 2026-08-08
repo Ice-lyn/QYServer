@@ -35,7 +35,7 @@ export const emit = (name, ...args) => {
             const result = fn(...args);
             results.push(result);
         } catch (error) {
-            console.error(`事件 ${name} 执行错误:`, error);
+            logger.error(`事件 ${name} 执行错误:`, error);
             results.push(null);
         }
     }
