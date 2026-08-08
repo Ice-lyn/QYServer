@@ -6,15 +6,17 @@ import "./src/index.js";
 
 // 导出接口
 try {
-    let load_ok = 0;
+    let loadOk = 0;
     Object.entries(func)
         .filter(([key]) => Object.prototype.hasOwnProperty.call(func, key))
         .forEach(([key, value]) => {
-            if (typeof value === 'function') ll.exports(value, "QYServer", key) && load_ok++;
-            else func.titleLog.warn("QYExports", `${key} 不是函数！跳过导出...`);
+            if (typeof value === 'function')
+                ll.exports(value, "QYServer", key) && load_ok++;
+            else
+                func.titleLog.warn("QYExports", `${key} 不是函数！跳过导出...`);
         });
     logger.setTitle("QYExports");
-    logger.warn(`成功导出 ${load_ok} 个接口`);
+    logger.warn(`成功导出 ${loadOk} 个接口`);
     logger.setTitle("Server");
 } catch (e) {
     logger.setTitle("QYExports");
