@@ -25,15 +25,6 @@ const AICanItem = [
 const AIGiveNum = new Map();
 const AIActionNum = new Map();
 const AIAction = {
-    rua: (player) => {
-        //if (AIActionNum.get(player.xuid) > 10) return;
-        mc.broadcast(`${player.realName} rua了服务器娘一下~`);
-        ll.imports("QQChatEx", "onSendChat")(`${player.realName} rua了服务器娘一下~`);
-        return;
-        AIChat(`${player.realName} rua了你一下~`, "System", true);
-        AIActionNum.set(player.xuid, AIActionNum.get(player.xuid) ?? 0);
-    },
-
     giveItem: (player, item) => {
         if (item.isNull()) return player.tell("你没有拿起食物呢...");
         if (AIGiveNum.get(player.xuid) >= 10) return player.tell("唔...不想吃了...");
@@ -79,7 +70,6 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
     if (player.isSneaking && item && item.type.some(type => AICanItem.includes(type)))
         AIAction.giveItem(player, item);
     else {
-        AIAction.rua(player);
         func.enRuncmd(entity, "function function/pat");
         func.enRuncmd(entity, "execute anchored eyes run particle minecraft:heart_particle ~~0.5~");
     }
@@ -87,7 +77,6 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
 
 const AICallCD = new Set();
 func.addOnmodeCmd("aichat", (player, cmd) => {
-    return
     if (AICallCD.has(player.xuid))
         return player.tell("冷却中...");
 
@@ -98,11 +87,8 @@ func.addOnmodeCmd("aichat", (player, cmd) => {
         case "give":
             AIAction.giveItem(player, player.getHand());
             break;
-        case "rua":
-            AIAction.rua(player);
-            break;
         default:
-            player.tell("未知参数，请使用 /om aichat give 或 /om aichat rua");
+            player.tell("未知参数，请使用 /om aichat give");
             break;
     }
 });
