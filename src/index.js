@@ -1003,14 +1003,6 @@ const playerCmd = {// 玩家可以用
         player.tell("覆膜惩罚已去除！")
     },
 
-    updata: (player) => {
-        const fm = mc.newSimpleForm()
-            .setTitle("更新日志")
-            .setContent(config.updataLog);
-
-        player.sendForm(fm, (() => { }));
-    },
-
     crash: (player) => {
         let crashtime = [5, 4, 3, 2, 1]
         crashtime.forEach((sec, index) => {
