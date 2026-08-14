@@ -25,7 +25,7 @@ const prefectList = {
 
 // 禁言持久逻辑
 mc.listen("onJoin", (player) => {
-    if (!player || !player.inWorld) return;
+    if (!player?.inWorld) return;
 
     if (kickPlayerSet.has(player?.realName || player.name))
         return player.kick();
