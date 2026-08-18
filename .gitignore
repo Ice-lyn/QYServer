@@ -1,5 +1,4 @@
 Config/env.js
 Data/
 src.bak/
-
-*/node_modules/
+**/node_modules/
