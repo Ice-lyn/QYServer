@@ -1,4 +1,11 @@
 export const env = {
+    // Redis链接数据
+    redis_data: {
+        host: '*.*.*.*',
+        port: 25565,
+        password: 'sk-KFCcrazyDay4Vme50quickly'
+    },
+
     // DS 的密钥
     deepseek_key: "sk-KFCcrazyDay4Vme50quickly",
 

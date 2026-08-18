@@ -2,6 +2,17 @@ import { knowledgeBase } from "./knowledgeBase.js";
 import { env } from "./env.js";
 
 export const config = {
+    // 玩家列表同步
+    redis: {
+        socket: {
+            host: env.redis_data.host,
+            port: env.redis_data.port,
+            keepAlive: 30000,  // 心跳
+        },
+        password: env.redis_data.password,
+        pingInterval: 10000  // 每10秒ping一次保持连接
+    },
+
     // 风纪委员列表
     prefect: {
         2535441456906455: {
