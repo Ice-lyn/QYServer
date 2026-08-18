@@ -77,6 +77,7 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
 
 const AICallCD = new Set();
 func.addOnmodeCmd("aichat", (player, cmd) => {
+    return
     if (AICallCD.has(player.xuid))
         return player.tell("冷却中...");
 
@@ -87,8 +88,11 @@ func.addOnmodeCmd("aichat", (player, cmd) => {
         case "give":
             AIAction.giveItem(player, player.getHand());
             break;
+        case "rua":
+            AIAction.rua(player);
+            break;
         default:
-            player.tell("未知参数，请使用 /om aichat give");
+            player.tell("未知参数，请使用 /om aichat give 或 /om aichat rua");
             break;
     }
 });
