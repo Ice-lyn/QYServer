@@ -22,6 +22,7 @@ let inDamage = true;
 
 
 // 末影龙受伤
+let inCd = false;
 mc.listen("onMobHurt", (mob, source, damage, cause) => {
     if (mob.type !== "minecraft:ender_dragon") return;
     if (!inDamage) inDamage = true;
@@ -31,8 +32,12 @@ mc.listen("onMobHurt", (mob, source, damage, cause) => {
     if (source?.type !== "minecraft:player") return;
 
     // 有35%的机率摇人
-    if (mob.health < 250 && func.probability(35)) {
-        func.enRuncmd(mob, "execute as @a[r=500,c=2] at @s run structure load 末影侍卫 ~~~");
+    if (mob.health < 250 && func.probability(35) && !inCd) {
+        func.enRuncmd(mob, "execute as @a[r=500,c=1] at @s run structure load 末影侍卫 ~~~");
+        inCd = true;
+        setTimeout(() => {
+            inCd = false;
+        }, 20 * 1000)
     }
 
     const xuid = source.toPlayer().xuid;
