@@ -516,7 +516,7 @@ mc.listen('onServerStarted', () => {
 })
 
 
-/***** 命令注册区 *****/
+// === 命令注册区 === //
 
 // sinfo - 查询服务器运行状态
 mc.listen('onServerStarted', () => {
@@ -773,7 +773,7 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 })
 
-/**** 函数区 ****/
+// === 函数区 === //
 
 // 烟花发射UI
 function firework(player) {
