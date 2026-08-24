@@ -100,6 +100,7 @@ const mailData = {
 
 mc.listen("onLeft", (player) => mailDataMap.delete(player.xuid));
 mc.listen("onJoin", (player) => {
+    if (!player?.inWorld) return;
     const mails = mailData.getAvailable(player.xuid)
         .filter(mail => !mailData.hasRead(player.xuid, mail.id));
 

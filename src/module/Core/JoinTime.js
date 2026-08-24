@@ -2,11 +2,12 @@ import * as func from "../../lib/func.js"
 
 const playerTime = new KVDatabase("./plugins/QYServer/Data/PlayerTime");
 
-mc.listen("onJoin", (pl) => {
-    if (playerTime.get(pl.realName) !== null) return;
+mc.listen("onJoin", (player) => {
+    if (!player?.inWorld) return;
+    if (playerTime.get(player.realName) !== null) return;
     playerTime.set(
-        pl.realName,// usfID为初加入时间戳
-        pl.getNbt()
+        player.realName,// usfID为初加入时间戳
+        player.getNbt()
             ?.getTag("DynamicProperties")
             ?.getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
             ?.getData("usfV2:id") ?? 0
