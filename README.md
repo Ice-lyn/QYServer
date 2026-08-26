@@ -33,7 +33,7 @@
 | :--- | :--- |
 | **GMLIB-LegacyRemoteCallApi** | LeviLamina 最强大的第三方 API 之一，提供底层网络包构造、事件扩展等能力。我们的**假箱子 UI** 正是基于此实现。 |
 | **iListenAttentively-LseExport** | 反作弊监听与处理的核心前置，对接了反作弊插件的事件。 |
-| **axios** | 用于向 DeepSeek AI API 发送请求，支撑**服务器娘“兮兮”**的聊天能力。当前核心模型已升级为 `DeepSeek-V4`，并支持工具调用与深度思考模式。 |
+| **axios** | 用于向 DeepSeek AI API 发送请求，支撑**服务器娘“兮兮”**的聊天能力。当前核心模型为 `deepseek-v4-flash`，支持工具调用与记忆管理。 |
 | **nodemailer** | 承担邮件发送角色，用于邮箱绑定、账号迁移、玩家反馈通知等。 |
 
 ### 环境要求
@@ -125,7 +125,43 @@ QYServer.zip
 *   每个模块独立报错，互不影响。管理器会输出加载耗时，方便排查性能瓶颈。
 
 ### 3. 核心主控 (`src/index.js`) —— 人与方块的交汇点
-这是整个服务器的“大脑”，以 `mc.listen` 为核心，对接 BDS 底层事件。它通过大量 `setInterval` 实现定时逻辑，并集中注册了几十个如 `/sinfo`、`/msgui`、`/scale` 等自研命令。
+这是整个服务器的“大脑”，以 `mc.listen` 为核心，对接 BDS 底层事件。它通过大量 `setInterval` 实现定时逻辑，并集中注册了几十个自研命令（详见后文「命令一览」）。除调度各模块外，核心主控自身也实现了大量基础玩法与防护逻辑：
+
+*   **聊天与社交**
+    *   聊天称号：从 USF 数据读取玩家称号（`getChatTag`），未设置时显示默认“萌新求带”；`/chattag` 可切换已拥有的称号。
+    *   表情替换：内置 `replaceMap`，将常见 emoji 映射为自定义字体符号（`textToEmoji`），并过滤敏感词。
+    *   彩蛋音效：聊天包含 `ciallo` / `你干嘛` 等关键词时播放对应音效；普通聊天播放“被呼唤”音效与粒子。
+    *   延迟标识：聊天前缀显示玩家实时延迟（>100ms 时标红）。
+    *   私聊菜单：`/msgui` 打开快捷私聊表单；`/msg <玩家> <内容>` 直接私聊。
+    *   个人信息：`/me` 查看自身设备、延迟、模式等详细信息。
+*   **便捷操作**
+    *   主副手 / 头盔切换：`/offhand`、`/helmet` 一键交换手持与副手 / 头盔物品。
+    *   自由视角：`/fc` 开关骑乘隐形实体实现的自由飞行视角。
+    *   经验修补：手持带“经验修补”附魔的装备潜行使用，消耗经验自动修复耐久（`xpFix`）。
+    *   椅子系统：站在楼梯 / 半砖上右键即可“坐下”（`qys:ride` 实体骑乘）。
+    *   钢琴 / 烟花 / 光翼：内置钢琴 UI（`musicMenu`）、消耗蜡烛的烟花发射（`firework`）、使用 `qys:sky_wing` 提升最大生命值。
+*   **跨服与节点**
+    *   线路节点：`/nodeui` 在多个高速节点间切换（`config.nodeList`）。
+    *   跨服传送：`/tpserver` 前往创造服 / 小游戏服等，协议版本不匹配时自动拦截提示。
+*   **世界与防护**
+    *   防爆：重生锚主世界爆炸、凋零破坏、末影人搬方块均被拦截。
+    *   防刷：区块边界箱子（跨区块漏斗传输）、收纳袋传输被拦截；下界仅允许在领地内放水。
+    *   染色方块：潜行手持染料右键可染色蜡烛 / 地毯 / 玻璃 / 陶瓦等方块。
+    *   相机 / 末地烛：使用相机自动扣减物品；活塞推动末地烛对附近生物造成伤害。
+    *   骑乘限制：末影龙仅允许带 `qys:ride_ender_dragon` 标签的玩家骑乘；`32k` 武器对玩家无效并自动清除。
+*   **合成与结构**
+    *   注销收纳袋、渗浆药水、虫蚀石头等原版配方；注册圣诞帽（无序）、紫水晶（切石机）等自定义合成。
+    *   下界反应堆：主世界摆放正确结构后右键 `netherreactor` 自动加载建筑结构。
+*   **运营与日志**
+    *   一言轮播：按 `config.wordtime` 间隔向玩家推送趣味文案。
+    *   延迟看板：每 2 秒将玩家平均延迟写入 `ms` 计分板。
+    *   行为日志：通过 `BehaviorLog_WriteLog` 导出接口记录关键操作（踢人、风纪、反馈等）。
+    *   新手引导：`newPlayerUi` 首次加入发放新手装备并引导个人设置（`meSet`）。
+    *   天气投票：`/om voteweather` 发起半数通过的切换天气投票。
+    *   反馈通道：`/issues` 将玩家反馈写入 `Data/issues.txt` 并邮件通知管理。
+*   **`onmode` / `om` 命令总线**
+    *   统一的功能触发入口，按前缀分发到 `playerCmd`（玩家可用）、`keyCmd`（带密钥）、`opCmd`（OP 专用）以及各模块通过 `func.addOnmodeCmd` 注册的回调。例如 `/om firework`、`/om musicMenu`、`/om boxui`、`/om disitem`、`/om aichat`、`/om prefect`、`/om setmail`、`/om migrate`、`/om mainCityShop` 等。
+    *   另有 `logger`（向控制台输出分级日志）、`saydata`（脚本间数据通信）等高权限命令。
 
 ### 4. 自研假箱子 UI 系统 (`Game/BoxUI.js`)
 这是本插件的技术亮点之一。由于 BDS 传统脚本引擎没有原生的 UI 容器接口，我们利用 **GMLIB** 伪造了箱子数据包来实现“点击交互”：
@@ -146,6 +182,13 @@ QYServer.zip
 
 *   Data/AIMemory.json —— AI 对话的上下文记忆数组
 *   Data/cdk.json —— 兑换码库与使用记录
+*   Data/BlockLock.json —— 领地方块锁数据（键=坐标，值=上锁者 XUID）
+
+此外还有纯文本 / 配置类文件：
+
+*   Data/issues.txt —— 玩家反馈问题日志（由 `index.js` 的 `/issues` 追加写入）
+*   Config/BiomeName.json —— 群系英文 ID 到中文名的映射表（供 `ShowBiome.js` 读取）
+*   Config/mail.js / Config/config.js / Config/env.js / Config/knowledgeBase.js —— 邮件模板、核心配置、环境变量与 AI 知识库
 
 #### B. 键值对数据库（KVDatabase）
 用于海量玩家数据的场景，底层使用 LevelDB 存储引擎，支持高性能读写。使用此方式的有：
@@ -188,6 +231,62 @@ LevelDB 的日志和清单文件会在服务端关闭时自动回收，确保数
 | | ScoreChanged.js | 金币/蜡烛数值变动实时提示；正负增量可视化 |
 | | ShowBiome.js | 定时检测群系变化并显示中文名称；3秒刷新一次 |
 | | WorldBorder.js | 基于坐标的边界围栏系统；越界自动回弹安全位置 |
+
+***
+
+## 📜 命令一览
+
+插件注册了大量命令，可分为「直接命令」与「`/om` 功能项」两类。
+
+### 直接命令（玩家 / 后台）
+
+| 命令 | 权限 | 说明 |
+| :--- | :--- | :--- |
+| `/sinfo` | Any | 查询服务器运行状态（TPS / 内存 / 在线 / 数据文件大小等） |
+| `/msgui` | Any | 打开快捷私聊菜单 |
+| `/msg <玩家> <内容>` | Any | 向指定玩家发送私聊 |
+| `/me` | Any | 查看自身设备、延迟、模式等详细信息 |
+| `/fc` | Any | 开关自由飞行视角 |
+| `/chattag` | Any | 切换已拥有的聊天称号 |
+| `/offhand` | Any | 主手与副手物品交换 |
+| `/helmet` | Any | 主手与头盔物品交换 |
+| `/scale [倍数]` | Any | 自定义玩家体型大小（1–35） |
+| `/nodeui`（`/server`） | Any | 在多个高速线路节点间切换 |
+| `/tpserver`（`/qyserver`） | Any | 前往创造服 / 小游戏服等其他服务器 |
+| `/issues [内容]` | Any | 反馈问题（写入 `Data/issues.txt` 并邮件通知管理） |
+| `/mail` | Any | 查看 / 领取邮件与附件 |
+| `/cdk [兑换码]` | Any | 兑换码系统 |
+| `/onmode`（`/om`） | Any | 触发一个功能项（见下表） |
+| `/logger <模式> <文本>` | GameMasters | 向控制台输出分级日志 |
+| `/saydata <密钥> <模式> <数据>` | GameMasters | 脚本间数据通信 |
+| `testfor [--type\|--player]` | 后台 | 诊断全服 / 玩家附近实体分布 |
+| `reload` | OP | 热重载（触发 `noChat` 标记跳过启动问候） |
+
+### `/om` 功能项（部分）
+
+| 功能项 | 权限 | 说明 |
+| :--- | :--- | :--- |
+| `/om help` | Any | 列出所有可用功能项 |
+| `/om new` | Any | 重新打开新手指南（仅主世界） |
+| `/om meSet` | Any | 打开个人设置（群系提示 / 每日一言 / 横扫之刃等开关） |
+| `/om xpfix` | Any | 经验修补手持装备 |
+| `/om rc` | Any | 强制刷新客户端区块 |
+| `/om firework` | Any | 消耗 50 蜡烛发射烟花 |
+| `/om musicMenu` | Any | 打开钢琴 UI |
+| `/om voteweather` | Any | 发起切换天气投票 |
+| `/om giveskin` | Any | 打开皮肤商店 |
+| `/om boxui <id>` | Any | 打开指定假箱子 UI（如鞘翅商店） |
+| `/om disitem <add\|remove\|list>` | Any | 广播 / 查看手持物品展示 |
+| `/om mainCityShop` | Any | 打开主城商店（蜡烛 / 金币） |
+| `/om aichat <give\|rua>` | Any | 投喂 / rua 服务器娘实体 |
+| `/om pltime` | Any | 查询玩家加入时间（今日 / 历史 / 模糊搜索） |
+| `/om prefect` | Any | 社区风纪管理（举报 / 投票踢人 / 禁言 / 强制踢出） |
+| `/om setmail` | Any | 邮箱绑定流程 |
+| `/om migrate` | Any | 跨 XUID 账户自助迁移 |
+| `/om elytraShop <密钥>` | 密钥 | 600 蜡烛购买鞘翅皮肤 |
+| `/om fuckcost` | Any | 去除主手物品附魔惩罚 |
+| `/om crash` / `/om killme` | Any | 恶搞崩溃 / 回出生点 |
+| `/om tpch` / `/om getNbt` / `/om setNbt` / `/om getbin` | OP | 区块传送 / NBT 读写 / 地图画转化 |
 
 ***
 
@@ -284,5 +383,7 @@ LevelDB 的日志和清单文件会在服务端关闭时自动回收，确保数
 > 技术会进化，但想让服务器变得更好的决心不会变。辛苦了，异世界旅人。  
 
 ***
+
+README最后更新时间：26/08/27
 
 **爱来自凌凌 ❤ 遇境等你回家**
