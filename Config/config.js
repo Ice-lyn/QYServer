@@ -205,6 +205,21 @@ export const config = {
         maxTokens: 5000,
         temperature: 1.3,
 
+        giveitem: [
+            "cod", // 鱼
+            "salmon", // 鱼
+            "fish", // 鱼
+            "cooked", // 烤肉
+            "apple", // 苹果
+            "carrot", // 肉
+            "cake", // 蛋糕
+            "potato", // 土豆
+            "honey", // 蜂蜜
+            "mushroom", // 蘑菇
+            "melon", // 西瓜
+            "beetroot" // 天才跟
+        ],
+
         // 联网搜索相关
         web_url: "https://uapis.cn/api/v1/search/aggregate",
         web_key: env.web_key,

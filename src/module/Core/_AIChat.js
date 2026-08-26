@@ -1,29 +1,63 @@
-import config from "../../../Config/config.js";
+import { config } from "../../../Config/config.js";
 import * as func from "../../lib/func.js";
 import axios from "axios";
 
 const AIMemory = new JsonConfigFile("./plugins/QYServer/Data/AIMemory.json", '{"memory": []}');
 const isDebug = false;
+const chatList = [];
 let tools = {};
+
+const AICanItem = [
+    "cod", // 鱼
+    "salmon", // 鱼
+    "fish", // 鱼
+    "cooked", // 烤肉
+    "apple", // 苹果
+    "carrot", // 肉
+    "cake", // 蛋糕
+    "potato", // 土豆
+    "honey", // 蜂蜜
+    "mushroom", // 蘑菇
+    "melon", // 西瓜
+    "beetroot" // 天才跟
+];
+
+const AIGiveNum = new Map();
+const AIActionNum = new Map();
+const AIAction = {
+    giveItem: (player, item) => {
+        if (item.isNull()) return player.tell("你没有拿起食物呢...");
+        if (AIGiveNum.get(player.xuid) >= 10) return player.tell("唔...不想吃了...");
+        if (!item.type.some(type => AICanItem.includes(type)))
+            return player.tell("谢谢啦 服务器娘似乎不想吃这个东西呢~");
+
+        item.setNull();
+        player.refreshItems();
+
+        mc.broadcast(`${player.realName} 投喂服务器娘${item.count}个 ${item.name}(${item.type})`);
+        ll.imports("QQChatEx", "onSendChat")(`${player.realName} 投喂服务器娘${item.count}个 ${item.name}(${item.type})`);
+        AIChat(`${player.realName} 投喂你${item.count}个 ${item.name}(${item.type})，你可以使用give指令回礼，本次是否可以回礼：${func.probability(40)}`, "System", true);
+        AIGiveNum.set(player.xuid, (AIGiveNum.get(player.xuid) || 0) + 1);
+    }
+};
+
 
 // === 触发 === //
 
-const chatList = [];
 mc.listen("onChat", async (player, msg) => {
     if (msg[0] !== "+"
         && ["ai", "兮兮", "服务", "妈", "操"].some(i => msg.includes(i))
-    ) AIChat(msg, { name: player.realName });
+    ) AIChat(msg, player.realName);
     chatList.push(`[${(new Date()).toLocaleString('zh-CN', { hour12: false })}]${player.realName} >> ${msg}`);
     if (chatList.length > 100) chatList.shift();
 });
 
 mc.listen("onConsoleCmd", (cmd) => {
     if (!cmd.startsWith("aichat ")) return;
-    AIChat(cmd.slice(7), { say: false });
+    AIChat(cmd.slice(7), null, false, true);
     return false;
 });
 
-const AIGiveCD = new Set();
 mc.listen("onPlayerInteractEntity", (player, entity) => {
     if (!(entity?.type === "qys:riru"
         && !AICallCD.has(player.xuid)
@@ -33,92 +67,73 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
     setTimeout(() => AICallCD.delete(player.xuid), 1000);
 
     const item = player.getHand();
-    if (player.isSneaking) {
-        if (item.isNull()) return player.tell("你没有拿起食物呢...");
-        if (AIGiveCD.has(player.xuid)) return player.tell("唔...吃不下了...");
-        if (!item.type.some(type => config.AIChat.giveitem.includes(type)))
-            return player.tell("谢谢啦 兮兮似乎不想吃这个东西呢~");
-
-        item.setNull();
-        player.refreshItems();
-
-        mc.broadcast(`${player.realName} 投喂服务器娘${item.count}个 ${item.name}(${item.type})`);
-        ll.imports("QQChatEx", "onSendChat")(`${player.realName} 投喂服务器娘${item.count}个 ${item.name}(${item.type})`);
-        AIChat(
-            `${player.realName} 投喂你${item.count}个 ${item.name}(${item.type})，你可以使用give指令回礼，本次是否可以回礼：${func.probability(40)}`,
-            { name: "System", isSystem: true }
-        );
-
-        AIGiveCD.add(player.xuid);
-        setTimeout(() => AIGiveCD.delete(player.xuid), 1000);
-
-    } else {
+    if (player.isSneaking && item && item.type.some(type => AICanItem.includes(type)))
+        AIAction.giveItem(player, item);
+    else {
         func.enRuncmd(entity, "function function/pat");
         func.enRuncmd(entity, "execute anchored eyes run particle minecraft:heart_particle ~~0.5~");
     }
 });
 
+const AICallCD = new Set();
+func.addOnmodeCmd("aichat", (player, cmd) => {
+    return
+    if (AICallCD.has(player.xuid))
+        return player.tell("冷却中...");
+
+    AICallCD.add(player.xuid);
+    setTimeout(() => AICallCD.delete(player.xuid), 500);
+
+    switch (cmd[0]) {
+        case "give":
+            AIAction.giveItem(player, player.getHand());
+            break;
+        case "rua":
+            AIAction.rua(player);
+            break;
+        default:
+            player.tell("未知参数，请使用 /om aichat give 或 /om aichat rua");
+            break;
+    }
+});
+
 
 // === AICalls === //
-
-function AIChat(msg, status) {
-    status = {
-        name: status.name ?? "",
-        say: status.noSay ?? true,
-        isSystem: status.isSystem ?? false,
-    }
+function AIChat(msg, name = null, isSystemMsg = false, noSay = false, debug = false) {
     const timeStr = new Date().toLocaleString('zh-CN', { hour12: false });
-    if (status.isSystem)
-        msg = `[${name}][aichat-key-104960014] ${msg}`;
-    else
-        msg = `[${timeStr}]${name} >> ${func.textToEmoji(msg, 1)}`
+    if (isSystemMsg) msg = `[${name}][aichat-key-104960014] ${msg}`;
+    msg = `[${timeStr}]${name} >> ${func.textToEmoji(msg, 1)}`;
 
-    callAI(msg, async (msg, res) => {
-        // === Token Info === //
-        const usage = res?.data?.usage;
-        if (usage) {
-            const {
-                prompt_tokens,
-                prompt_cache_hit_tokens,
-                prompt_cache_miss_tokens,
-                completion_tokens,
-                total_tokens
-            } = usage;
+    callAPI(msg, (msg, res) => {
+        if (debug) logger.warn(JSON.stringify(res, (key, value) => {
+            if (key === 'request' || key === 'config' || key === 'headers') return undefined;
+            if (typeof value === 'bigint') return value.toString();
+            return value;
+        }, 4));
 
-            // 一大坨的价格计算
-            const money = (prompt_cache_hit_tokens / 1000000 * 0.1) // 命中
-                + (prompt_cache_miss_tokens / 1000000 * 3) // 未命中
-                + (completion_tokens / 1000000 * 9) // 输出
-                + ((total_tokens - (completion_tokens
-                    + prompt_cache_hit_tokens
-                    + prompt_cache_miss_tokens
-                ) / 1000000) * 3);
+        const totalUsage = res.data.usage;
+        const tokenCost = ((totalUsage.completion_tokens || 0) / 1000000) * 9
+            + ((totalUsage.prompt_cache_miss_tokens || 0) / 1000000) * 3
+            + ((totalUsage.prompt_cache_hit_tokens || 0) / 1000000) * 0.1;
+        func.titleLog.info("AIToken", `Token消耗 (预计: ${tokenCost.toFixed(6)} 元)`
+            + `\n  ├─ 输入: ${totalUsage.prompt_tokens || 0}`
+            + `\n  │  ├─ 命中: ${totalUsage.prompt_cache_hit_tokens || 0}`
+            + `\n  │  └─ 未命中: ${totalUsage.prompt_cache_miss_tokens || 0}`
+            + `\n  ├─ 输出: ${totalUsage.completion_tokens || 0}`
+            + `\n  └─ 总计: ${totalUsage.total_tokens || 0}`
+        );
+        // func.titleLog.info("AISend", msg);
 
-            func.titleLog.info("AIToken", `📊 Token消耗 (预计消耗 ${money} ¥)`
-                + `\n  ├─ 输入: ${prompt_tokens}`
-                + (prompt_cache_hit_tokens
-                    ? `\n  │ ├─ 命中: ${prompt_cache_hit_tokens}`
-                    : ""
-                )
-                + (prompt_cache_miss_tokens
-                    ? `\n  │ └─ 未命中: ${prompt_cache_miss_tokens || 0}`
-                    : ""
-                )
-                + `\n  ├─ 输出: ${completion_tokens}`
-                + `\n  └─ 总计: ${total_tokens}`
-                + `\n=================`
-            );
-        };
-
-        // === Message === //
         if (msg.includes("[falseChat]")) return;
         const msgList = msg.replace(/\n\n/g, '\n').split("\n");
-        for (let i = 0; i < msgList.length; i++) {
-            const msg = msgList[i];
-            if (!status.noSay) mc.runcmd(`say ${func.str2say(msg)}`);
-            func.titleLog.info("AISend", msg);
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
+        (async () => {
+            for (let i = 0; i < msgList.length; i++) {
+                const msg = msgList[i];
+                if (!noSay) mc.runcmd(`say ${func.str2say(msg)}`);
+                func.titleLog.info("AISend", msg);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        })();
     })
 }
 
@@ -210,8 +225,7 @@ async function callAPI(data, callback = (() => { }), canAddMemory = true) {
     }
 }
 
-// === memory === //
-
+// === 记忆 === //
 function addMemory(role, content, tool_calls = null, tool_call_id = null) {
     const memory = getMemory()
     const message = { role, content };
@@ -249,7 +263,7 @@ tools = ((tools) => {
                     properties: {
                         command: {
                             type: "string",
-                            description: "完整MC指令",
+                            description: "完整MC指令, 可用：" + [...config.AIChat.cmdList].join(", "),
                         }
                     },
                     required: ["command"]
@@ -285,28 +299,12 @@ tools = ((tools) => {
         call: (query) => {
             const uuid = data.name2uuid(query);
             if (!uuid) return toolResult = ["无法查找玩家信息，请检查玩家名称是否正确或完整"];
-
-            const playerNbt = mc.getPlayerNbt(uuid);
-
-            const time = playerNbt
-                ?.getTag("DynamicProperties")
-                ?.getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
-                ?.getData("usfV2:id") ?? 0;
-
-            const diePos = new IntPos(
-                playerNbt.getData("DeathDimension"),
-                playerNbt.getData("DeathPositionX"),
-                playerNbt.getData("DeathPositionY"),
-                playerNbt.getData("DeathPositionZ"),
-            );
-
             return [
                 `玩家名称：${query}`,
-                `加入时间：${new Date(time).toLocaleString('zh-CN', { hour12: false })}`,
+                `加入时间：${queryPlayerTime(query)}`,
                 `货币：${mc.getPlayerScore(uuid, "金币")}金币, ${mc.getPlayerScore(uuid, "蜡烛")}蜡烛`,
                 `击杀数：${mc.getPlayerScore(uuid, "击杀数")}`,
-                `在线时间：${mc.getPlayerScore(uuid, "time")} 分钟`,
-                `死亡地点: ${diePos}`
+                `在线时间：${mc.getPlayerScore(uuid, "time")} 分钟`
             ]
         }
     },
@@ -470,4 +468,12 @@ function AIQuery(query, data, maxResults = 10) {
 
     if (results.length === 0) return [];
     return maxResults === -1 ? results : results.slice(0, maxResults);
+}
+
+// 查询玩家加入时间
+function queryPlayerTime(name) {
+    return mc.getPlayerNbt(data.name2uuid(name))
+        ?.getTag("DynamicProperties")
+        ?.getTag("9472c503-5a92-43c8-7ddf-0492de2362d7")
+        ?.getData("usfV2:id") ?? 0
 }
