@@ -2,7 +2,7 @@ import * as func from "../../lib/func.js";
 import axios from "axios";
 
 // 加入
-mc.listen("onJoin", (player) => {
+mc.listen("onJoin", async (player) => {
     if (func.isNull(player)
         || player.isSimulatedPlayer()
     ) return;
