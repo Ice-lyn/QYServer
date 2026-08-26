@@ -536,7 +536,7 @@ mc.listen('onServerStarted', () => {
             "运行时间: %server_uptime%s",
             "实体总数: %server_total_entities%",
             "============= 数据文件相关 =============",
-            `数据库玩家数：${data.getAllPlayerInfo().length} 人`,
+            `数据库玩家数：${data?.getAllPlayerInfo()?.length} 人`,
             `已加载插件数：${ll.listPlugins().length} 个`,
             `领地数据文件大小：${func.getFileSize(File.getFileSize("./plugins/iland/data.json"))}`,
             `成就数据文件大小：${func.getFileSize(File.getFileSize("./plugins/Achievement/Data.json"))}`,
