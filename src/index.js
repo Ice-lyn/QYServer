@@ -90,6 +90,7 @@ mc.listen("onDestroyBlock", (player, block) => {
 
     if ((block.type === "minecraft:trial_spawner" || block.type === "minecraft:mob_spawner")
         && block.hasBlockEntity()
+        && func.probability(50)
     ) {
         const eggType = block.getBlockEntity()?.getNbt()?.getData("EntityIdentifier");
         if (eggType) {
