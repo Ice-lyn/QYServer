@@ -69,9 +69,9 @@ function AIChat(msg, status) {
     }
     const timeStr = new Date().toLocaleString('zh-CN', { hour12: false });
     if (status.isSystem)
-        msg = `[${name}][aichat-key-104960014] ${msg}`;
+        msg = `[${status.name}][aichat-key-104960014] ${msg}`;
     else
-        msg = `[${timeStr}]${name} >> ${func.textToEmoji(msg, 1)}`
+        msg = `[${timeStr}]${status.name} >> ${func.textToEmoji(msg, 1)}`
 
     callAI(msg, async (msg, res) => {
         // === Token Info === //
