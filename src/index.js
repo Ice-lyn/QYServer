@@ -92,7 +92,11 @@ mc.listen("onDestroyBlock", (player, block) => {
         && block.hasBlockEntity()
     ) {
         const eggType = block.getBlockEntity()?.getNbt()?.getData("EntityIdentifier");
-        if (eggType) mc.spawnItem(mc.newItem(`${eggType}_spawn_egg`, 1).setLore(["* 刷怪笼掉落物品"]), block.pos);
+        if (eggType) {
+            const item = mc.newItem(`${eggType}_spawn_egg`, 1);
+            item.setLore(["* 刷怪笼掉落物品"]);
+            mc.spawnItem(item, block.pos);
+        }
     }
 })
 
