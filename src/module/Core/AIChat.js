@@ -73,7 +73,7 @@ function AIChat(msg, status) {
     else
         msg = `[${timeStr}]${status.name} >> ${func.textToEmoji(msg, 1)}`
 
-    callAI(msg, async (msg, res) => {
+    callAPI(msg, async (msg, res) => {
         // === Token Info === //
         const usage = res?.data?.usage;
         if (usage) {
