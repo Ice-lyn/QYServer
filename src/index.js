@@ -516,6 +516,17 @@ mc.listen('onServerStarted', () => {
         });
     }, config.wordtime * 60 * 1000);
 
+    // 光环耐久扣除
+    setInterval(() => {
+        mc.getOnlinePlayers().forEach(player => {
+            if (player.hasTag("qys:in:afk")) return;
+            const item = player.getArmor().getItem(0);
+            if (!player.hasTag("tag:§r§l§d爱心§e捐§a助§b者§r")
+                && (item?.type.startsWith("qys:hoshino_") || item?.type.startsWith("qys:shiroko_"))
+            ) item.setDamage(Math.max(0, item.damage + 1)) && player.refreshItems();
+        })
+    }, 60 * 1000);
+
     // 假死检查
     // setInterval(() => File.writeTo("./in_run.bin", "" + Date.now()), 5 * 60 * 1000)
 })
