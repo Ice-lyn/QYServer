@@ -92,9 +92,9 @@ const mailData = {
             ) available.push(mail);
         })
 
-        const data = available.sort((a, b) => b.time - a.time);
-        mailDataMap.set(xuid, data);
-        return data;
+        const datas = available.sort((a, b) => b.time - a.time);
+        mailDataMap.set(xuid, datas);
+        return datas;
     }
 }
 
