@@ -68,7 +68,7 @@ function showBindEmailForm(player) {
         const email = data[0];
         if (!email || !email.includes('@')) {
             player.tell("§c邮箱格式不正确，请重新输入！");
-            return showBindEmailForm(pl);
+            return showBindEmailForm(player);
         }
         player.tell("发送邮件中...")
         sendVerifyCode(player, email);
