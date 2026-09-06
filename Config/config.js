@@ -16,7 +16,7 @@ export const config = {
     // 风纪委员列表
     prefect: {
         2535441456906455: {
-            name: "fangfubin0782",
+            name: "Icelyn0782",
             email: "Ice_rink@qyserver.cc",
             qq: 1669044502
         },
