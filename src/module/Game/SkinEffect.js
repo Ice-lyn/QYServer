@@ -24,14 +24,25 @@ const skinEffectData = { // 皮肤特效配置
     }
 }
 
-// 玩家退出
+// 加入
+mc.listen("onJoin", (player) => {
+    if (!player?.inWorld) return;
+
+    const beforeSkin = getBeforeSkin(player);
+    if (beforeSkin)
+        setSkinEffect(player, beforeSkin);
+})
+
+// 退出
 mc.listen("onLeft", (player) => beforeSkinMap.delete(player.xuid));
 
 // 玩家移除效果事件
 mc.listen("onRespawn", (player) => {
     const beforeSkin = getBeforeSkin(player);
-    if (beforeSkin) setSkinEffect(player, beforeSkin, 1);
-    else if (beforeSkin === -1) player.addEffect(14, 9999999, 1, false)
+    if (beforeSkin >= 1)
+        setSkinEffect(player, beforeSkin, 1);
+    else if (beforeSkin === -1)
+        player.addEffect(14, 9999999, 1, false)
 })
 
 // 皮肤装备相关
