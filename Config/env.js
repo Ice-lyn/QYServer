@@ -7,7 +7,9 @@ export const env = {
     },
 
     // DS 的密钥
-    deepseek_key: "sk-KFCcrazyDay4Vme50quickly",
+    aichat_key: "sk-KFCcrazyDay4Vme50quickly",
+    aichat_url: "https://api.deepseek.com/chat/completions",
+
 
     // 联网搜索key
     web_key: "uapi-KFCcrazyDay4Vme50quickly",

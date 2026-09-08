@@ -200,8 +200,8 @@ export const config = {
     // AI相关
     AIChat: {
         name: "deepseek-v4-flash",
-        key: env.deepseek_key,
-        url: "https://api.deepseek.com/chat/completions",
+        key: env.aichat_key,
+        url: env.aichat_url,
         maxTokens: 5000,
         temperature: 1.3,
 
