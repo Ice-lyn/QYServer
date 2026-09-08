@@ -64,9 +64,10 @@ mc.listen("onPlayerInteractEntity", (player, entity) => {
 function AIChat(msg, status) {
     status = {
         name: status.name ?? "",
-        say: status.noSay ?? true,
+        say: status.say ?? true,
         isSystem: status.isSystem ?? false,
     }
+    // logger.info(status);
     const timeStr = new Date().toLocaleString('zh-CN', { hour12: false });
     if (status.isSystem)
         msg = `[${status.name}][aichat-key-104960014] ${msg}`;
