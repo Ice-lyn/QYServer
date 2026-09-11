@@ -25,12 +25,7 @@ mc.listen("onConsoleCmd", (cmd) => {
 
 const AIGiveCD = new Set();
 mc.listen("onPlayerInteractEntity", (player, entity) => {
-    if (!(entity?.type === "qys:riru"
-        && !AICallCD.has(player.xuid)
-    )) return;
-
-    AICallCD.add(player.xuid);
-    setTimeout(() => AICallCD.delete(player.xuid), 1000);
+    if (!entity?.type === "qys:riru") return;
 
     const item = player.getHand();
     if (player.isSneaking) {
