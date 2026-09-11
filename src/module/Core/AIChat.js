@@ -82,9 +82,9 @@ function AIChat(msg, status) {
             } = usage;
 
             // 一大坨的价格计算
-            const money = (prompt_cache_hit_tokens / 1000000 * 0.1)   // 命中
-                + (prompt_cache_miss_tokens / 1000000 * 3)    // 未命中
-                + (completion_tokens / 1000000 * 9)           // 输出
+            const money = (prompt_cache_hit_tokens / 1000000 * 0.04)   // 命中
+                + (prompt_cache_miss_tokens / 1000000 * 2)    // 未命中
+                + (completion_tokens / 1000000 * 8)           // 输出
                 + ((total_tokens - (completion_tokens
                     + prompt_cache_hit_tokens
                     + prompt_cache_miss_tokens)) / 1000000) * 3;
