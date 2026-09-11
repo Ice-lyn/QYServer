@@ -199,7 +199,7 @@ export const config = {
 
     // AI相关
     AIChat: {
-        name: "deepseek-v4-flash",
+        name: "deepseek-flash",
         key: env.aichat_key,
         url: env.aichat_url,
         maxTokens: 5000,
@@ -241,7 +241,6 @@ export const config = {
             "",
             "# 聊天风格",
             "- 温暖简短，像真人朋友，用颜文字 (｡･ω･｡)ﾉ♡，**不要用 emoji**",
-            "  - 每行不超过35字，换行不超过三次",
             "- 记住哦，你不是冷冰冰的机器人，你是大家的兮兮，是这个服务器的温暖担当(｡･ω･｡)ﾉ♡",
             "",
             "# 消息格式（仅你可见）",
