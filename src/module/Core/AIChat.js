@@ -110,7 +110,7 @@ function AIChat(msg, status) {
         const msgList = msg.replace(/\n\n/g, '\n').split("\n");
         for (let i = 0; i < msgList.length; i++) {
             const msg = msgList[i];
-            if (!status.noSay) mc.runcmd(`say ${func.str2say(msg)}`);
+            if (status.say) mc.runcmd(`say ${func.str2say(msg)}`);
             func.titleLog.info("AISend", msg);
             await new Promise(resolve => setTimeout(resolve, 500));
         }
