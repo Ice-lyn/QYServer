@@ -11,7 +11,7 @@ try {
         .filter(([key]) => Object.prototype.hasOwnProperty.call(func, key))
         .forEach(([key, value]) => {
             if (typeof value === 'function')
-                ll.exports(value, "QYServer", key) && load_ok++;
+                ll.exports(value, "QYServer", key) && loadOk++;
             else
                 func.titleLog.warn("QYExports", `${key} 不是函数！跳过导出...`);
         });
