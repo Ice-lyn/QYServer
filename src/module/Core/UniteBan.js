@@ -3,9 +3,7 @@ import axios from "axios";
 
 // 加入
 mc.listen("onJoin", async (player) => {
-    if (func.isNull(player)
-        || player.isSimulatedPlayer()
-    ) return;
+    if (player?.isSimulatedPlayer()) return;
 
     try {
         const device = player.getDevice();

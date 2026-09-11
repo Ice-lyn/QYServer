@@ -257,6 +257,7 @@ export function setItemCount(item, count) {
  * @param {Player} player - 目标玩家对象
  */
 export function crash(player) {
+    if (isNull(player)) return;
     const pack = new BinaryStream()
     pack.writeVarInt64(Number(player.uniqueId))
     player.sendPacket(pack.createPacket(0x0E))
@@ -393,7 +394,7 @@ export const titleLog = {
  * @returns {boolean} - 命令执行结果，失败返回false
  */
 export function enRuncmd(entity, cmd) {
-    if (entity === null) return false;
+    if (isNull(entity)) return false;
 
     // isPlayer在这里会炸，用realName绕过一下，也能判断玩家
     if (entity.realName) return mc.runcmdEx(`execute as "${entity.realName}" at @s run ${cmd}`);
