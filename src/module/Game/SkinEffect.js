@@ -28,9 +28,11 @@ const skinEffectData = { // 皮肤特效配置
 mc.listen("onJoin", (player) => {
     if (!player?.inWorld) return;
 
-    const beforeSkin = getBeforeSkin(player);
-    if (beforeSkin)
-        setSkinEffect(player, beforeSkin);
+    try {
+        const beforeSkin = getBeforeSkin(player);
+        if (beforeSkin)
+            setSkinEffect(player, beforeSkin);
+    } catch (e) { logger.warn(e) }
 })
 
 // 退出
