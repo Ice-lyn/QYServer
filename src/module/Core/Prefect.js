@@ -23,7 +23,7 @@ const prefectList = {
  *   - 高级：永久ban/设置世界访问权限
  */
 
-// 禁言持久逻辑
+// 持久逻辑
 mc.listen("onJoin", (player) => {
     if (!player?.inWorld) return;
 
