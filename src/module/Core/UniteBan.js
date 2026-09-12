@@ -28,8 +28,7 @@ mc.listen("onJoin", async (player) => {
         const banMsg = [
             `玩家 ${player.realName} 命中公共云黑，已处理...`,
             `  - 封禁原因: ${res.ban.reason}`,
-            `  - 来源服务器: ${res.ban.server_name}`,
-            `  - `
+            `  - 来源服务器: ${res.ban.server_name}`
         ].join("\n");
 
         player.crash() || func.crash(player);
