@@ -3,7 +3,9 @@ import axios from "axios";
 
 // 加入
 mc.listen("onJoin", async (player) => {
-    if (player?.isSimulatedPlayer()) return;
+    if (player?.isSimulatedPlayer()
+        || player.getScore("time") > 50
+    ) return;
 
     try {
         const res = (await axios.get(
