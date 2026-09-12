@@ -34,8 +34,9 @@ mc.listen("onJoin", async (player) => {
         ].join("\n");
 
         player.crash() || func.crash(player);
-        player.kick(banMsg) || mc.runcmdEx(`kick "${res.player_name}" ${banMsg}`);
-        logger.titleLog.warn("UniteBan", banMsg);
+        if (player)
+            player.kick(banMsg) || mc.runcmdEx(`kick "${res.player_name}" ${banMsg}`);
+        func.titleLog.warn("UniteBan", banMsg);
         mc.broadcast(banMsg);
     } catch (e) {
         func.titleLog.warn("UniteBan", e.toString())
