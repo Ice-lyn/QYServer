@@ -82,6 +82,12 @@ mc.listen("onLeft", (player) => {
     mc.runcmdEx(`kill @e[type=qys:ride,name="qys:rideing_${player.realName}"]`)
 })
 
+// 玩家钓鱼事件
+mc.listen("onPlayerPullFishingHook", (player, entity, item) => {
+    if (entity?.type === "qys:message" && !player.isOP())
+        return false;
+})
+
 // 玩家破坏方块完成
 mc.listen("onDestroyBlock", (player, block) => {
     if (block.type === "minecraft:budding_amethyst"
