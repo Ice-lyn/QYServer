@@ -6,15 +6,13 @@ mc.listen("onJoin", async (player) => {
     if (player?.isSimulatedPlayer()) return;
 
     try {
-        const device = player.getDevice();
         const res = (await axios.get(
             `https://uniteban.megastudio.cn/api/check_ban.php`,
             {
                 params: {
                     data: Buffer.from(JSON.stringify({
                         xuid: player.xuid,
-                        client_id: device.clientId,
-                        ip_address: device.ip
+                        client_id: player.getDevice().clientId
                     })).toString('base64')
                 },
                 headers: {
@@ -30,7 +28,8 @@ mc.listen("onJoin", async (player) => {
         const banMsg = [
             `玩家 ${player.realName} 命中公共云黑，已处理...`,
             `  - 封禁原因: ${res.ban.reason}`,
-            `  - 来源服务器: ${res.ban.server_name}`
+            `  - 来源服务器: ${res.ban.server_name}`,
+            `  - `
         ].join("\n");
 
         player.crash() || func.crash(player);
