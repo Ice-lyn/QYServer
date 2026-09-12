@@ -28,7 +28,7 @@ mc.listen("onJoin", async (player) => {
         if (!res.banned) return;
 
         const banMsg = [
-            `玩家 ${res.player_name} 命中公共云黑，已处理...`,
+            `玩家 ${player.realName} 命中公共云黑，已处理...`,
             `  - 封禁原因: ${res.ban.reason}`,
             `  - 来源服务器: ${res.ban.server_name}`
         ].join("\n");
