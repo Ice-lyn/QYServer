@@ -1126,6 +1126,28 @@ const keyCmd = { // 输入密钥可以用
                 }
             }
         )
+    },
+    elytraUse: (player, cmd) => {
+        if (cmd[1] !== "elytra-use-0000-10496") return;
+
+        player.sendSimpleForm(
+            "§l§d鞘翅衣柜", "",
+            elytraItemList.use.text, elytraItemList.use.textures,
+            (player, id) => {
+                if (func.isNull(id)) return;
+                const elytraData = player.getAllTags()
+                    .filter(tag => tag.startsWith("qys_data:elytra:"))
+                    .reduce((acc, tag) => [...acc, ...JSON.parse((tag.length > 16 ? tag.slice(16) : "[]"))], []);
+
+                if (elytraData.indexOf(id) === -1 && id !== 0)
+                    func.enRuncmd(player, "playsound mob.villager.no @s ~~~ 100 1 100");
+                else {
+                    func.enRuncmd(player, "playsound random.orb @s");
+                    func.enRuncmd(player, `scriptevent qys:cmd property qys:elytra_color ${id}`);
+                }
+                keyCmd.elytraUse(player, cmd);
+            }
+        )
     }
 }
 
