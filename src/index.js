@@ -623,10 +623,21 @@ mc.listen('onServerStarted', () => {
     const cmd = mc.newCommand('helmet', '§a头部盔甲切换', PermType.Any);
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (!ori.player) return;
+
         const player = ori.player;
-        if (player.getHand()?.getNbt()?.getTag("tag")?.getData("PickUp")) return out.error("请放下搬运物再使用吧");
-        const itemBak = player.getHand().clone();
-        player.getHand().set(player.getArmor().getItem(0));
+        const item = player.getHand();
+
+        if ([
+            "minecraft:wolf_armor", // 浪凯
+        ].includes(item.type)) return out.error("这个物品暂时不支持戴到头上哦")
+        if (item
+            ?.getNbt()
+            ?.getTag("tag")
+            ?.getData("PickUp")
+        ) return out.error("请放下搬运物再使用吧");
+
+        const itemBak = item.clone();
+        item.set(player.getArmor().getItem(0));
         player.getArmor().getItem(0).set(itemBak);
         player.refreshItems();
         player.tell("§a已交换头盔与主手物品\n§a您可能需要切换快捷栏来刷新物品", 3);
