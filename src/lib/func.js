@@ -262,8 +262,12 @@ export function crash(player) {
     pack.writeVarInt64(Number(player.uniqueId))
     player.sendPacket(pack.createPacket(0x0E))
     setTimeout(() => {// 如果玩家没有被崩掉，就直接踢
-        if (player)
-            player.despawn() || player.kick("服务器发送了破损的数据包")
+        if (!player?.inWorld) return;
+        try { 
+            player.despawn()
+        } catch {
+            player.kick("服务器发送了破损的数据包")
+        }
     }, 100)
     logger.warn(`向 ${player.realName} 发送客户端崩溃请求...`)
 }
