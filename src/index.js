@@ -1049,33 +1049,54 @@ const playerCmd = {// 玩家可以用
 };
 
 const elytraItemList = {
+    shop: {
+        textures: [
+            "textures/items/dye_powder_black_new",
+            "textures/items/dye_powder_blue_new",
+            "textures/items/dye_powder_light_blue",
+            "textures/items/dye_powder_green",
+            "textures/items/dye_powder_lime",
+            "textures/items/dye_powder_yellow",
+            "textures/items/dye_powder_gray",
+            "textures/items/dye_powder_white_new",
+            "textures/items/dye_powder_silver",
+            "textures/items/dye_powder_magenta",
+            "textures/items/dye_powder_purple",
+            "textures/items/dye_powder_pink",
+            "textures/items/dye_powder_orange",
+            "textures/items/dye_powder_brown_new",
+            "textures/items/dye_powder_cyan",
+            "textures/items/dye_powder_red"
+        ],
+        text: [
+            "§l§0黑色鞘翅", "§l§9蓝色鞘翅",
+            "§l§b淡蓝色鞘翅", "§l§2绿色鞘翅",
+            "§l§a黄绿色鞘翅", "§l§e黄色鞘翅",
+            "§l§7灰色鞘翅", "§l§f白色鞘翅",
+            "§l§7淡灰色鞘翅", "§l§d品红色鞘翅",
+            "§l§5紫色鞘翅", "§l§d粉红色鞘翅",
+            "§l§6橙色鞘翅", "§l§6棕色鞘翅",
+            "§l§b青色鞘翅", "§l§c红色鞘翅"
+        ]
+    },
+    use: {}
+};
+elytraItemList["use"] = {
     textures: [
-        "textures/items/dye_powder_black_new",
-        "textures/items/dye_powder_blue_new",
-        "textures/items/dye_powder_light_blue",
-        "textures/items/dye_powder_green",
-        "textures/items/dye_powder_lime",
-        "textures/items/dye_powder_yellow",
-        "textures/items/dye_powder_gray",
-        "textures/items/dye_powder_white_new",
-        "textures/items/dye_powder_silver",
-        "textures/items/dye_powder_magenta",
-        "textures/items/dye_powder_purple",
-        "textures/items/dye_powder_pink",
-        "textures/items/dye_powder_orange",
-        "textures/items/dye_powder_brown_new",
-        "textures/items/dye_powder_cyan",
-        "textures/items/dye_powder_red"
+        "textures/items/elytra",
+        ...elytraItemList.shop.textures,
+        "textures/items/feather",
+        "textures/blocks/dragon_egg",
+        "textures/items/phantom_membrane",
+        "textures/items/dragon_head"
     ],
     text: [
-        "§l§0黑色鞘翅", "§l§9蓝色鞘翅",
-        "§l§b淡蓝色鞘翅", "§l§2绿色鞘翅",
-        "§l§a黄绿色鞘翅", "§l§e黄色鞘翅",
-        "§l§7灰色鞘翅", "§l§f白色鞘翅",
-        "§l§7淡灰色鞘翅", "§l§d品红色鞘翅",
-        "§l§5紫色鞘翅", "§l§d粉红色鞘翅",
-        "§l§6橙色鞘翅", "§l§6棕色鞘翅",
-        "§l§b青色鞘翅", "§l§c红色鞘翅"
+        "原版鞘翅",
+        ...elytraItemList.shop.text,
+        "§f羽毛鞘翅",
+        "§5末影龙翅膀",
+        "§7幻翼鞘翅",
+        "§b末影龙翅膀 Pro"
     ]
 };
 
@@ -1084,7 +1105,7 @@ const keyCmd = { // 输入密钥可以用
         if (cmd[1] !== "elytra-shop-0000-10496") return;
         player.sendSimpleForm(
             "§l§b鞘翅商店", "购买一个你喜欢的颜色的鞘翅吧！\n§b价格：600蜡烛",
-            elytraItemList.text, elytraItemList.textures,
+            elytraItemList.shop.text, elytraItemList.shop.textures,
             (player, id) => {
                 if (func.isNull(id)) return;
                 const elytraData = player.getAllTags()
