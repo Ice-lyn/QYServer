@@ -6,7 +6,6 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
      */
     Core: [
         "AIChat.js", // AI聊天相关
-        // "AIPlayer.js",
         "JoinTime.js", // 加入时间相关
         "Mail.js", // 邮件系统
         "MobSummon.js", // 实体生成
@@ -23,7 +22,6 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
      */
     Game: [
         "BlockLock.js", // 领地方块锁
-        // "BoxUI.js", // 箱子UI
         "CloudLift.js", // 云朵电梯
         "Doll.js", // 玩偶
         "EnderDragonEx.js", // 更凶猛的末影龙
