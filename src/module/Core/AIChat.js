@@ -25,13 +25,13 @@ mc.listen("onConsoleCmd", (cmd) => {
 
 const AIGiveCD = new Set();
 mc.listen("onPlayerInteractEntity", (player, entity) => {
-    if (!entity?.type === "qys:riru") return;
+    if (entity?.type !== "qys:riru") return;
 
     const item = player.getHand();
     if (player.isSneaking) {
         if (item.isNull()) return player.tell("你没有拿起食物呢...");
         if (AIGiveCD.has(player.xuid)) return player.tell("唔...吃不下了...");
-        if (!item.type.some(type => config.AIChat.giveitem.includes(type)))
+        if (!config.AIChat.giveitem.some(type => item.type.includes(type)))
             return player.tell("谢谢啦 兮兮似乎不想吃这个东西呢~");
 
         item.setNull();
