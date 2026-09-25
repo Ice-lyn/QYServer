@@ -491,7 +491,7 @@ mc.listen("onUseItemOn", (player, item, block) => {
     onUseItemOnCd.add(player.xuid) && setTimeout(() => onUseItemOnCd.delete(player.xuid), 40);
 
     const rotate = { 0: 90, 1: -90, 2: 180, 3: 0 }[block?.getNbt()?.getTag("states")?.getData("weirdo_direction")] || 0;
-    mc.runcmdEx(`execute at "${player.realName}" as @e[type=qys:ride,rm=0.01,name="qys:rideing_${player.realName}"] run cleaner despawn @s`);
+    mc.runcmdEx(`execute at "${player.realName}" as @e[type=qys:ride,rm=0.01,name="qys:rideing_${player.realName}"] run kill @s`);
     mc.runcmdEx(`execute at "${player.realName}" run summon qys:ride "qys:rideing_${player.realName}" ${block.pos.x} ${block.pos.y} ${block.pos.z}`);
     mc.runcmdEx(`execute as @e[type=qys:ride,name="qys:rideing_${player.realName}"] at @s run tp ~~~ ${rotate}`);
     mc.runcmdEx(`tag @e[type=qys:ride,name="qys:rideing_${player.realName}"] add qys:ride_player`);
