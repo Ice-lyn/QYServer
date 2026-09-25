@@ -18,8 +18,10 @@ mc.listen("onChat", async (player, msg) => {
 });
 
 mc.listen("onConsoleCmd", (cmd) => {
-    if (!cmd.startsWith("aichat ")) return;
-    AIChat(cmd.slice(7), { say: false });
+    if (cmd.startsWith("aichatex "))
+        AIChat(cmd.slice(9));
+    else if (cmd.startsWith("aichat "))
+        AIChat(cmd.slice(7), { say: false });
     return false;
 });
 
