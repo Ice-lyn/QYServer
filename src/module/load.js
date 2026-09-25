@@ -7,6 +7,7 @@ const lib_list = Object.entries({ // 我不管 反正好看 看的舒服
     Core: [
         "AIChat.js", // AI聊天相关
         "JoinTime.js", // 加入时间相关
+        "ListSync.js", // 列表同步
         "Mail.js", // 邮件系统
         "MobSummon.js", // 实体生成
         "Prefect.js", // 社区风纪系统

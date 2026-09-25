@@ -9,6 +9,7 @@ const listNameSet = new Set();
 
 client.on("error", e => func.titleLog.warn("ListSync", "无法连接Java服务器数据库!", e));
 client.connect(() => {
+    logger.warn("连接...")
     setInterval(async () => {
         try {
             let names = [];
@@ -29,7 +30,7 @@ client.connect(() => {
         } catch (e) {
             func.titleLog.warn("ListSync", e.toString())
         }
-    }, 30 * 1000)
+    }, 10 * 1000)
 })
 
 ll.onUnload(() => {
@@ -44,11 +45,13 @@ ll.onUnload(() => {
 })
 
 function addNameList(name, xuid = "0") {
+    logger.info("add player name to list: " + name);
     Minecraft.addFakeList(`JE-${name}`, xuid);
     listNameSet.add(name)
 }
 
 function delNameList(name) {
+    logger.info("remove player name in list: " + name);
     Minecraft.removeFakeList(`JE-${name}`);
     listNameSet.delete(name);
 }
