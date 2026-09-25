@@ -2,6 +2,7 @@ const scoreCache = {};
 
 mc.listen("onLeft", (player) => delete scoreCache[player.xuid]);
 mc.listen("onJoin", (player) => {
+    if (!player?.inWorld) return;
     scoreCache[player.xuid] = {
         金币: player.getScore("金币"),
         蜡烛: player.getScore("蜡烛")
