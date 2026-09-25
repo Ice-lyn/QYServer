@@ -116,7 +116,7 @@ mc.listen("onRide", (rider, mount) => {
 
 // 活塞尝试推动
 mc.listen("onPistonTryPush", (_pos, block) => {
-    if (block.type.includes("shulker_box")) return false;
+    if (block.type === "minecraft:dropper") return false;
 })
 
 // 活塞推动
