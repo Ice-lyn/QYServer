@@ -8,7 +8,10 @@ const cdkData = new JsonConfigFile("./plugins/QYServer/Data/cdk.json");
         const cdk = res.cdk;
         const player = ori.player;
 
-        if (func.isNull(player)) return out.error("找不到，怎么找也找不到！");
+        if (func.isNull(player)) 
+            return out.success(
+                JSON.stringify((cdkData.get(cdk.toUpperCase()) ?? {}), null, 4)
+            );
         if (!func.isNull(cdk)) return useCDK(player, cdk);
 
         const fm = mc.newCustomForm()
