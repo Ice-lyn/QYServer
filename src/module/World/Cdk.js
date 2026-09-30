@@ -19,7 +19,7 @@ const cdkData = new JsonConfigFile("./plugins/QYServer/Data/cdk.json");
             .addLabel("可以在这里输入你获取到的兑换码!")
             .addInput("请输入你的兑换码:");
 
-        player.sendForm(fm, (pl, res) => {
+        player.sendForm(fm, (player, res) => {
             if (func.isNull(res)) return;
             useCDK(player, res[1]);
         });
@@ -41,8 +41,6 @@ function useCDK(player, cdk) {
     };
 
     if (data.usePlayers.includes(player.name)) return player.tell("你已经兑换过了！");
-
-    log(data)
 
     if (data.use === -1) { // 无限次
         giveCdkPacks(player, data);
