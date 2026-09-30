@@ -36,6 +36,7 @@ const mailData = {
                 title: mail.title, // 标题
                 content: mail.content, // 内容
                 days: mail.days ?? false, // 有效期
+                player: mail.player || [], // 指定玩家
 
                 items: mail.items || [], // 附件
 
@@ -78,6 +79,10 @@ const mailData = {
 
         const available = [];
         mailData.getAllMail().forEach(mail => {
+            // 指定玩家邮件
+            if (mail.player.length > 0 && !mail.player.includes(xuid))
+                return;
+
             const expireTime = mail.days
                 ? mail.time + (mail.days * 86400000)
                 : Infinity;
