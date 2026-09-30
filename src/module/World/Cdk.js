@@ -26,6 +26,7 @@ const cdkData = new JsonConfigFile("./plugins/QYServer/Data/cdk.json");
 }
 
 function useCDK(player, cdk) {
+    cdk = cdk.toUpperCase();
     let data = cdkData.get(cdk) ?? null;
     if (!data) return player.tell("该CDK不存在！");
 
