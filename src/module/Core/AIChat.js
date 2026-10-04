@@ -18,11 +18,13 @@ mc.listen("onChat", async (player, msg) => {
 });
 
 mc.listen("onConsoleCmd", (cmd) => {
-    if (cmd.startsWith("aichatex "))
+    if (cmd.startsWith("aichatex ")) {
         AIChat(cmd.slice(9));
-    else if (cmd.startsWith("aichat "))
+        return false;
+    } else if (cmd.startsWith("aichat ")) {
         AIChat(cmd.slice(7), { say: false });
-    return false;
+        return false;
+    }
 });
 
 const AIGiveCD = new Set();
