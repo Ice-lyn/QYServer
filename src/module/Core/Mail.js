@@ -37,6 +37,7 @@ const mailData = {
                 content: mail.content, // 内容
                 days: mail.days ?? false, // 有效期
                 player: mail.player || [], // 指定玩家
+                textures: mail.textures ?? false, // 图标
 
                 items: mail.items || [], // 附件
 
