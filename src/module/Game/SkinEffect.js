@@ -29,9 +29,19 @@ mc.listen("onJoin", (player) => {
     if (!player?.inWorld) return;
 
     try {
-        const beforeSkin = getBeforeSkin(player);
-        if (beforeSkin)
-            setSkinEffect(player, beforeSkin);
+        const beforeSkin = Number(
+            player.getAllTags()
+                ?.find(t => t.startsWith('qys:beforeSkin_'))
+                ?.split('_')?.[1] || 0
+        );
+
+        if (beforeSkin) {
+            if (player.getArmor().getItem(0).type?.split('_')?.[1] == beforeSkin)
+                setSkinEffect(player, beforeSkin);
+            else
+                player.removeTag(`qys:beforeSkin_${beforeSkin}`);
+        }
+            
     } catch (e) { logger.warn(e) }
 })
 
