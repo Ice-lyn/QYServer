@@ -1,3 +1,4 @@
+import { addBehaviorLog } from "../../lib/func.js";
 const scoreCache = {};
 
 mc.listen("onLeft", (player) => delete scoreCache[player.xuid]);
@@ -20,7 +21,7 @@ mc.listen("onScoreChanged", (player, newScore, name) => {
 
     cache[name] = newScore;
     player.tell(`§e${name}§r ${delta > 0 ? "+" : ""}${delta}`, 5);
-    func.addBehaviorLog(2, "onScoreChanged", player.realName, player.pos,
+    addBehaviorLog(2, "onScoreChanged", player.realName, player.pos,
         `${name}经济变更：${`${delta}`[0] == "-" ? delta : "+" + delta}`
     );
 })
