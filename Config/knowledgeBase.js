@@ -90,7 +90,7 @@ export const knowledgeBase = [
     "规则-私下交易: 因私下交易造成的损失服务器概不负责,请使用安全区域进行交易",
 
     "团队成员: weishao22 (腐竹,提供服务器、网站与域名,属性: 猫娘、M、爱被电,游戏ID: weishao22,GitHub: github.com/weishao22)",
-    "团队成员: 冰凌 (服务器运维与插件开发,GitHub: github.com/Ice-rink)",
+    "团队成员: 冰凌 (服务器运维、插件与模组开发,苦逼护理系医学生大概率没时间上线,GitHub: github.com/Ice-lyn)",
     "团队成员: 无水氯化钠 (服务器建筑担当与玩家调解员,游戏ID: cmxtz0852, yhxtz0852)",
 
     "开源项目: 服务器网页 Qy-server (https://github.com/weishao22/Qy-server)",
