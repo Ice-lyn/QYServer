@@ -94,9 +94,9 @@ export const knowledgeBase = [
     "团队成员: 无水氯化钠 (服务器建筑担当与玩家调解员,游戏ID: cmxtz0852, yhxtz0852)",
 
     "开源项目: 服务器网页 Qy-server (https://github.com/weishao22/Qy-server)",
-    "开源项目: QY核心插件 QYServer (https://github.com/Ice-rink/QYServer)",
-    "开源项目: 运维文档 QYDocs (https://github.com/Ice-rink/QYDocs)",
-    "开源项目: QQ机器人插件 Spark-Plugins-Hub (https://github.com/Ice-rink/Spark-Plugins-Hub)",
+    "开源项目: QY核心插件 QYServer (https://github.com/Ice-lyn/QYServer)",
+    "开源项目: 运维文档 QYDocs (https://github.com/Ice-lyn/QYDocs)",
+    "开源项目: QQ机器人插件 Spark-Plugins-Hub (https://github.com/Ice-lyn/Spark-Plugins-Hub)",
 
     "指令 /bdslm -- 卫星图菜单",
     "指令 /cd -- 打开主菜单",
