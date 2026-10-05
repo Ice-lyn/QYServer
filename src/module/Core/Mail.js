@@ -30,7 +30,7 @@ const mailData = {
     // 获取所有邮件
     getAllMail: () => {
         return (mailList || [])
-            .filter(({id}) => id !== undefined)
+            .filter(({ id }) => id !== undefined)
             .map(mail => ({
                 id: mail.id, // id
                 title: mail.title, // 标题
@@ -124,6 +124,66 @@ mc.listen("onJoin", (player) => {
     });
     cmd.overload([]);
     cmd.setup();
+}
+
+{
+    // 有效 id 集合（JSON 存的对象 key 是字符串，统一转 String 比较）
+    const validIds = new Set(
+        mailData.getAllMail().map(m => String(m.id))
+    );
+
+    let keys;
+    try {
+        keys = playerMailDB.listKey(); // KVDatabase 全部键
+    } catch (e) {
+        func.titleLog.warn("Mail", "清理", " 无法获取玩家数据键列表: ", e);
+    }
+    if (keys && keys.length !== 0) {
+        let cleanedPlayers = 0;
+        let cleanedRecords = 0;
+
+        for (const xuid of keys) {
+            try {
+                const raw = playerMailDB.get(xuid);
+                if (!raw) continue;
+
+                const playerData = JSON.parse(raw);
+                let changed = false;
+
+                for (const field of ["read", "collected"]) {
+                    const map = playerData[field];
+                    if (!map || typeof map !== "object") continue;
+
+                    for (const id of Object.keys(map)) {
+                        if (!validIds.has(id)) {
+                            delete map[id];
+                            cleanedRecords++;
+                            changed = true;
+                        }
+                    }
+                }
+
+                if (changed) {
+                    playerMailDB.set(xuid, JSON.stringify(playerData));
+                    cleanedPlayers++;
+                }
+            } catch (e) {
+                func.titleLog.warn("Mail", "清理", ` 玩家 ${xuid} 数据解析失败: `, e);
+            }
+        }
+
+        // 清理后同步失效缓存
+        mailDataMap.clear();
+
+        if (cleanedRecords > 0) {
+            func.titleLog.info(
+                "Mail", "清理",
+                `启动清理完成：清理 ${cleanedPlayers} 位玩家的 ${cleanedRecords} 条失效邮件记录`
+            );
+        }
+    }
+
+
 }
 
 
