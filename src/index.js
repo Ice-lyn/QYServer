@@ -302,12 +302,17 @@ mc.listen("onUseItemOn", (player, item, block, side, pos) => {
 // 玩家使用物品
 mc.listen("onUseItem", (player, item) => {
     if (item.type === "qys:sky_wing") {
-        if (player.maxHealth <= 60) return player.tell("[§aTip§r] 您的光翼已达上限(" + player.maxHealth + "/60)");
+        if (player.maxHealth <= 60)
+            return player.tell("[§aTip§r] 您的光翼已达上限(" + player.maxHealth + "/60)");
         player.setMaxHealth(player.maxHealth + 1);
-        player.tell("" + func.enRuncmd(player, "playsound random.orb @s").output);
-        return player.clearItem("qys:sky_wing", 1);
+        func.enRuncmd(player, "playsound random.orb @s");
+        player.clearItem("qys:sky_wing", 1) || func.enRuncmd(player, "clear @s qys:sky_wing 1");
+        return;
     }
-    if (item.type === "qys:magic") return func.enRuncmd(player, "playsound custom.magic_use_sound @a[r=10] ~~~");
+
+    if (item.type === "qys:magic")
+        return func.enRuncmd(player, "playsound custom.magic_use_sound @a[r=10] ~~~");
+
     if (player.isSneaking
         && !item?.isNull()
         && item.damage !== 0
