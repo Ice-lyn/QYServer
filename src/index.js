@@ -263,6 +263,15 @@ mc.listen("onPlaceBlock", (player, block) => {
     }
 })
 
+// 玩家挖掘方块
+mc.listen("onDestroyBlock", (player, block) => {
+    if (!player.isCreative && block.type === "minecraft:crafter") {
+        block.removeBlockEntity();
+        block.destroy(true);
+        return false;
+    }
+})
+
 // 玩家对方块使用物品
 mc.listen("onUseItemOn", (player, item, block, side, pos) => {
     // 颜料给方块染色
