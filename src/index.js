@@ -84,7 +84,7 @@ mc.listen("onLeft", (player) => {
 
 // 玩家钓鱼事件
 mc.listen("onPlayerPullFishingHook", (player, entity, item) => {
-    if (entity?.type === "qys:message")
+    if (entity?.type === "qys:message" && !player.isOP())
         return false;
 })
 
